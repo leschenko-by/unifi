@@ -15,7 +15,7 @@ namespace Unifi.Gateway
 
     public class DiscoveryService : BackgroundService
     {
-        private readonly long startTime = DateTime.Now.Ticks;
+        private readonly DateTime startTime = DateTime.Now;
         private readonly IOptions<DiscoveryServiceOptions> options;
 
         public DiscoveryService(IOptions<DiscoveryServiceOptions> options)
@@ -51,14 +51,14 @@ namespace Unifi.Gateway
 
         private byte[] BuildDatagram(int broadcastIndex, byte[] macAddress, byte[] ipAddress)
         {
-            var uptime = (int)(DateTime.Now.Ticks - startTime);
+            var uptime = (int)(DateTime.Now - startTime).TotalSeconds;
 
             var device = options.Value.Device;
             var firmware = options.Value.Firmware;
 
             var builder = new UnifyDatagramBuilder();
             builder.Add(1, macAddress);
-            builder.Add(2, [..macAddress, ..ipAddress]);
+            builder.Add(2, [.. macAddress, .. ipAddress]);
             builder.Add(3, Encoding.ASCII.GetBytes($"{device}.v{firmware}"));
             builder.Add(10, GetBytes(uptime));
             builder.Add(11, Encoding.ASCII.GetBytes("UBNT"));
