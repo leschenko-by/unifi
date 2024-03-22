@@ -4,7 +4,7 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
 
-namespace Unifi.Gateway
+namespace Unifi.Gateway.Services
 {
     public class DiscoveryServiceOptions
     {
@@ -37,13 +37,15 @@ namespace Unifi.Gateway
             var endPoint = new IPEndPoint(IPAddress.Parse("233.89.188.1"), 10001);
             var client = new UdpClient(new IPEndPoint(ipAddress, 0));
 
+            var periodic = new PeriodicTimer(TimeSpan.FromSeconds(1));
+
             int broadcastIndex = 0;
             while (!token.IsCancellationRequested)
             {
                 var datagram = BuildDatagram(broadcastIndex, macAddress, ipAddress.GetAddressBytes());
                 await client.SendAsync(datagram, datagram.Length, endPoint);
 
-                await Task.Delay(1000, token);
+                await periodic.WaitForNextTickAsync(token);
 
                 broadcastIndex = (broadcastIndex + 1) % 20;
             }
