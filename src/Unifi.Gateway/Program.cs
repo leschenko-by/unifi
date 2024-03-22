@@ -39,6 +39,7 @@ static async Task RunAsync(string[] args)
     builder.Services.Configure<DiscoveryServiceOptions>(builder.Configuration.GetSection("DiscoveryService"));
     builder.Services.AddHostedService<DiscoveryService>();
     builder.Services.AddHostedService<InformService>();
+    builder.Services.AddSystemd();
     var app = builder.Build();
     app.MapGet("/", () => Results.Text("Ok"));
     await app.RunAsync();
