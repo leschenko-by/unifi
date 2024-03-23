@@ -1,5 +1,8 @@
 using System.Text.Json;
+using Unifi.Gateway.Common.Interfaces;
+using Unifi.Gateway.Common.Services;
 using Unifi.Gateway.Json;
+using Unifi.Gateway.Options;
 using Unifi.Gateway.Services;
 
 if (args.Length > 0)
@@ -26,7 +29,8 @@ static async Task SetAdopt(string[] args)
     var options = new AdoptOptions
     {
         InformUrl = args[1],
-        Key = args[2]
+        Key = args[2],
+        Adopted = false
     };
     var json = JsonSerializer.Serialize(options, SourceGenerationContext.Default.AdoptOptions);
     Directory.CreateDirectory("/etc/unifi");
@@ -36,9 +40,16 @@ static async Task SetAdopt(string[] args)
 static async Task RunAsync(string[] args)
 {
     var builder = WebApplication.CreateSlimBuilder(args);
-    builder.Services.Configure<DiscoveryServiceOptions>(builder.Configuration.GetSection("DiscoveryService"));
+    builder.Services.Configure<GeneralServiceOptions>(builder.Configuration.GetSection("DiscoveryService"));
+    builder.Services.AddTransient<IRequestEncoder, RequestEncoder>();
+    builder.Services.AddTransient<IRequestDecoder, RequestDecoder>();
+    builder.Services.AddTransient<IUnifiDevice, UnifiGatewayDevice>();
     builder.Services.AddHostedService<DiscoveryService>();
     builder.Services.AddHostedService<InformService>();
+    builder.Services.AddHttpClient("inform", client =>
+    {
+        client.DefaultRequestHeaders.Add("User-Agent", "AirControl Agent v1.0");
+    });
     builder.Services.AddSystemd();
     var app = builder.Build();
     app.MapGet("/", () => Results.Text("Ok"));

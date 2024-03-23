@@ -3,25 +3,15 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
+using Unifi.Gateway.Options;
 
 namespace Unifi.Gateway.Services
 {
-    public class DiscoveryServiceOptions
-    {
-        public string Device { get; set; } = "UGW3";
-        public string Firmware { get; set; } = "4.4.44.5213871";
-        public string NetworkId { get; set; } = string.Empty;
-    }
 
-    public class DiscoveryService : BackgroundService
+    public class DiscoveryService(IOptions<GeneralServiceOptions> options) : BackgroundService
     {
         private readonly DateTime startTime = DateTime.Now;
-        private readonly IOptions<DiscoveryServiceOptions> options;
-
-        public DiscoveryService(IOptions<DiscoveryServiceOptions> options)
-        {
-            this.options = options;
-        }
+        private readonly IOptions<GeneralServiceOptions> options = options;
 
         protected override async Task ExecuteAsync(CancellationToken token)
         {

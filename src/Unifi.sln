@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34701.34
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unifi.Gateway", "Unifi.Gateway\Unifi.Gateway.csproj", "{8D2235E9-81B8-4BED-9092-F1B50ACD2E65}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Unifi.Gateway", "Unifi.Gateway\Unifi.Gateway.csproj", "{8D2235E9-81B8-4BED-9092-F1B50ACD2E65}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unifi.Tests", "Unifi.Tests\Unifi.Tests.csproj", "{6EB11BCD-8BAE-4305-805A-56E08EF36E5D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{8D2235E9-81B8-4BED-9092-F1B50ACD2E65}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8D2235E9-81B8-4BED-9092-F1B50ACD2E65}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8D2235E9-81B8-4BED-9092-F1B50ACD2E65}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6EB11BCD-8BAE-4305-805A-56E08EF36E5D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6EB11BCD-8BAE-4305-805A-56E08EF36E5D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6EB11BCD-8BAE-4305-805A-56E08EF36E5D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6EB11BCD-8BAE-4305-805A-56E08EF36E5D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

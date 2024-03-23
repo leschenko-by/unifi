@@ -3,6 +3,11 @@
     public class AdoptOptions
     {
         public string InformUrl { get; set; } = string.Empty;
+
         public string Key { get; set; } = string.Empty;
+
+        public bool Adopted { get; set; }
+
+        public string ConfigVersion { get; set; } = string.Empty;
     }
 }
