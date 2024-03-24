@@ -57,19 +57,33 @@ namespace Unifi.Gateway.Common.Services
 
         public string GetInformMessage()
         {
-            var message = CreateBaseInform();
-            message["sys_stats"] = GetSysStats();
-            message["system-stats"] = GetSystemStats();
+            var message = new JsonObject();
             if (configuration.Adopted == true)
             {
-                message["discovery_response"] = true;
-                message["state"] = 1;
+                throw new NotImplementedException();
             }
             else
             {
-                message["discovery_response"] = false;
-                message["state"] = 2;
+                message["mac"] = string.Join(":", MacAddress.Select(t => t.ToString("x2")));
+                message["ip"] = IPAddress.ToString();
+                message["model"] = DeviceName;
+                message["model-display"] = DeviceDisplayName;
+                message["version"] = Firmware;
             }
+
+            //var message = CreateBaseInform();
+            //message["sys_stats"] = GetSysStats();
+            //message["system-stats"] = GetSystemStats();
+            //if (configuration.Adopted == true)
+            //{
+            //    message["discovery_response"] = true;
+            //    message["state"] = 1;
+            //}
+            //else
+            //{
+            //    message["discovery_response"] = false;
+            //    message["state"] = 2;
+            //}
             return message.ToString();
         }
 

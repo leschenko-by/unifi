@@ -20,7 +20,7 @@ namespace Unifi.Gateway.Services
         {
             var httpClient = httpClientFactory.CreateClient();
 
-            var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+            var timer = new PeriodicTimer(TimeSpan.FromSeconds(10));
             while (!token.IsCancellationRequested)
             {
                 device.LoadConfigration();
@@ -34,13 +34,16 @@ namespace Unifi.Gateway.Services
                         logger.LogInformation("Sending inform to {InformUrl}", informUrl);
 
                         var message = device.GetInformMessage();
+                        logger.LogInformation("Sending inform message: {Message}", message);
+
                         var data = Encoding.UTF8.GetBytes(message);
-                        var body = encoder.Encode(data, key, device.MacAddress, true, EncryptMode.Gcm);
+                        var body = encoder.Encode(data, key, device.MacAddress, true, EncryptMode.Cbc);
 
                         var request = CreateRequestMessage(informUrl, body);
                         var reponse = await httpClient.SendAsync(request, token);
                         body = await reponse.Content.ReadAsByteArrayAsync(token);
 
+                        logger.LogInformation("Received message size: {Size}", body.Length);
                         //Directory.CreateDirectory("/usr/src/unifi/logs");
                         //var logFile = Path.Combine("/usr/src/unifi/logs", DateTime.Now.ToString("yyyy-MM-ddTHH-mm-ss") + ".json");
                         //await File.WriteAllBytesAsync(logFile, body);

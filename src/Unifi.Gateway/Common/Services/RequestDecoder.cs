@@ -26,7 +26,10 @@ namespace Unifi.Gateway.Common.Services
                 if ((flags & 0x08) != 0) // GCM
                 {
                     using var aes = new AesGcm(key, 16);
-                    var nonce = iv.AsSpan()[..12];
+
+                    // need convert 16 bytes to 12 bytes
+                    // current implementation is wrong
+                    var nonce = iv.AsSpan()[..12].ToArray();
 
                     byte[] cipherText = payload[0..^16];
                     byte[] tag = payload[^16..];

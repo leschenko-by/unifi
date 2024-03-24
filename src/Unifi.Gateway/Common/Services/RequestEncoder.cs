@@ -33,7 +33,11 @@ namespace Unifi.Gateway.Common.Services
                     encoded.Write(BitConverter.GetBytes(payload.Length + 16).Reverse().ToArray());
                     using (var aes = new AesGcm(key, 16))
                     {
-                        var nonce = iv.AsSpan()[..12];
+                        // need convert 16 bytes to 12 bytes
+                        // current implementation is wrong
+                        // todo: read about GHASH
+                        var nonce = iv.AsSpan()[..12].ToArray();
+
                         byte[] cipherText = new byte[payload.Length];
                         byte[] tag = new byte[16];
 
