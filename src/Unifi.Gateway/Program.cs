@@ -26,13 +26,13 @@ static async Task SetAdopt(string[] args)
     {
         Console.WriteLine("Usage: set-adopt http://controller-ip-address:8080/inform encryptionkey");
     }
-    var options = new AdoptOptions
+    var options = new Configuration
     {
         InformUrl = args[1],
         Key = args[2],
         Adopted = false
     };
-    var json = JsonSerializer.Serialize(options, SourceGenerationContext.Default.AdoptOptions);
+    var json = JsonSerializer.Serialize(options, SourceGenerationContext.Default.Configuration);
     Directory.CreateDirectory("/etc/unifi");
     await File.WriteAllTextAsync("/etc/unifi/config.json", json);
 }
@@ -45,6 +45,7 @@ static async Task RunAsync(string[] args)
     builder.Services.AddTransient<IRequestDecoder, RequestDecoder>();
     builder.Services.AddTransient<INetworkInfoService, NetworkInfoService>();
     builder.Services.AddTransient<IConfigurationReader, ConfigurationReader>();
+    builder.Services.AddTransient<IConfigurationWriter, ConfigurationWriter>();
     builder.Services.AddTransient<IUnifiDevice, UnifiGatewayDevice>();
     builder.Services.AddHostedService<DiscoveryService>();
     builder.Services.AddHostedService<InformService>();

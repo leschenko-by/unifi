@@ -6,16 +6,16 @@ namespace Unifi.Gateway.Common.Services
 {
     public class ConfigurationReader : IConfigurationReader
     {
-        public AdoptOptions LoadConfiguration()
+        public Configuration LoadConfiguration()
         {
             if (File.Exists("/etc/unifi/config.json"))
             {
                 var json = File.ReadAllText("/etc/unifi/config.json");
-                return JsonSerializer.Deserialize(json, SourceGenerationContext.Default.AdoptOptions)
-                    ?? new AdoptOptions();
+                return JsonSerializer.Deserialize(json, SourceGenerationContext.Default.Configuration)
+                    ?? new Configuration();
             }
 
-            return new AdoptOptions();
+            return new Configuration();
         }
     }
 }

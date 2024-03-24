@@ -4,6 +4,6 @@ namespace Unifi.Gateway.Common.Interfaces
 {
     public interface IConfigurationReader
     {
-        AdoptOptions LoadConfiguration();
+        Configuration LoadConfiguration();
     }
 }

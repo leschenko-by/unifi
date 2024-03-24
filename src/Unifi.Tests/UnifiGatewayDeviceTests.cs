@@ -29,7 +29,7 @@ namespace Unifi.Tests
 
             mocker.GetMock<IConfigurationReader>()
                 .Setup(t => t.LoadConfiguration())
-                .Returns(new AdoptOptions
+                .Returns(new Configuration
                 {
                     InformUrl = "http://192.168.2.12:8080/inform",
                     Key = "1e5385ae42f06ac27f768766f0e221ad",

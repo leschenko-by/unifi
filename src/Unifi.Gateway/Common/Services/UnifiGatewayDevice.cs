@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using System.Net;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using Unifi.Gateway.Common.Interfaces;
 using Unifi.Gateway.Json;
@@ -13,7 +14,9 @@ namespace Unifi.Gateway.Common.Services
 
         private readonly INetworkInfoService network;
         private readonly IConfigurationReader configurationReader;
-        private AdoptOptions configuration;
+        private readonly IConfigurationWriter configurationWriter;
+        private Configuration configuration;
+        private JsonObject? nextCommand = null;
 
         public byte[] MacAddress => network.MacAddress;
 
@@ -32,10 +35,12 @@ namespace Unifi.Gateway.Common.Services
         public UnifiGatewayDevice(
             INetworkInfoService network,
             IConfigurationReader configurationReader,
+            IConfigurationWriter configurationWriter,
             IOptions<GeneralServiceOptions> serviceOptions)
         {
             this.network = network;
             this.configurationReader = configurationReader;
+            this.configurationWriter = configurationWriter;
             DeviceName = serviceOptions.Value.Device;
             DeviceDisplayName = serviceOptions.Value.DisplayName;
             Firmware = serviceOptions.Value.Firmware;
@@ -50,25 +55,69 @@ namespace Unifi.Gateway.Common.Services
 
         public async Task UpdateAsync(string json)
         {
-            Directory.CreateDirectory("/usr/src/unifi/logs");
-            var logFile = Path.Combine("/usr/src/unifi/logs", DateTime.Now.ToString("yyyy-MM-ddTHH-mm-ss") + ".json");
-            await File.WriteAllTextAsync(logFile, json.ReplaceLineEndings());
+            nextCommand = null;
+
+            var data = JsonSerializer.Deserialize(json, SourceGenerationContext.Default.ResponseData);
+            if (data is not null)
+            {
+                switch (data.Command)
+                {
+                    case "setparam":
+                        if (!string.IsNullOrEmpty(data.MgmtCfg))
+                        {
+                            var lines = data.MgmtCfg.Split("\n", StringSplitOptions.RemoveEmptyEntries);
+                            if (lines.Length > 0)
+                            {
+                                configuration.MgmtCfg = lines;
+                            }
+                        }
+                        if (!string.IsNullOrEmpty(data.SystemCfg))
+                        {
+                            var lines = data.SystemCfg.Split("\n", StringSplitOptions.RemoveEmptyEntries);
+                            if (lines.Length > 0)
+                            {
+                                configuration.SystemCfg = lines;
+                            }
+                        }
+
+                        nextCommand = CreateBaseInform();
+                        nextCommand["inform_as_notif"] = true;
+                        nextCommand["notif_reason"] = "setparam";
+                        nextCommand["notif_payload"] = "";
+                        nextCommand["state"] = 0; // DS_ADOPTING
+                        if (configuration.Adopted != true)
+                        {
+                            nextCommand["discovery_response"] = true;
+                        }
+
+                        configuration.Adopted = true;
+                        break;
+                }
+            }
+
+            configurationWriter.SaveConfiguration(configuration);
+            await Task.CompletedTask;
         }
 
         public string GetInformMessage()
         {
+            if (nextCommand != null)
+            {
+                return nextCommand.ToString();
+            }
+
             var message = CreateBaseInform();
             message["sys_stats"] = GetSysStats();
             message["system-stats"] = GetSystemStats();
-            if (configuration.Adopted == true)
+            if (configuration.Adopted != true)
             {
                 message["discovery_response"] = true;
-                message["state"] = 1;
+                message["state"] = 1; // DS_UNKNOWN
             }
             else
             {
                 message["discovery_response"] = false;
-                message["state"] = 2;
+                message["state"] = 2; // DS_READY
             }
             return message.ToString();
         }
@@ -108,7 +157,7 @@ namespace Unifi.Gateway.Common.Services
                 ["board_rev"] = 33,
                 ["bootid"] = 1,
                 ["bootrom_version"] = "unifi-enlarge-buf.-1-g63fe9b5d-dirty",
-                ["cfgversion"] = configuration.ConfigVersion,
+                ["cfgversion"] = GetConfigVersion(),
                 ["default"] = false,
                 ["dualboot"] = true,
                 ["hash_id"] = Convert.ToHexString(MacAddress),
@@ -135,6 +184,20 @@ namespace Unifi.Gateway.Common.Services
                 ["connect_request_ip"] = IPAddress.ToString(),
                 ["connect_request_port"] = 57201,
             };
+
+            string GetConfigVersion()
+            {
+                if (string.IsNullOrEmpty(configuration.ConfigVersion))
+                {
+                    var version = configuration.MgmtCfg.FirstOrDefault(t => t.StartsWith("cfgversion="));
+                    if (version is not null)
+                    {
+                        return version.Split("=")[1];
+                    }
+                }
+
+                return configuration.ConfigVersion;
+            }
         }
     }
 }
