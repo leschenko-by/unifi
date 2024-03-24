@@ -23,7 +23,7 @@ namespace Unifi.Gateway.Services
             var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
             while (!token.IsCancellationRequested)
             {
-                await device.ReloadConfigsAsync();
+                device.LoadConfigration();
 
                 var informUrl = device.InformUrl;
                 var key = device.Key;

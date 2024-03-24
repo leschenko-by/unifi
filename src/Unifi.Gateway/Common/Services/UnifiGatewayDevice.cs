@@ -1,8 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
 using System.Net;
-using System.Net.NetworkInformation;
-using System.Net.Sockets;
-using System.Text.Json;
 using System.Text.Json.Nodes;
 using Unifi.Gateway.Common.Interfaces;
 using Unifi.Gateway.Json;
@@ -12,32 +9,43 @@ namespace Unifi.Gateway.Common.Services
 {
     public class UnifiGatewayDevice : IUnifiDevice
     {
-        private readonly NetworkInterface network;
-        private readonly IOptions<GeneralServiceOptions> serviceOptions;
-        private AdoptOptions? options;
+        private readonly DateTime startTime = DateTime.Now;
 
-        public byte[] MacAddress { get; }
+        private readonly INetworkInfoService network;
+        private readonly IConfigurationReader configurationReader;
+        private AdoptOptions configuration;
 
-        public string InformUrl => options?.InformUrl ?? string.Empty;
+        public byte[] MacAddress => network.MacAddress;
 
-        public byte[] Key => Convert.FromHexString(options?.Key ?? string.Empty);
+        public IPAddress IPAddress => network.IPAddress;
 
-        public UnifiGatewayDevice(IOptions<GeneralServiceOptions> serviceOptions)
+        public IPAddress Netmask => network.Netmask;
+
+        public string InformUrl => configuration.InformUrl;
+
+        public byte[] Key => Convert.FromHexString(configuration.Key);
+
+        public string DeviceName { get; }
+        public string DeviceDisplayName { get; }
+        public string Firmware { get; }
+
+        public UnifiGatewayDevice(
+            INetworkInfoService network,
+            IConfigurationReader configurationReader,
+            IOptions<GeneralServiceOptions> serviceOptions)
         {
-            var networks = NetworkInterface.GetAllNetworkInterfaces();
-            network = networks.First(network => network.Id == serviceOptions.Value.NetworkId);
+            this.network = network;
+            this.configurationReader = configurationReader;
+            DeviceName = serviceOptions.Value.Device;
+            DeviceDisplayName = serviceOptions.Value.DisplayName;
+            Firmware = serviceOptions.Value.Firmware;
 
-            MacAddress = network.GetPhysicalAddress().GetAddressBytes();
-            this.serviceOptions = serviceOptions;
+            configuration = configurationReader.LoadConfiguration();
         }
 
-        public async Task ReloadConfigsAsync()
+        public void LoadConfigration()
         {
-            if (File.Exists("/etc/unifi/config.json"))
-            {
-                var json = await File.ReadAllTextAsync("/etc/unifi/config.json");
-                options = JsonSerializer.Deserialize(json, SourceGenerationContext.Default.AdoptOptions);
-            }
+            configuration = configurationReader.LoadConfiguration();
         }
 
         public async Task UpdateAsync(string json)
@@ -49,8 +57,10 @@ namespace Unifi.Gateway.Common.Services
 
         public string GetInformMessage()
         {
-            var message = CerateInformMessage();
-            if (options?.Adopted == true)
+            var message = CreateBaseInform();
+            message["sys_stats"] = GetSysStats();
+            message["system-stats"] = GetSystemStats();
+            if (configuration.Adopted == true)
             {
                 message["discovery_response"] = true;
                 message["state"] = 1;
@@ -63,34 +73,34 @@ namespace Unifi.Gateway.Common.Services
             return message.ToString();
         }
 
-        private JsonObject CerateInformMessage()
-        {
-            var result = CreateBaseInform();
-            result["sys_stats"] = GetSysStats();
-            result["system-stats"] = GetSystemStats();
-
-            return result;
-        }
-
-        private static JsonObject GetSysStats() => new JsonObject
+        private JsonObject GetSysStats() => new JsonObject
         {
             ["loadavg_1"] = 0,
             ["loadavg_5"] = 0,
             ["loadavg_15"] = 0,
             ["mem_buffer"] = 0,
-            ["mem_total"] = 1,
-            ["mem_used"] = 1,
+            ["mem_total"] = 1073741824, // 1Gb
+            ["mem_used"] = 524288,      // 512Kb
         };
 
-        private static JsonObject GetSystemStats() => new JsonObject
+        private JsonObject GetSystemStats()
         {
-            ["cpu"] = 0,
-            ["mem"] = 0,
-            ["uptime"] = 0,
-        };
+            var uptime = (int)(DateTime.Now - startTime).TotalSeconds;
+
+            return new JsonObject
+            {
+                ["cpu"] = 0,
+                ["mem"] = 0.5,
+                ["uptime"] = uptime,
+            };
+        }
 
         private JsonObject CreateBaseInform()
         {
+            var uptime = (int)(DateTime.Now - startTime).TotalSeconds;
+
+            var utcNow = DateTimeOffset.UtcNow;
+            var time = utcNow.ToUnixTimeSeconds();
             var uri = new Uri(InformUrl);
             return new JsonObject
             {
@@ -98,33 +108,33 @@ namespace Unifi.Gateway.Common.Services
                 ["board_rev"] = 33,
                 ["bootid"] = 1,
                 ["bootrom_version"] = "unifi-enlarge-buf.-1-g63fe9b5d-dirty",
-                ["cfgversion"] = options?.ConfigVersion,
+                ["cfgversion"] = configuration.ConfigVersion,
                 ["default"] = false,
                 ["dualboot"] = true,
                 ["hash_id"] = Convert.ToHexString(MacAddress),
                 ["hostname"] = Dns.GetHostName(),
                 ["inform_ip"] = uri.Host,
                 ["inform_url"] = InformUrl,
-                ["ip"] = GetIPAddress().ToString(),
+                ["ip"] = IPAddress.ToString(),
                 ["isolated"] = false,
                 ["kernel_version"] = "4.1.20-ubnt",
                 ["locating"] = false,
                 ["mac"] = string.Join(":", MacAddress.Select(t => t.ToString("x2"))),
-                ["serial"] = Convert.ToHexString(MacAddress),
                 ["manufacturer_id"] = 4,
-                ["model"] = serviceOptions.Value.Device,
-                ["model_display"] = serviceOptions.Value.DisplayName,
-                ["version"] = serviceOptions.Value.Firmware,
-                ["connect_request_ip"] = GetIPAddress().ToString(),
-                ["connect_request_port"] = 57201,
-                ["required_version"] = "4.0.0",
+                ["model"] = DeviceName,
+                ["model_display"] = DeviceDisplayName,
+                ["netmask"] = Netmask.ToString(),
+                ["required_version"] = "3.4.1",
+                ["selfrun_beacon"] = true,
+                ["serial"] = Convert.ToHexString(MacAddress),
                 ["state"] = 2,
+                ["time"] = utcNow.ToUnixTimeSeconds(),
+                ["time_ms"] = utcNow.Millisecond,
+                ["uptime"] = uptime,
+                ["version"] = Firmware,
+                ["connect_request_ip"] = IPAddress.ToString(),
+                ["connect_request_port"] = 57201,
             };
         }
-
-        private IPAddress GetIPAddress() =>
-            (from address in network.GetIPProperties().UnicastAddresses
-             where address.Address.AddressFamily == AddressFamily.InterNetwork
-             select address.Address).First();
     }
 }

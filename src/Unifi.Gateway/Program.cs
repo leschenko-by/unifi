@@ -43,6 +43,8 @@ static async Task RunAsync(string[] args)
     builder.Services.Configure<GeneralServiceOptions>(builder.Configuration.GetSection("DiscoveryService"));
     builder.Services.AddTransient<IRequestEncoder, RequestEncoder>();
     builder.Services.AddTransient<IRequestDecoder, RequestDecoder>();
+    builder.Services.AddTransient<INetworkInfoService, NetworkInfoService>();
+    builder.Services.AddTransient<IConfigurationReader, ConfigurationReader>();
     builder.Services.AddTransient<IUnifiDevice, UnifiGatewayDevice>();
     builder.Services.AddHostedService<DiscoveryService>();
     builder.Services.AddHostedService<InformService>();

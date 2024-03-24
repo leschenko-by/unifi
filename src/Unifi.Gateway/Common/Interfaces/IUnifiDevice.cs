@@ -1,4 +1,6 @@
 ﻿
+using System.Net;
+
 namespace Unifi.Gateway.Common.Interfaces
 {
     public interface IUnifiDevice
@@ -6,9 +8,11 @@ namespace Unifi.Gateway.Common.Interfaces
         byte[] MacAddress { get; }
         string InformUrl { get; }
         byte[] Key { get; }
+        IPAddress IPAddress { get; }
+        IPAddress Netmask { get; }
 
         string GetInformMessage();
-        Task ReloadConfigsAsync();
+        void LoadConfigration();
         Task UpdateAsync(string json);
     }
 }
