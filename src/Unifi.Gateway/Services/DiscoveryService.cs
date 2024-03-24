@@ -50,11 +50,11 @@ namespace Unifi.Gateway.Services
             builder.Add(1, macAddress);
             builder.Add(2, [.. macAddress, .. ipAddress]);
             builder.Add(3, Encoding.ASCII.GetBytes($"{device}.v{firmware}"));
-            builder.Add(10, BitConverter.GetBytes(uptime));
+            builder.Add(10, BitConverter.GetBytes(uptime).Reverse().ToArray());
             builder.Add(11, Encoding.ASCII.GetBytes("UBNT"));
             builder.Add(12, Encoding.ASCII.GetBytes(device));
             builder.Add(19, macAddress);
-            builder.Add(18, BitConverter.GetBytes(broadcastIndex));
+            builder.Add(18, BitConverter.GetBytes(broadcastIndex).Reverse().ToArray());
             builder.Add(21, Encoding.ASCII.GetBytes(device));
             builder.Add(27, Encoding.ASCII.GetBytes(firmware));
             builder.Add(22, Encoding.ASCII.GetBytes(firmware));

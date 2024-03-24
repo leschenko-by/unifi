@@ -18,9 +18,9 @@ namespace Unifi.Gateway.Common.Services
             encoded.Write(Encoding.ASCII.GetBytes("TNBU"));
             encoded.Write(BitConverter.GetBytes(0));
             encoded.Write(mac);
-            encoded.Write(BitConverter.GetBytes(flags));
+            encoded.Write(BitConverter.GetBytes(flags).Reverse().ToArray());
             encoded.Write(iv);
-            encoded.Write(BitConverter.GetBytes(1));
+            encoded.Write(BitConverter.GetBytes(1).Reverse().ToArray());
 
             if (compress)
             {
@@ -30,7 +30,7 @@ namespace Unifi.Gateway.Common.Services
             switch (encrypt)
             {
                 case EncryptMode.Gcm:
-                    encoded.Write(BitConverter.GetBytes(payload.Length + 16));
+                    encoded.Write(BitConverter.GetBytes(payload.Length + 16).Reverse().ToArray());
                     using (var aes = new AesGcm(key, 16))
                     {
                         var nonce = iv.AsSpan()[..12];
@@ -53,12 +53,12 @@ namespace Unifi.Gateway.Common.Services
                         var encryptor = aes.CreateEncryptor(key, iv);
                         var encrypted = encryptor.TransformFinalBlock(payload, 0, payload.Length);
 
-                        encoded.Write(BitConverter.GetBytes(encrypted.Length));
+                        encoded.Write(BitConverter.GetBytes(encrypted.Length).Reverse().ToArray());
                         encoded.Write(encrypted);
                     }
                     break;
                 default:
-                    encoded.Write(BitConverter.GetBytes(payload.Length));
+                    encoded.Write(BitConverter.GetBytes(payload.Length).Reverse().ToArray());
                     encoded.Write(payload);
                     break;
             }

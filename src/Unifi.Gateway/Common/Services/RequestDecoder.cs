@@ -15,10 +15,11 @@ namespace Unifi.Gateway.Common.Services
                 throw new InvalidDataException("Invalid signature");
             }
 
-            var dataLength = BitConverter.ToInt32(data[36..40]);
+            var flags = BitConverter.ToInt16(data[14..16].Reverse().ToArray());
+
+            var dataLength = BitConverter.ToInt32(data[36..40].Reverse().ToArray());
             var payload = data[40..(40 + dataLength)];
 
-            var flags = BitConverter.ToInt16(data[14..16]);
             if ((flags & 0x01) != 0)
             {
                 var iv = data[16..32];
