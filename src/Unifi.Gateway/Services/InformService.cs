@@ -1,10 +1,5 @@
-﻿using Microsoft.Extensions.Options;
-using System.Net.NetworkInformation;
-using System.Text;
-using System.Text.Json.Nodes;
+﻿using System.Text;
 using Unifi.Gateway.Common.Interfaces;
-using Unifi.Gateway.Json;
-using Unifi.Gateway.Options;
 
 namespace Unifi.Gateway.Services
 {
@@ -12,14 +7,12 @@ namespace Unifi.Gateway.Services
         IRequestEncoder encoder,
         IRequestDecoder decoder,
         IUnifiDevice device,
-        IOptions<GeneralServiceOptions> options,
         ILogger<InformService> logger,
         IHttpClientFactory httpClientFactory) : BackgroundService()
     {
         private readonly IRequestEncoder encoder = encoder;
         private readonly IRequestDecoder decoder = decoder;
         private readonly IUnifiDevice device = device;
-        private readonly IOptions<GeneralServiceOptions> options = options;
         private readonly ILogger<InformService> logger = logger;
         private readonly IHttpClientFactory httpClientFactory = httpClientFactory;
 
@@ -32,7 +25,6 @@ namespace Unifi.Gateway.Services
             {
                 await device.ReloadConfigsAsync();
 
-                //var (informUrl, key, adopted) = GetAdoptOptions();
                 var informUrl = device.InformUrl;
                 var key = device.Key;
                 if (!string.IsNullOrEmpty(informUrl))
@@ -47,8 +39,8 @@ namespace Unifi.Gateway.Services
 
                         var request = CreateRequestMessage(informUrl, body);
                         var reponse = await httpClient.SendAsync(request, token);
-                        reponse.EnsureSuccessStatusCode();
                         body = await reponse.Content.ReadAsByteArrayAsync(token);
+                        reponse.EnsureSuccessStatusCode();
 
                         data = decoder.Decode(body, key);
                         var json = Encoding.UTF8.GetString(data);
@@ -66,40 +58,12 @@ namespace Unifi.Gateway.Services
             }
         }
 
-        private string GetInformPayload(bool adopted)
-        {
-            var json = new JsonObject
-            {
-                ["discovery_response"] = true,
-                ["state"] = 1,
-            };
-
-            return json.ToString();
-        }
-
-        private static (string InformUrl, byte[] Key, bool adopted) GetAdoptOptions()
-        {
-            var config = new ConfigurationBuilder()
-                .AddJsonFile("/etc/unifi/config.json", true, true)
-                .Build();
-
-            var options = new AdoptOptions();
-            config.Bind(options);
-
-            if (string.IsNullOrEmpty(options.Key))
-            {
-                return (string.Empty, [], false);
-            }
-
-            return (options.InformUrl, Convert.FromHexString(options.Key), options.Adopted);
-        }
-
         private static HttpRequestMessage CreateRequestMessage(string url, byte[] data) =>
             new(HttpMethod.Post, url)
             {
                 Headers =
                 {
-                    UserAgent = { new("AirControl Agent", "v1.0") },
+                    { "User-Agent", "AirControl Agent v1.0" },
                 },
                 Content = new ByteArrayContent(data)
                 {
