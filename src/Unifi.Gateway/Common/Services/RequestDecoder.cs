@@ -24,7 +24,7 @@ namespace Unifi.Gateway.Common.Services
                 var iv = data[16..32];
                 if ((flags & 0x08) != 0) // GCM
                 {
-                    using var aes = new AesGcm(key, AesGcm.TagByteSizes.MaxSize);
+                    using var aes = new AesGcm(key, 16);
                     var nonce = iv.AsSpan()[..12];
 
                     byte[] cipherText = payload[0..^16];

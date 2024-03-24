@@ -79,8 +79,8 @@ namespace Unifi.Gateway.Common.Services
             ["loadavg_5"] = 0,
             ["loadavg_15"] = 0,
             ["mem_buffer"] = 0,
-            ["mem_total"] = 1073741824, // 1Gb
-            ["mem_used"] = 524288,      // 512Kb
+            ["mem_total"] = 1,
+            ["mem_used"] = 1,
         };
 
         private JsonObject GetSystemStats()

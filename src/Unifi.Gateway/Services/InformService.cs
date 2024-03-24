@@ -40,6 +40,11 @@ namespace Unifi.Gateway.Services
                         var request = CreateRequestMessage(informUrl, body);
                         var reponse = await httpClient.SendAsync(request, token);
                         body = await reponse.Content.ReadAsByteArrayAsync(token);
+
+                        //Directory.CreateDirectory("/usr/src/unifi/logs");
+                        //var logFile = Path.Combine("/usr/src/unifi/logs", DateTime.Now.ToString("yyyy-MM-ddTHH-mm-ss") + ".json");
+                        //await File.WriteAllBytesAsync(logFile, body);
+
                         reponse.EnsureSuccessStatusCode();
 
                         data = decoder.Decode(body, key);

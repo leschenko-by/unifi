@@ -16,7 +16,7 @@ namespace Unifi.Gateway.Common.Services
 
             var encoded = new MemoryStream();
             encoded.Write(Encoding.ASCII.GetBytes("TNBU"));
-            encoded.Write(new byte[4]);
+            encoded.Write(BitConverter.GetBytes(0));
             encoded.Write(mac);
             encoded.Write(BitConverter.GetBytes(flags));
             encoded.Write(iv);
@@ -31,11 +31,11 @@ namespace Unifi.Gateway.Common.Services
             {
                 case EncryptMode.Gcm:
                     encoded.Write(BitConverter.GetBytes(payload.Length + 16));
-                    using (var aes = new AesGcm(key, AesGcm.TagByteSizes.MaxSize))
+                    using (var aes = new AesGcm(key, 16))
                     {
                         var nonce = iv.AsSpan()[..12];
                         byte[] cipherText = new byte[payload.Length];
-                        byte[] tag = new byte[AesGcm.TagByteSizes.MaxSize];
+                        byte[] tag = new byte[16];
 
                         aes.Encrypt(nonce, payload, cipherText, tag, encoded.ToArray());
 
