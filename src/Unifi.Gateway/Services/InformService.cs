@@ -37,7 +37,7 @@ namespace Unifi.Gateway.Services
                         logger.LogInformation("Sending inform message: {Message}", message);
 
                         var data = Encoding.UTF8.GetBytes(message);
-                        var body = encoder.Encode(data, key, device.MacAddress, true, EncryptMode.Cbc);
+                        var body = encoder.Encode(data, key, device.MacAddress, CompressMode.Zlib, EncryptMode.Cbc);
 
                         var request = CreateRequestMessage(informUrl, body);
                         var reponse = await httpClient.SendAsync(request, token);

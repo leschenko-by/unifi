@@ -1,4 +1,5 @@
-﻿using System.IO.Compression;
+﻿using Snappy.Sharp;
+using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
 using Unifi.Gateway.Common.Interfaces;
@@ -7,12 +8,19 @@ namespace Unifi.Gateway.Common.Services
 {
     public class RequestEncoder : IRequestEncoder
     {
-        public byte[] Encode(byte[] payload, byte[] key, byte[] mac, bool compress, EncryptMode encrypt)
+        public byte[] Encode(byte[] payload, byte[] key, byte[] mac, CompressMode compress, EncryptMode encrypt)
         {
             var iv = new byte[16];
             RandomNumberGenerator.Fill(iv);
 
-            var flags = (short)((compress ? 0x02 : 0x00) | (int)encrypt);
+            var compressFlags = compress switch
+            {
+                CompressMode.Zlib => 0x02,
+                CompressMode.Snappy => 0x04,
+                _ => 0x00,
+            };
+
+            var flags = (short)(compressFlags | (int)encrypt);
 
             var encoded = new MemoryStream();
             encoded.Write(Encoding.ASCII.GetBytes("TNBU"));
@@ -22,31 +30,27 @@ namespace Unifi.Gateway.Common.Services
             encoded.Write(iv);
             encoded.Write(BitConverter.GetBytes(1).Reverse().ToArray());
 
-            if (compress)
-            {
-                payload = CompressData(payload);
-            }
+            payload = CompressData(payload, compress);
 
             switch (encrypt)
             {
                 case EncryptMode.Gcm:
-                    encoded.Write(BitConverter.GetBytes(payload.Length + 16).Reverse().ToArray());
-                    using (var aes = new AesGcm(key, 16))
-                    {
-                        // need convert 16 bytes to 12 bytes
-                        // current implementation is wrong
-                        // todo: read about GHASH
-                        var nonce = iv.AsSpan()[..12].ToArray();
+                    throw new NotImplementedException("dotnet AesGcm doesn't support 16 bytes nonces");
 
-                        byte[] cipherText = new byte[payload.Length];
-                        byte[] tag = new byte[16];
-
-                        aes.Encrypt(nonce, payload, cipherText, tag, encoded.ToArray());
-
-                        encoded.Write(cipherText);
-                        encoded.Write(tag);
-                    }
-                    break;
+                    //encoded.Write(BitConverter.GetBytes(payload.Length + 16).Reverse().ToArray());
+                    //using (var aes = new AesGcm(key, 16))
+                    //{
+                    //    // need convert 16 bytes to 12 bytes
+                    //    // current implementation is wrong
+                    //    // todo: read about GHASH
+                    //    var nonce = iv.AsSpan()[..12].ToArray();
+                    //    byte[] cipherText = new byte[payload.Length];
+                    //    byte[] tag = new byte[16];
+                    //    aes.Encrypt(nonce, payload, cipherText, tag, encoded.ToArray());
+                    //    encoded.Write(cipherText);
+                    //    encoded.Write(tag);
+                    //}
+                    //break;
                 case EncryptMode.Cbc:
                     using (var aes = Aes.Create())
                     {
@@ -70,13 +74,29 @@ namespace Unifi.Gateway.Common.Services
             return encoded.ToArray();
         }
 
-        private static byte[] CompressData(byte[] data)
+        private static byte[] CompressData(byte[] data, CompressMode compress)
         {
-            using var compressed = new MemoryStream();
-            using var compressor = new ZLibStream(compressed, CompressionMode.Compress);
-            compressor.Write(data);
-            compressor.Flush();
-            return compressed.ToArray();
+            switch (compress)
+            {
+                case CompressMode.Zlib:
+                    {
+                        using var compressed = new MemoryStream();
+                        using var compressor = new ZLibStream(compressed, CompressionMode.Compress);
+                        compressor.Write(data);
+                        compressor.Flush();
+                        return compressed.ToArray();
+                    }
+                case CompressMode.Snappy:
+                    {
+                        var compressor = new SnappyCompressor();
+                        int compressedSize = compressor.MaxCompressedLength(data.Length);
+                        var compressed = new byte[compressedSize];
+                        var size = compressor.Compress(data, 0, data.Length, compressed);
+                        return compressed[..size];
+                    }
+                default:
+                    return data;
+            }
         }
     }
 }

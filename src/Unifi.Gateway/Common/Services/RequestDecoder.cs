@@ -1,4 +1,5 @@
-﻿using System.IO.Compression;
+﻿using Snappy.Sharp;
+using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
 using Unifi.Gateway.Common.Interfaces;
@@ -25,19 +26,14 @@ namespace Unifi.Gateway.Common.Services
                 var iv = data[16..32];
                 if ((flags & 0x08) != 0) // GCM
                 {
-                    using var aes = new AesGcm(key, 16);
-
-                    // need convert 16 bytes to 12 bytes
-                    // current implementation is wrong
-                    var nonce = iv.AsSpan()[..12].ToArray();
-
-                    byte[] cipherText = payload[0..^16];
-                    byte[] tag = payload[^16..];
-
-                    var decoded = new byte[cipherText.Length];
-                    aes.Decrypt(nonce, cipherText, tag, decoded, data[0..40]);
-
-                    payload = decoded;
+                    throw new NotImplementedException("dotnet AesGcm doesn't support 16 bytes nonces");
+                    //using var aes = new AesGcm(key, 16);
+                    //var nonce = iv;
+                    //byte[] cipherText = payload[0..^16];
+                    //byte[] tag = payload[^16..];
+                    //var decoded = new byte[cipherText.Length];
+                    //aes.Decrypt(nonce, cipherText, tag, decoded, data[0..40]);
+                    //payload = decoded;
                 }
                 else // CBC
                 {
@@ -53,15 +49,24 @@ namespace Unifi.Gateway.Common.Services
                 }
             }
 
-            if ((flags & 0x02) != 0)
+            if ((flags & 0x02) != 0) // Zlib
             {
-                payload = DecompressData(payload);
+                payload = DecompressZLibData(payload);
+            }
+            else if ((flags & 0x04) != 0) // Snappy
+            {
+                payload = DecompressSnappyData(payload);
             }
 
             return payload;
         }
 
-        private static byte[] DecompressData(byte[] data)
+        private static byte[] DecompressSnappyData(byte[] payload)
+        {
+            return new SnappyDecompressor().Decompress(payload, 0, payload.Length);
+        }
+
+        private static byte[] DecompressZLibData(byte[] data)
         {
             using var input = new MemoryStream(data);
             using var output = new MemoryStream();
