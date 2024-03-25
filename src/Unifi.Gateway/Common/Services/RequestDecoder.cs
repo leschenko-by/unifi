@@ -1,4 +1,7 @@
-﻿using Snappy.Sharp;
+﻿using Org.BouncyCastle.Crypto.Engines;
+using Org.BouncyCastle.Crypto.Modes;
+using Org.BouncyCastle.Crypto.Parameters;
+using Snappy.Sharp;
 using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
@@ -26,14 +29,16 @@ namespace Unifi.Gateway.Common.Services
                 var iv = data[16..32];
                 if ((flags & 0x08) != 0) // GCM
                 {
-                    throw new NotImplementedException("dotnet AesGcm doesn't support 16 bytes nonces");
-                    //using var aes = new AesGcm(key, 16);
-                    //var nonce = iv;
-                    //byte[] cipherText = payload[0..^16];
-                    //byte[] tag = payload[^16..];
-                    //var decoded = new byte[cipherText.Length];
-                    //aes.Decrypt(nonce, cipherText, tag, decoded, data[0..40]);
-                    //payload = decoded;
+                    var cipher = new GcmBlockCipher(new AesEngine());
+                    var parameters = new AeadParameters(new KeyParameter(key), 128, iv, data[0..40]);
+                    cipher.Init(false, parameters);
+
+                    byte[] cipherText = payload;
+                    var plainText = new byte[cipher.GetOutputSize(cipherText.Length)];
+                    var len = cipher.ProcessBytes(cipherText, 0, cipherText.Length, plainText, 0);
+                    cipher.DoFinal(plainText, len);
+
+                    payload = plainText;
                 }
                 else // CBC
                 {

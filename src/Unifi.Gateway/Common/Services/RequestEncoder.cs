@@ -1,4 +1,7 @@
-﻿using Snappy.Sharp;
+﻿using Org.BouncyCastle.Crypto.Engines;
+using Org.BouncyCastle.Crypto.Modes;
+using Org.BouncyCastle.Crypto.Parameters;
+using Snappy.Sharp;
 using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
@@ -32,25 +35,26 @@ namespace Unifi.Gateway.Common.Services
 
             payload = CompressData(payload, compress);
 
+            return EncryptData(encrypt, payload, key, iv, encoded);
+        }
+
+        private static byte[] EncryptData(EncryptMode encrypt, byte[] payload, byte[] key, byte[] iv, MemoryStream data)
+        {
             switch (encrypt)
             {
                 case EncryptMode.Gcm:
-                    throw new NotImplementedException("dotnet AesGcm doesn't support 16 bytes nonces");
+                    data.Write(BitConverter.GetBytes(payload.Length + 16).Reverse().ToArray());
 
-                    //encoded.Write(BitConverter.GetBytes(payload.Length + 16).Reverse().ToArray());
-                    //using (var aes = new AesGcm(key, 16))
-                    //{
-                    //    // need convert 16 bytes to 12 bytes
-                    //    // current implementation is wrong
-                    //    // todo: read about GHASH
-                    //    var nonce = iv.AsSpan()[..12].ToArray();
-                    //    byte[] cipherText = new byte[payload.Length];
-                    //    byte[] tag = new byte[16];
-                    //    aes.Encrypt(nonce, payload, cipherText, tag, encoded.ToArray());
-                    //    encoded.Write(cipherText);
-                    //    encoded.Write(tag);
-                    //}
-                    //break;
+                    var cipher = new GcmBlockCipher(new AesEngine());
+                    var parameters = new AeadParameters(new KeyParameter(key), 128, iv, data.ToArray());
+                    cipher.Init(true, parameters);
+
+                    var cipherText = new byte[cipher.GetOutputSize(payload.Length)];
+                    var len = cipher.ProcessBytes(payload, 0, payload.Length, cipherText, 0);
+                    cipher.DoFinal(cipherText, len);
+
+                    data.Write(cipherText);
+                    break;
                 case EncryptMode.Cbc:
                     using (var aes = Aes.Create())
                     {
@@ -61,17 +65,17 @@ namespace Unifi.Gateway.Common.Services
                         var encryptor = aes.CreateEncryptor(key, iv);
                         var encrypted = encryptor.TransformFinalBlock(payload, 0, payload.Length);
 
-                        encoded.Write(BitConverter.GetBytes(encrypted.Length).Reverse().ToArray());
-                        encoded.Write(encrypted);
+                        data.Write(BitConverter.GetBytes(encrypted.Length).Reverse().ToArray());
+                        data.Write(encrypted);
                     }
                     break;
                 default:
-                    encoded.Write(BitConverter.GetBytes(payload.Length).Reverse().ToArray());
-                    encoded.Write(payload);
+                    data.Write(BitConverter.GetBytes(payload.Length).Reverse().ToArray());
+                    data.Write(payload);
                     break;
             }
 
-            return encoded.ToArray();
+            return data.ToArray();
         }
 
         private static byte[] CompressData(byte[] data, CompressMode compress)
