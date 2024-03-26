@@ -92,7 +92,7 @@ namespace Unifi.Gateway.Common.Devices
                         nextCommand = CreateBaseInform();
                         nextCommand["inform_as_notif"] = true;
                         nextCommand["notif_reason"] = "stun";
-                        nextCommand["state"] = 0; // DS_ADOPTING
+                        //nextCommand["state"] = 0; // DS_ADOPTING
                         nextCommand["connect_request_ip"] = IPAddress.ToString();
                         nextCommand["connect_request_port"] = "52884";
                         break;
