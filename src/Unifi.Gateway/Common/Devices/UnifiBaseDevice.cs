@@ -20,6 +20,8 @@ namespace Unifi.Gateway.Common.Devices
 
         public byte[] MacAddress => network.MacAddress;
 
+        public string MacAddressString => string.Join(":", MacAddress.Select(t => t.ToString("x2")));
+
         public IPAddress IPAddress => network.IPAddress;
 
         public IPAddress Netmask => network.Netmask;
@@ -180,7 +182,7 @@ namespace Unifi.Gateway.Common.Devices
                 ["isolated"] = false,
                 ["kernel_version"] = "4.4.153",
                 ["locating"] = false,
-                ["mac"] = string.Join(":", MacAddress.Select(t => t.ToString("x2"))),
+                ["mac"] = MacAddressString,
                 ["manufacturer_id"] = 4,
                 ["model"] = DeviceName,
                 ["model_display"] = DeviceDisplayName,
