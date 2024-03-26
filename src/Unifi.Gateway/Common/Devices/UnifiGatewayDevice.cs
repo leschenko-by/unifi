@@ -30,17 +30,22 @@ namespace Unifi.Gateway.Common.Devices
             message["config_port_table"] = new JsonArray(
                 new JsonObject
                 {
-                    ["ifname"] = "eth0",
-                    ["name"] = "wan",
-                },
-                new JsonObject
-                {
                     ["ifname"] = "eth1",
                     ["name"] = "lan",
                 },
                 new JsonObject
                 {
                     ["ifname"] = "eth2",
+                    ["name"] = "lan2",
+                },
+                new JsonObject
+                {
+                    ["ifname"] = "eth0",
+                    ["name"] = "wan",
+                },
+                new JsonObject
+                {
+                    ["ifname"] = "eth3",
                     ["name"] = "wan2",
                 }
             );
@@ -50,26 +55,6 @@ namespace Unifi.Gateway.Common.Devices
 
 #pragma warning disable CA1416 // Validate platform compatibility
             message["if_table"] = new JsonArray(
-                new JsonObject
-                {
-                    ["full_duplex"] = true,
-                    ["name"] = "eth0",
-                    ["ip"] = network.WanIPAddress.ToString(),
-                    ["mac"] = string.Join(":", network.WanMacAddress.Select(t => t.ToString("x2"))),
-                    ["netmask"] = "0.0.0.0",
-                    ["up"] = true,
-                    ["num_port"] = 0,
-                    ["rx_bytes"] = wan?.BytesReceived ?? 0,
-                    ["rx_dropped"] = wan?.IncomingPacketsDiscarded ?? 0,
-                    ["rx_errors"] = wan?.IncomingPacketsWithErrors ?? 0,
-                    ["rx_multicast"] = wan?.NonUnicastPacketsReceived ?? 0,
-                    ["rx_packets"] = wan?.UnicastPacketsReceived ?? 0,
-                    ["speed"] = 1000,
-                    ["tx_bytes"] = wan?.BytesSent ?? 0,
-                    ["tx_dropped"] = wan?.OutgoingPacketsDiscarded ?? 0,
-                    ["tx_errors"] = wan?.OutgoingPacketsWithErrors ?? 0,
-                    ["tx_packets"] = wan?.UnicastPacketsSent ?? 0,
-                },
                 new JsonObject
                 {
                     ["full_duplex"] = true,
@@ -93,6 +78,31 @@ namespace Unifi.Gateway.Common.Devices
                 new JsonObject
                 {
                     ["name"] = "eth2",
+                    ["enable"] = false,
+                },
+                new JsonObject
+                {
+                    ["full_duplex"] = true,
+                    ["name"] = "eth0",
+                    ["ip"] = network.WanIPAddress.ToString(),
+                    ["mac"] = string.Join(":", network.WanMacAddress.Select(t => t.ToString("x2"))),
+                    ["netmask"] = "0.0.0.0",
+                    ["up"] = true,
+                    ["num_port"] = 2,
+                    ["rx_bytes"] = wan?.BytesReceived ?? 0,
+                    ["rx_dropped"] = wan?.IncomingPacketsDiscarded ?? 0,
+                    ["rx_errors"] = wan?.IncomingPacketsWithErrors ?? 0,
+                    ["rx_multicast"] = wan?.NonUnicastPacketsReceived ?? 0,
+                    ["rx_packets"] = wan?.UnicastPacketsReceived ?? 0,
+                    ["speed"] = 1000,
+                    ["tx_bytes"] = wan?.BytesSent ?? 0,
+                    ["tx_dropped"] = wan?.OutgoingPacketsDiscarded ?? 0,
+                    ["tx_errors"] = wan?.OutgoingPacketsWithErrors ?? 0,
+                    ["tx_packets"] = wan?.UnicastPacketsSent ?? 0,
+                },
+                new JsonObject
+                {
+                    ["name"] = "eth3",
                     ["enable"] = false,
                 }
             );
