@@ -5,16 +5,14 @@ using Unifi.Gateway.Options;
 
 namespace Unifi.Gateway.Common.Devices
 {
-    public class UnifiGatewayDevice : UnifiBaseDevice
+    public class UnifiGatewayDevice(
+        ISystemInfoService systemInfo,
+        INetworkInfoService network,
+        IConfigurationReader configurationReader,
+        IConfigurationWriter configurationWriter,
+        IOptions<GeneralServiceOptions> serviceOptions)
+        : UnifiBaseDevice(systemInfo, network, configurationReader, configurationWriter, serviceOptions)
     {
-        public UnifiGatewayDevice(
-            INetworkInfoService network,
-            IConfigurationReader configurationReader,
-            IConfigurationWriter configurationWriter,
-            IOptions<GeneralServiceOptions> serviceOptions) : base(network, configurationReader, configurationWriter, serviceOptions)
-        {
-        }
-
         protected override void AddExtraInformMessage(JsonObject message)
         {
             message["has_dpi"] = true;
