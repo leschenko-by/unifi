@@ -63,7 +63,7 @@ namespace Unifi.Gateway.Common.Devices
                     ["mac"] = MacAddressString,
                     ["netmask"] = Netmask.ToString(),
                     ["up"] = true,
-                    ["num_port"] = 0,
+                    ["num_port"] = 1,
                     ["rx_bytes"] = lan?.BytesReceived ?? 0,
                     ["rx_dropped"] = lan?.IncomingPacketsDiscarded ?? 0,
                     ["rx_errors"] = lan?.IncomingPacketsWithErrors ?? 0,
@@ -79,6 +79,7 @@ namespace Unifi.Gateway.Common.Devices
                 {
                     ["name"] = "eth2",
                     ["enable"] = false,
+                    ["num_port"] = 2,
                 },
                 new JsonObject
                 {
@@ -88,7 +89,7 @@ namespace Unifi.Gateway.Common.Devices
                     ["mac"] = string.Join(":", network.WanMacAddress.Select(t => t.ToString("x2"))),
                     ["netmask"] = "0.0.0.0",
                     ["up"] = true,
-                    ["num_port"] = 2,
+                    ["num_port"] = 3,
                     ["rx_bytes"] = wan?.BytesReceived ?? 0,
                     ["rx_dropped"] = wan?.IncomingPacketsDiscarded ?? 0,
                     ["rx_errors"] = wan?.IncomingPacketsWithErrors ?? 0,
@@ -104,6 +105,7 @@ namespace Unifi.Gateway.Common.Devices
                 {
                     ["name"] = "eth3",
                     ["enable"] = false,
+                    ["num_port"] = 4,
                 }
             );
 #pragma warning restore CA1416 // Validate platform compatibility
