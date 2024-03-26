@@ -199,6 +199,7 @@ namespace Unifi.Gateway.Common.Devices
                 ["discovery_response"] = false,
                 ["has_crash_logs"] = false,
                 ["sys_error_caps"] = 0,
+                ["ipv4_active_leases"] = new JsonArray(),
             };
 
             string GetConfigVersion()
