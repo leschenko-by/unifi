@@ -5,7 +5,6 @@ using Unifi.Gateway.Common.Interfaces;
 using Unifi.Gateway.Json;
 using Unifi.Gateway.Options;
 using Unifi.SpeedTest;
-using Unifi.SpeedTest.Models;
 
 namespace Unifi.Gateway.Common.Devices
 {
@@ -30,12 +29,17 @@ namespace Unifi.Gateway.Common.Devices
                     switch (data.Command)
                     {
                         case "speed-test":
-                            await StartSpeedTest();
+                            RunSpeedTest();
                             return;
                     }
                     break;
             }
             await base.ProcessDataAsync(data);
+
+            async void RunSpeedTest()
+            {
+                await Task.Run(StartSpeedTest);
+            }
         }
 
         private async Task StartSpeedTest()
@@ -44,6 +48,8 @@ namespace Unifi.Gateway.Common.Devices
             byte[] response;
             try
             {
+                logger.LogInformation("Starting speed test");
+
                 var message = await CreateBaseInformAsync();
                 message["sys_stats"] = await GetSysStats();
                 message["system-stats"] = await GetSystemStats();
@@ -59,8 +65,8 @@ namespace Unifi.Gateway.Common.Devices
                     ["xput_download"] = 0,
                     ["xput_upload"] = 0,
                 };
-                Log(request = Encoding.UTF8.GetBytes(message.ToString()));
-                Log(response = await protocol.SendRequestAsync(InformUrl, Key, request, default));
+                Log("Request", request = Encoding.UTF8.GetBytes(message.ToString()));
+                Log("Response", response = await protocol.SendRequestAsync(InformUrl, Key, request, default));
 
                 var client = new SpeedTestClient();
                 var server = await client.GetServerAsync();
@@ -78,8 +84,8 @@ namespace Unifi.Gateway.Common.Devices
                     ["xput_download"] = 0,
                     ["xput_upload"] = 0,
                 };
-                Log(request = Encoding.UTF8.GetBytes(message.ToString()));
-                Log(response = await protocol.SendRequestAsync(InformUrl, Key, request, default));
+                Log("Request", request = Encoding.UTF8.GetBytes(message.ToString()));
+                Log("Response", response = await protocol.SendRequestAsync(InformUrl, Key, request, default));
 
                 var download = await client.TestDownloadSpeedAsync(server, 8);
 
@@ -95,8 +101,8 @@ namespace Unifi.Gateway.Common.Devices
                     ["xput_download"] = download / 1024,
                     ["xput_upload"] = 0,
                 };
-                Log(request = Encoding.UTF8.GetBytes(message.ToString()));
-                Log(response = await protocol.SendRequestAsync(InformUrl, Key, request, default));
+                Log("Request", request = Encoding.UTF8.GetBytes(message.ToString()));
+                Log("Response", response = await protocol.SendRequestAsync(InformUrl, Key, request, default));
 
                 var upload = await client.TestUploadSpeedAsync(server, 8);
 
@@ -112,12 +118,12 @@ namespace Unifi.Gateway.Common.Devices
                     ["xput_download"] = download / 1024,
                     ["xput_upload"] = upload / 1024,
                 };
-                Log(request = Encoding.UTF8.GetBytes(message.ToString()));
-                Log(response = await protocol.SendRequestAsync(InformUrl, Key, request, default));
+                Log("Request", request = Encoding.UTF8.GetBytes(message.ToString()));
+                Log("Response", response = await protocol.SendRequestAsync(InformUrl, Key, request, default));
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Failed to start speed test");
+                logger.LogError(ex, "Speed test has been failed.");
             }
 
             static double GetTime() => DateTimeOffset.Now.ToUnixTimeMilliseconds() / 1000;
@@ -219,10 +225,10 @@ namespace Unifi.Gateway.Common.Devices
 #pragma warning restore CA1416 // Validate platform compatibility
         }
 
-        private void Log(byte[] data)
+        private void Log(string direction, byte[] data)
         {
             var message = Encoding.UTF8.GetString(data);
-            logger.LogInformation(message);
+            logger.LogInformation("{direction}: {message}", direction, message);
         }
     }
 }
