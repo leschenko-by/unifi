@@ -236,7 +236,6 @@ namespace Unifi.Gateway.Common.Devices
                 ["required_version"] = "3.4.1",
                 ["selfrun_beacon"] = true,
                 ["serial"] = Convert.ToHexString(MacAddress),
-                ["state"] = 2,
                 ["time"] = utcNow.ToUnixTimeSeconds(),
                 ["time_ms"] = utcNow.Millisecond,
                 ["tm_ready"] = true,

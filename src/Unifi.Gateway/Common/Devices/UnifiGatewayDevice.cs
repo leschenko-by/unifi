@@ -30,7 +30,7 @@ namespace Unifi.Gateway.Common.Devices
                     switch (data.Command)
                     {
                         case "speed-test":
-                            StartSpeedTest();
+                            await StartSpeedTest();
                             return;
                     }
                     break;
@@ -38,7 +38,7 @@ namespace Unifi.Gateway.Common.Devices
             await base.ProcessDataAsync(data);
         }
 
-        private async void StartSpeedTest()
+        private async Task StartSpeedTest()
         {
             byte[] request;
             byte[] response;
@@ -116,8 +116,9 @@ namespace Unifi.Gateway.Common.Devices
                 Log(request = Encoding.UTF8.GetBytes(message.ToString()));
                 Log(response = await protocol.SendRequestAsync(InformUrl, Key, request, default));
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to start speed test");
             }
 
             static double GetTime() => DateTimeOffset.Now.ToUnixTimeMilliseconds() / 1000;
