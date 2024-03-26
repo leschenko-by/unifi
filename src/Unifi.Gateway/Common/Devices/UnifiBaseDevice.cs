@@ -86,62 +86,59 @@ namespace Unifi.Gateway.Common.Devices
             var data = JsonSerializer.Deserialize(json, SourceGenerationContext.Default.ResponseData);
             if (data is not null)
             {
-                switch (data.Type)
-                {
-                    case "setdefault":
-                        configuration.Adopted = false;
-                        configuration.InformUrl = string.Empty;
-                        configuration.Key = string.Empty;
-                        configuration.MgmtCfg = [];
-                        break;
-                    case "setparam":
-                        if (!string.IsNullOrEmpty(data.MgmtCfg))
-                        {
-                            var lines = data.MgmtCfg.Split("\n", StringSplitOptions.RemoveEmptyEntries);
-                            if (lines.Length > 0)
-                            {
-                                configuration.MgmtCfg = lines;
-                            }
-                        }
-                        if (!string.IsNullOrEmpty(data.SystemCfg))
-                        {
-                            Directory.CreateDirectory("/etc/unifi");
-                            File.WriteAllText("/etc/unifi/system.json", data.SystemCfg);
-                        }
+                await ProcessDataAsync(data);
+            }
+        }
 
-                        configuration.Adopted = true;
+        protected virtual async Task ProcessDataAsync(ResponseData data)
+        {
+            switch (data.Type)
+            {
+                case "setdefault":
+                    configuration.Adopted = false;
+                    configuration.InformUrl = string.Empty;
+                    configuration.Key = string.Empty;
+                    configuration.MgmtCfg = [];
+                    break;
+                case "setparam":
+                    if (!string.IsNullOrEmpty(data.MgmtCfg))
+                    {
+                        var lines = data.MgmtCfg.Split("\n", StringSplitOptions.RemoveEmptyEntries);
+                        if (lines.Length > 0)
+                        {
+                            configuration.MgmtCfg = lines;
+                        }
+                    }
+                    if (!string.IsNullOrEmpty(data.SystemCfg))
+                    {
+                        Directory.CreateDirectory("/etc/unifi");
+                        File.WriteAllText("/etc/unifi/system.json", data.SystemCfg);
+                    }
 
-                        nextCommand = await CreateBaseInformAsync();
-                        nextCommand["inform_as_notif"] = true;
-                        nextCommand["notif_reason"] = "setparam";
-                        nextCommand["connect_request_ip"] = IPAddress.ToString();
-                        nextCommand["connect_request_port"] = "52884";
-                        break;
-                    case "noop":
-                        if (data.Immediate != null)
-                        {
-                            Immediate = true;
-                        }
-                        if (data.Interval != null)
-                        {
-                            Interval = TimeSpan.FromSeconds(data.Interval.Value);
-                        }
-                        break;
-                    case "upgrade":
-                        if (!string.IsNullOrEmpty(data.Firmware))
-                        {
-                            configuration.Firmware = data.Firmware;
-                        }
-                        break;
-                    case "cmd":
-                        switch (data.Command)
-                        {
-                            case "speed-test":
-                                //todo: implement speed test
-                                break;
-                        }
-                        break;
-                }
+                    configuration.Adopted = true;
+
+                    nextCommand = await CreateBaseInformAsync();
+                    nextCommand["inform_as_notif"] = true;
+                    nextCommand["notif_reason"] = "setparam";
+                    nextCommand["connect_request_ip"] = IPAddress.ToString();
+                    nextCommand["connect_request_port"] = "52884";
+                    break;
+                case "noop":
+                    if (data.Immediate != null)
+                    {
+                        Immediate = true;
+                    }
+                    if (data.Interval != null)
+                    {
+                        Interval = TimeSpan.FromSeconds(data.Interval.Value);
+                    }
+                    break;
+                case "upgrade":
+                    if (!string.IsNullOrEmpty(data.Firmware))
+                    {
+                        configuration.Firmware = data.Firmware;
+                    }
+                    break;
             }
         }
 
@@ -180,7 +177,7 @@ namespace Unifi.Gateway.Common.Devices
 
         protected abstract void AddExtraInformMessage(JsonObject message);
 
-        private async Task<JsonObject> GetSysStats()
+        protected async Task<JsonObject> GetSysStats()
         {
             var totalMem = await systemInfo.GetTotalMemoryAsync();
             var usedMem = await systemInfo.GetUsedMemoryAsync();
@@ -196,7 +193,7 @@ namespace Unifi.Gateway.Common.Devices
             };
         }
 
-        private async Task<JsonObject> GetSystemStats()
+        protected async Task<JsonObject> GetSystemStats()
         {
             var totalMem = await systemInfo.GetTotalMemoryAsync();
             var usedMem = await systemInfo.GetUsedMemoryAsync();
@@ -209,7 +206,7 @@ namespace Unifi.Gateway.Common.Devices
             };
         }
 
-        private async Task<JsonObject> CreateBaseInformAsync()
+        protected async Task<JsonObject> CreateBaseInformAsync()
         {
             var utcNow = DateTimeOffset.UtcNow;
             var time = utcNow.ToUnixTimeSeconds();

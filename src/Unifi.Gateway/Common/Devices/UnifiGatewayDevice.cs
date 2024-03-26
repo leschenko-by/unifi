@@ -1,11 +1,16 @@
 ﻿using Microsoft.Extensions.Options;
+using System.Text;
 using System.Text.Json.Nodes;
 using Unifi.Gateway.Common.Interfaces;
+using Unifi.Gateway.Json;
 using Unifi.Gateway.Options;
+using Unifi.SpeedTest;
+using Unifi.SpeedTest.Models;
 
 namespace Unifi.Gateway.Common.Devices
 {
     public class UnifiGatewayDevice(
+        IUnifiProtocol protocol,
         ISystemInfoService systemInfo,
         INetworkInfoService network,
         IConfigurationReader configurationReader,
@@ -13,6 +18,108 @@ namespace Unifi.Gateway.Common.Devices
         IOptions<GeneralServiceOptions> serviceOptions)
         : UnifiBaseDevice(systemInfo, network, configurationReader, configurationWriter, serviceOptions)
     {
+        private readonly IUnifiProtocol protocol = protocol;
+
+        protected override async Task ProcessDataAsync(ResponseData data)
+        {
+            switch (data.Type)
+            {
+                case "cmd":
+                    switch (data.Command)
+                    {
+                        case "speed-test":
+                            StartSpeedTest();
+                            return;
+                    }
+                    break;
+            }
+            await base.ProcessDataAsync(data);
+        }
+
+        private async void StartSpeedTest()
+        {
+            byte[] body;
+            try
+            {
+                var message = await CreateBaseInformAsync();
+                message["sys_stats"] = await GetSysStats();
+                message["system-stats"] = await GetSystemStats();
+                message["speedtest-status"] = new JsonObject
+                {
+                    ["latency"] = 0,
+                    ["rundate"] = GetTime(),
+                    ["runtime"] = GetTime(),
+                    ["status_download"] = 0,
+                    ["status_ping"] = 11,
+                    ["status_summary"] = 1,
+                    ["status_upload"] = 0,
+                    ["xput_download"] = 0,
+                    ["xput_upload"] = 0,
+                };
+                body = Encoding.UTF8.GetBytes(message.ToString());
+                await protocol.SendRequestAsync(InformUrl, Key, body, default);
+
+                var client = new SpeedTestClient();
+                var settings = await client.GetSettingsAsync();
+                var server = await settings.GetServer();
+
+                var latency = await client.TestServerLatencyAsync(server);
+                message["speedtest-status"] = new JsonObject
+                {
+                    ["latency"] = latency,
+                    ["rundate"] = GetTime(),
+                    ["runtime"] = GetTime(),
+                    ["status_download"] = 1,
+                    ["status_ping"] = 2,
+                    ["status_summary"] = 1,
+                    ["status_upload"] = 0,
+                    ["xput_download"] = 0,
+                    ["xput_upload"] = 0,
+                };
+                body = Encoding.UTF8.GetBytes(message.ToString());
+                await protocol.SendRequestAsync(InformUrl, Key, body, default);
+
+                var download = await client.TestDownloadSpeedAsync(server, 8);
+
+                message["speedtest-status"] = new JsonObject
+                {
+                    ["latency"] = latency,
+                    ["rundate"] = GetTime(),
+                    ["runtime"] = GetTime(),
+                    ["status_download"] = 2,
+                    ["status_ping"] = 2,
+                    ["status_summary"] = 1,
+                    ["status_upload"] = 2,
+                    ["xput_download"] = download / 1024,
+                    ["xput_upload"] = 0,
+                };
+                body = Encoding.UTF8.GetBytes(message.ToString());
+                await protocol.SendRequestAsync(InformUrl, Key, body, default);
+
+                var upload = await client.TestUploadSpeedAsync(server, 8);
+
+                message["speedtest-status"] = new JsonObject
+                {
+                    ["latency"] = latency,
+                    ["rundate"] = GetTime(),
+                    ["runtime"] = GetTime(),
+                    ["status_download"] = 2,
+                    ["status_ping"] = 2,
+                    ["status_summary"] = 2,
+                    ["status_upload"] = 2,
+                    ["xput_download"] = download / 1024,
+                    ["xput_upload"] = upload / 1024,
+                };
+                body = Encoding.UTF8.GetBytes(message.ToString());
+                await protocol.SendRequestAsync(InformUrl, Key, body, default);
+            }
+            catch (Exception)
+            {
+            }
+
+            static double GetTime() => DateTimeOffset.Now.ToUnixTimeMilliseconds() / 1000;
+        }
+
         protected override void AddExtraInformMessage(JsonObject message)
         {
             message["has_dpi"] = true;

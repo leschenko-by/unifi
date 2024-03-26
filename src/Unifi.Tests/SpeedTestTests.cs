@@ -29,5 +29,14 @@ namespace Unifi.Tests
             var latency = await client.TestServerLatencyAsync(server);
             Assert.True(latency > 0);
         }
+
+        [Fact]
+        public async Task GetDownloadSpeed()
+        {
+            var settings = await client.GetSettingsAsync();
+            var server = await settings.GetServer();
+            var speed = await client.TestDownloadSpeedAsync(server, 8);
+            Assert.True(speed > 0);
+        }
     }
 }
