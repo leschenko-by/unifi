@@ -53,7 +53,12 @@ namespace Unifi.Gateway.Common.Services
             configuration = configurationReader.LoadConfiguration();
         }
 
-        public async Task UpdateAsync(string json)
+        public void SaveConfigration()
+        {
+            configurationWriter.SaveConfiguration(configuration);
+        }
+
+        public async Task ParseResponseAsync(string json)
         {
             nextCommand = null;
 
@@ -82,20 +87,14 @@ namespace Unifi.Gateway.Common.Services
 
                         nextCommand = CreateBaseInform();
                         nextCommand["inform_as_notif"] = true;
-                        nextCommand["notif_reason"] = "setparam";
-                        nextCommand["notif_payload"] = "";
+                        nextCommand["notif_reason"] = "stun";
                         nextCommand["state"] = 0; // DS_ADOPTING
-                        if (configuration.Adopted != true)
-                        {
-                            nextCommand["discovery_response"] = true;
-                        }
 
                         configuration.Adopted = true;
                         break;
                 }
             }
 
-            configurationWriter.SaveConfiguration(configuration);
             await Task.CompletedTask;
         }
 
@@ -106,30 +105,35 @@ namespace Unifi.Gateway.Common.Services
                 return nextCommand.ToString();
             }
 
-            var message = CreateBaseInform();
-            message["sys_stats"] = GetSysStats();
-            message["system-stats"] = GetSystemStats();
+            var message = CerateInformMessage();
             if (configuration.Adopted != true)
             {
+                message["fingerprint"] = configuration.Fingerprint;
                 message["discovery_response"] = true;
                 message["state"] = 1; // DS_UNKNOWN
             }
-            else
-            {
-                message["discovery_response"] = false;
-                message["state"] = 2; // DS_READY
-            }
+
             return message.ToString();
+        }
+
+        private JsonObject CerateInformMessage()
+        {
+            var message = CreateBaseInform();
+            message["state"] = 2; // DS_READY
+            message["discovery_response"] = false;
+            message["sys_stats"] = GetSysStats();
+            message["system-stats"] = GetSystemStats();
+            return message;
         }
 
         private JsonObject GetSysStats() => new JsonObject
         {
-            ["loadavg_1"] = 0,
-            ["loadavg_5"] = 0,
-            ["loadavg_15"] = 0,
+            ["loadavg_1"] = "0.09",
+            ["loadavg_5"] = "0.16",
+            ["loadavg_15"] = "0.08",
             ["mem_buffer"] = 0,
-            ["mem_total"] = 1,
-            ["mem_used"] = 1,
+            ["mem_total"] = 128593920,
+            ["mem_used"] = 50077696,
         };
 
         private JsonObject GetSystemStats()
@@ -138,9 +142,9 @@ namespace Unifi.Gateway.Common.Services
 
             return new JsonObject
             {
-                ["cpu"] = 0,
-                ["mem"] = 0.5,
-                ["uptime"] = uptime,
+                ["cpu"] = "5.2",
+                ["mem"] = "38.8",
+                ["uptime"] = uptime.ToString(),
             };
         }
 
@@ -153,7 +157,7 @@ namespace Unifi.Gateway.Common.Services
             var uri = new Uri(InformUrl);
             return new JsonObject
             {
-                ["fingerprint"] = "b2:5b:e2:98:c3:b1:2e:2e:38:fd:f9:34:b7:72:9e:67",
+                ["fingerprint_req"] = true,
                 ["board_rev"] = 33,
                 ["bootid"] = 1,
                 ["bootrom_version"] = "unifi-enlarge-buf.-1-g63fe9b5d-dirty",
@@ -162,7 +166,6 @@ namespace Unifi.Gateway.Common.Services
                 ["dualboot"] = true,
                 ["hash_id"] = Convert.ToHexString(MacAddress),
                 ["hostname"] = Dns.GetHostName(),
-                ["inform_ip"] = uri.Host,
                 ["inform_url"] = InformUrl,
                 ["ip"] = IPAddress.ToString(),
                 ["isolated"] = false,
@@ -187,16 +190,13 @@ namespace Unifi.Gateway.Common.Services
 
             string GetConfigVersion()
             {
-                if (string.IsNullOrEmpty(configuration.ConfigVersion))
+                var version = configuration.MgmtCfg.FirstOrDefault(t => t.StartsWith("cfgversion="));
+                if (version is not null)
                 {
-                    var version = configuration.MgmtCfg.FirstOrDefault(t => t.StartsWith("cfgversion="));
-                    if (version is not null)
-                    {
-                        return version.Split("=")[1];
-                    }
+                    return version.Split("=")[1];
                 }
 
-                return configuration.ConfigVersion;
+                return "?";
             }
         }
     }

@@ -26,5 +26,27 @@ namespace Unifi.Tests
             var test = Encoding.UTF8.GetString(decoded);
             Assert.NotNull(test);
         }
+
+
+        [Fact]
+        public void AdoptTest()
+        {
+            var key = Convert.FromHexString("F407D794D75F85FC2D9B0A8146F601C1");
+            for (var i = 1; i <= 5; i++)
+            {
+                var data = File.ReadAllBytes(Path.Combine("dump", $"r{i:00}-req.bin"));
+                var request = decoder.Decode(data, key);
+                File.WriteAllText(Path.Combine("dump", $"r{i:00}-req.json"), Encoding.UTF8.GetString(request));
+
+                data = File.ReadAllBytes(Path.Combine("dump", $"r{i:00}-res.bin"));
+                var response = decoder.Decode(data, key);
+                File.WriteAllText(Path.Combine("dump", $"r{i:00}-res.json"), Encoding.UTF8.GetString(response));
+            }
+
+            //var data = File.ReadAllBytes("response.bin");
+            //var decoded = decoder.Decode(data, key);
+            //var test = Encoding.UTF8.GetString(decoded);
+            //Assert.NotNull(test);
+        }
     }
 }

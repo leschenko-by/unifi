@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 
 namespace Unifi.Gateway.Json
 {
@@ -10,11 +11,11 @@ namespace Unifi.Gateway.Json
 
         public bool Adopted { get; set; }
 
-        public string ConfigVersion { get; set; } = string.Empty;
-
         public string[] MgmtCfg { get; set; } = [];
 
         public string[] SystemCfg { get; set; } = [];
+
+        public string Fingerprint { get; set; } = string.Empty;
     }
 
     public class ResponseData

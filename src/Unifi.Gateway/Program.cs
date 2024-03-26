@@ -1,3 +1,5 @@
+using System.Net.Mail;
+using System.Security.Cryptography;
 using System.Text.Json;
 using Unifi.Gateway.Common.Interfaces;
 using Unifi.Gateway.Common.Services;
@@ -26,11 +28,16 @@ static async Task SetAdopt(string[] args)
     {
         Console.WriteLine("Usage: set-adopt http://controller-ip-address:8080/inform encryptionkey");
     }
+
+    var fingerprint = new byte[20];
+    RandomNumberGenerator.Fill(fingerprint);
+
     var options = new Configuration
     {
         InformUrl = args[1],
         Key = args[2],
-        Adopted = false
+        Adopted = false,
+        Fingerprint = string.Join(":", fingerprint.Select(t => t.ToString("x2")))
     };
     var json = JsonSerializer.Serialize(options, SourceGenerationContext.Default.Configuration);
     Directory.CreateDirectory("/etc/unifi");

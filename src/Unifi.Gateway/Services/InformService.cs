@@ -14,12 +14,10 @@ namespace Unifi.Gateway.Services
         private readonly IRequestDecoder decoder = decoder;
         private readonly IUnifiDevice device = device;
         private readonly ILogger<InformService> logger = logger;
-        private readonly IHttpClientFactory httpClientFactory = httpClientFactory;
+        private readonly HttpClient httpClient = httpClientFactory.CreateClient();
 
         protected override async Task ExecuteAsync(CancellationToken token)
         {
-            var httpClient = httpClientFactory.CreateClient();
-
             var timer = new PeriodicTimer(TimeSpan.FromSeconds(10));
             while (!token.IsCancellationRequested)
             {
@@ -27,7 +25,7 @@ namespace Unifi.Gateway.Services
 
                 var informUrl = device.InformUrl;
                 var key = device.Key;
-                if (!string.IsNullOrEmpty(informUrl))
+                if (!string.IsNullOrEmpty(informUrl) && key.Length != 0)
                 {
                     try
                     {
@@ -35,26 +33,15 @@ namespace Unifi.Gateway.Services
 
                         var message = device.GetInformMessage();
                         logger.LogInformation("Sending inform message: {Message}", message);
+                        var requestMessageData = Encoding.UTF8.GetBytes(message);
 
-                        var data = Encoding.UTF8.GetBytes(message);
-                        var body = encoder.Encode(data, key, device.MacAddress, CompressMode.Zlib, EncryptMode.Cbc);
+                        var responseMessageData = await SendRequestAsync(informUrl, key, requestMessageData, token);
 
-                        var request = CreateRequestMessage(informUrl, body);
-                        var reponse = await httpClient.SendAsync(request, token);
-                        body = await reponse.Content.ReadAsByteArrayAsync(token);
-
-                        logger.LogInformation("Received message size: {Size}", body.Length);
-                        //Directory.CreateDirectory("/usr/src/unifi/logs");
-                        //var logFile = Path.Combine("/usr/src/unifi/logs", DateTime.Now.ToString("yyyy-MM-ddTHH-mm-ss") + ".json");
-                        //await File.WriteAllBytesAsync(logFile, body);
-
-                        reponse.EnsureSuccessStatusCode();
-
-                        data = decoder.Decode(body, key);
-                        var json = Encoding.UTF8.GetString(data);
-
-                        await device.UpdateAsync(json);
+                        var json = Encoding.UTF8.GetString(responseMessageData);
+                        await device.ParseResponseAsync(json);
                         logger.LogInformation("Received inform response: {Response}", json);
+
+                        device.SaveConfigration();
                     }
                     catch (Exception ex)
                     {
@@ -64,6 +51,15 @@ namespace Unifi.Gateway.Services
 
                 await timer.WaitForNextTickAsync(token);
             }
+        }
+
+        private async Task<byte[]> SendRequestAsync(string informUrl, byte[] key, byte[] data, CancellationToken token)
+        {
+            var body = encoder.Encode(data, key, device.MacAddress, CompressMode.Zlib, EncryptMode.Cbc);
+            using var request = CreateRequestMessage(informUrl, body);
+            using var reponse = await httpClient.SendAsync(request, token);
+            body = await reponse.EnsureSuccessStatusCode().Content.ReadAsByteArrayAsync(token);
+            return decoder.Decode(body, key);
         }
 
         private static HttpRequestMessage CreateRequestMessage(string url, byte[] data) =>

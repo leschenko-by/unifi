@@ -13,6 +13,7 @@ namespace Unifi.Gateway.Common.Interfaces
 
         string GetInformMessage();
         void LoadConfigration();
-        Task UpdateAsync(string json);
+        Task ParseResponseAsync(string json);
+        void SaveConfigration();
     }
 }
