@@ -55,7 +55,7 @@ namespace Unifi.Gateway.Services
 
         private async Task<byte[]> SendRequestAsync(string informUrl, byte[] key, byte[] data, CancellationToken token)
         {
-            var body = encoder.Encode(data, key, device.MacAddress, CompressMode.Zlib, EncryptMode.Cbc);
+            var body = encoder.Encode(data, key, device.MacAddress, CompressMode.Zlib, EncryptMode.Gcm);
             using var request = CreateRequestMessage(informUrl, body);
             using var reponse = await httpClient.SendAsync(request, token);
             body = await reponse.EnsureSuccessStatusCode().Content.ReadAsByteArrayAsync(token);
