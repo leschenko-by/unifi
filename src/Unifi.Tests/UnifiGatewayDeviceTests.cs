@@ -11,7 +11,7 @@ namespace Unifi.Tests
     public class UnifiGatewayDeviceTests
     {
         private readonly AutoMocker mocker = new();
-        private readonly UnifiBaseDevice device;
+        private readonly UnifiGatewayDevice device;
 
         public UnifiGatewayDeviceTests()
         {
@@ -36,7 +36,7 @@ namespace Unifi.Tests
                     Adopted = false
                 });
 
-            device = mocker.CreateInstance<UnifiBaseDevice>();
+            device = mocker.CreateInstance<UnifiGatewayDevice>();
         }
 
         [Fact]

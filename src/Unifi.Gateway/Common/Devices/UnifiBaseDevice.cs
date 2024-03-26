@@ -80,19 +80,15 @@ namespace Unifi.Gateway.Common.Devices
                         }
                         if (!string.IsNullOrEmpty(data.SystemCfg))
                         {
-                            var lines = data.SystemCfg.Split("\n", StringSplitOptions.RemoveEmptyEntries);
-                            if (lines.Length > 0)
-                            {
-                                configuration.SystemCfg = lines;
-                            }
+                            Directory.CreateDirectory("/etc/unifi");
+                            File.WriteAllText("/etc/unifi/system.json", data.SystemCfg);
                         }
 
                         configuration.Adopted = true;
 
                         nextCommand = CreateBaseInform();
                         nextCommand["inform_as_notif"] = true;
-                        nextCommand["notif_reason"] = "stun";
-                        //nextCommand["state"] = 0; // DS_ADOPTING
+                        nextCommand["notif_reason"] = "setparam";
                         nextCommand["connect_request_ip"] = IPAddress.ToString();
                         nextCommand["connect_request_port"] = "52884";
                         break;

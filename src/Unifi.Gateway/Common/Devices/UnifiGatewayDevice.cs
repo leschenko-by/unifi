@@ -37,6 +37,11 @@ namespace Unifi.Gateway.Common.Devices
                 {
                     ["ifname"] = "eth1",
                     ["name"] = "lan",
+                },
+                new JsonObject
+                {
+                    ["ifname"] = "eth2",
+                    ["name"] = "wan2",
                 }
             );
             message["if_table"] = new JsonArray(
@@ -79,6 +84,11 @@ namespace Unifi.Gateway.Common.Devices
                     ["tx_dropped"] = 0,
                     ["tx_errors"] = 0,
                     ["tx_packets"] = 1197,
+                },
+                new JsonObject
+                {
+                    ["name"] = "eth2",
+                    ["enable"] = false,
                 }
             );
         }

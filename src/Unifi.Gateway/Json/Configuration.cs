@@ -13,8 +13,6 @@ namespace Unifi.Gateway.Json
 
         public string[] MgmtCfg { get; set; } = [];
 
-        public string[] SystemCfg { get; set; } = [];
-
         public string Fingerprint { get; set; } = string.Empty;
     }
 
