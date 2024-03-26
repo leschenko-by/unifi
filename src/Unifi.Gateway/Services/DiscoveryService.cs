@@ -18,8 +18,8 @@ namespace Unifi.Gateway.Services
         {
             await Task.Yield();
 
-            var macAddress = network.MacAddress;
-            var ipAddress = network.IPAddress;
+            var macAddress = network.LanMacAddress;
+            var ipAddress = network.LanIPAddress;
             if (ipAddress is null) return;
 
             var endPoint = new IPEndPoint(IPAddress.Parse("233.89.188.1"), 10001);

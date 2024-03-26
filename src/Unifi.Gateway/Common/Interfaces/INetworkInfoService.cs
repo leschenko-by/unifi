@@ -1,11 +1,19 @@
 ﻿using System.Net;
+using System.Net.NetworkInformation;
 
 namespace Unifi.Gateway.Common.Interfaces
 {
     public interface INetworkInfoService
     {
-        byte[] MacAddress { get; }
-        IPAddress IPAddress { get; }
-        IPAddress Netmask { get; }
+        byte[] LanMacAddress { get; }
+        IPAddress LanIPAddress { get; }
+        IPAddress LanNetmask { get; }
+
+        byte[] WanMacAddress { get; }
+        IPAddress WanIPAddress { get; }
+        IPAddress WanNetmask { get; }
+
+        IPInterfaceStatistics? GetLanStatistics();
+        IPInterfaceStatistics? GetWanStatistics();
     }
 }

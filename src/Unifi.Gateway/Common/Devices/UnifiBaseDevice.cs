@@ -18,13 +18,13 @@ namespace Unifi.Gateway.Common.Devices
         private JsonObject? nextCommand = null;
         protected Configuration configuration;
 
-        public byte[] MacAddress => network.MacAddress;
+        public byte[] MacAddress => network.LanMacAddress;
 
         public string MacAddressString => string.Join(":", MacAddress.Select(t => t.ToString("x2")));
 
-        public IPAddress IPAddress => network.IPAddress;
+        public IPAddress IPAddress => network.LanIPAddress;
 
-        public IPAddress Netmask => network.Netmask;
+        public IPAddress Netmask => network.LanNetmask;
 
         public string InformUrl => configuration.InformUrl;
 

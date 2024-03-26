@@ -44,26 +44,31 @@ namespace Unifi.Gateway.Common.Devices
                     ["name"] = "wan2",
                 }
             );
+
+            var lan = network.GetLanStatistics();
+            var wan = network.GetWanStatistics();
+
+#pragma warning disable CA1416 // Validate platform compatibility
             message["if_table"] = new JsonArray(
                 new JsonObject
                 {
                     ["full_duplex"] = true,
                     ["name"] = "eth0",
-                    ["ip"] = "134.17.26.13",
-                    ["mac"] = "00:15:5d:02:09:02",
+                    ["ip"] = network.WanIPAddress.ToString(),
+                    ["mac"] = string.Join(":", network.WanMacAddress.Select(t => t.ToString("x2"))),
                     ["netmask"] = "0.0.0.0",
                     ["up"] = true,
                     ["num_port"] = 0,
-                    ["rx_bytes"] = 137376,
-                    ["rx_dropped"] = 0,
-                    ["rx_errors"] = 0,
-                    ["rx_multicast"] = 0,
-                    ["rx_packets"] = 794,
+                    ["rx_bytes"] = wan?.BytesReceived ?? 0,
+                    ["rx_dropped"] = wan?.IncomingPacketsDiscarded ?? 0,
+                    ["rx_errors"] = wan?.IncomingPacketsWithErrors ?? 0,
+                    ["rx_multicast"] = wan?.NonUnicastPacketsReceived ?? 0,
+                    ["rx_packets"] = wan?.UnicastPacketsReceived ?? 0,
                     ["speed"] = 1000,
-                    ["tx_bytes"] = 275576,
-                    ["tx_dropped"] = 0,
-                    ["tx_errors"] = 0,
-                    ["tx_packets"] = 1197,
+                    ["tx_bytes"] = wan?.BytesSent ?? 0,
+                    ["tx_dropped"] = wan?.OutgoingPacketsDiscarded ?? 0,
+                    ["tx_errors"] = wan?.OutgoingPacketsWithErrors ?? 0,
+                    ["tx_packets"] = wan?.UnicastPacketsSent ?? 0,
                 },
                 new JsonObject
                 {
@@ -74,16 +79,16 @@ namespace Unifi.Gateway.Common.Devices
                     ["netmask"] = Netmask.ToString(),
                     ["up"] = true,
                     ["num_port"] = 0,
-                    ["rx_bytes"] = 137376,
-                    ["rx_dropped"] = 0,
-                    ["rx_errors"] = 0,
-                    ["rx_multicast"] = 0,
-                    ["rx_packets"] = 794,
+                    ["rx_bytes"] = lan?.BytesReceived ?? 0,
+                    ["rx_dropped"] = lan?.IncomingPacketsDiscarded ?? 0,
+                    ["rx_errors"] = lan?.IncomingPacketsWithErrors ?? 0,
+                    ["rx_multicast"] = lan?.NonUnicastPacketsReceived ?? 0,
+                    ["rx_packets"] = lan?.UnicastPacketsReceived ?? 0,
                     ["speed"] = 1000,
-                    ["tx_bytes"] = 275576,
-                    ["tx_dropped"] = 0,
-                    ["tx_errors"] = 0,
-                    ["tx_packets"] = 1197,
+                    ["tx_bytes"] = lan?.BytesSent ?? 0,
+                    ["tx_dropped"] = lan?.OutgoingPacketsDiscarded ?? 0,
+                    ["tx_errors"] = lan?.OutgoingPacketsWithErrors ?? 0,
+                    ["tx_packets"] = lan?.UnicastPacketsSent ?? 0,
                 },
                 new JsonObject
                 {
@@ -91,6 +96,7 @@ namespace Unifi.Gateway.Common.Devices
                     ["enable"] = false,
                 }
             );
+#pragma warning restore CA1416 // Validate platform compatibility
         }
     }
 }

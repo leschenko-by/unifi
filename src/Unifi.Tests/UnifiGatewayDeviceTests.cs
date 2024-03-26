@@ -17,15 +17,19 @@ namespace Unifi.Tests
         {
             mocker.Use(Options.Create(new GeneralServiceOptions
             {
-                NetworkId = "{B344A706-8387-42C3-90FF-A2AF190EC1A5}"
+                LanNetworkId = "{B344A706-8387-42C3-90FF-A2AF190EC1A5}"
             }));
 
             mocker.GetMock<INetworkInfoService>()
-                .SetupGet(t => t.IPAddress).Returns(IPAddress.Parse("192.168.2.254"));
+                .SetupGet(t => t.LanIPAddress).Returns(IPAddress.Parse("192.168.2.254"));
             mocker.GetMock<INetworkInfoService>()
-                .SetupGet(t => t.Netmask).Returns(IPAddress.Parse("255.255.255.0"));
+                .SetupGet(t => t.WanIPAddress).Returns(IPAddress.Parse("134.17.26.13"));
             mocker.GetMock<INetworkInfoService>()
-                .SetupGet(t => t.MacAddress).Returns(Convert.FromHexString("00:15:5d:02:09:2d".Replace(":", "")));
+                .SetupGet(t => t.LanNetmask).Returns(IPAddress.Parse("255.255.255.0"));
+            mocker.GetMock<INetworkInfoService>()
+                .SetupGet(t => t.LanMacAddress).Returns(Convert.FromHexString("00:15:5d:02:09:2d".Replace(":", "")));
+            mocker.GetMock<INetworkInfoService>()
+                .SetupGet(t => t.WanMacAddress).Returns(Convert.FromHexString("00:15:5d:02:09:02".Replace(":", "")));
 
             mocker.GetMock<IConfigurationReader>()
                 .Setup(t => t.LoadConfiguration())
