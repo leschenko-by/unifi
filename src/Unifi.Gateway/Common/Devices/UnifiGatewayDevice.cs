@@ -41,7 +41,7 @@ namespace Unifi.Gateway.Common.Devices
                 }
             );
             message["if_table"] = new JsonArray(
-                new JsonArray
+                new JsonObject
                 {
                     ["full_duplex"] = true,
                     ["name"] = "eth0",
@@ -61,7 +61,7 @@ namespace Unifi.Gateway.Common.Devices
                     ["tx_errors"] = 0,
                     ["tx_packets"] = 1197,
                 },
-                new JsonArray
+                new JsonObject
                 {
                     ["full_duplex"] = true,
                     ["name"] = "eth1",
