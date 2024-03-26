@@ -32,7 +32,8 @@ namespace Unifi.Gateway.Common.Devices
 
         public string DeviceName { get; }
         public string DeviceDisplayName { get; }
-        public string Firmware { get; }
+
+        public TimeSpan Interval { get; set; } = TimeSpan.FromSeconds(10);
 
         public UnifiBaseDevice(
             ISystemInfoService systemInfo,
@@ -47,7 +48,6 @@ namespace Unifi.Gateway.Common.Devices
             this.configurationWriter = configurationWriter;
             DeviceName = serviceOptions.Value.Device;
             DeviceDisplayName = serviceOptions.Value.DisplayName;
-            Firmware = serviceOptions.Value.Firmware;
 
             configuration = configurationReader.LoadConfiguration();
         }
@@ -69,8 +69,14 @@ namespace Unifi.Gateway.Common.Devices
             var data = JsonSerializer.Deserialize(json, SourceGenerationContext.Default.ResponseData);
             if (data is not null)
             {
-                switch (data.Command)
+                switch (data.Type)
                 {
+                    case "setdefault":
+                        configuration.Adopted = false;
+                        configuration.InformUrl = string.Empty;
+                        configuration.Key = string.Empty;
+                        configuration.MgmtCfg = [];
+                        break;
                     case "setparam":
                         if (!string.IsNullOrEmpty(data.MgmtCfg))
                         {
@@ -94,10 +100,28 @@ namespace Unifi.Gateway.Common.Devices
                         nextCommand["connect_request_ip"] = IPAddress.ToString();
                         nextCommand["connect_request_port"] = "52884";
                         break;
+                    case "noop":
+                        if (data.Interval != null)
+                        {
+                            Interval = TimeSpan.FromSeconds(data.Interval.Value);
+                        }
+                        break;
+                    case "upgrade":
+                        if (!string.IsNullOrEmpty(data.Firmware))
+                        {
+                            configuration.Firmware = data.Firmware;
+                        }
+                        break;
+                    case "cmd":
+                        switch (data.Command)
+                        {
+                            case "speed-test":
+                                //todo: implement speed test
+                                break;
+                        }
+                        break;
                 }
             }
-
-            await Task.CompletedTask;
         }
 
         public async Task<string> GetInformMessageAsync()
@@ -199,7 +223,7 @@ namespace Unifi.Gateway.Common.Devices
                 ["time_ms"] = utcNow.Millisecond,
                 ["tm_ready"] = true,
                 ["uptime"] = await systemInfo.GetUptimeAsync(),
-                ["version"] = Firmware,
+                ["version"] = configuration.Firmware,
                 ["upgrade_duration"] = 150,
                 ["reboot_duration"] = 30,
                 ["state"] = 2, // DS_READY

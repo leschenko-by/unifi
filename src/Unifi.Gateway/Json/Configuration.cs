@@ -14,12 +14,14 @@ namespace Unifi.Gateway.Json
         public string[] MgmtCfg { get; set; } = [];
 
         public string Fingerprint { get; set; } = string.Empty;
+
+        public string Firmware { get; set; } = string.Empty;
     }
 
     public class ResponseData
     {
         [JsonPropertyName("_type")]
-        public string Command { get; set; } = string.Empty;
+        public string Type { get; set; } = string.Empty;
 
         [JsonPropertyName("mgmt_cfg")]
         public string MgmtCfg { get; set; } = string.Empty;
@@ -29,5 +31,14 @@ namespace Unifi.Gateway.Json
 
         [JsonPropertyName("server_time_in_utc")]
         public string ServerTimeInUtc { get; set; } = string.Empty;
+
+        [JsonPropertyName("interval")]
+        public int? Interval { get; set; }
+
+        [JsonPropertyName("version")]
+        public string? Firmware { get; set; }
+
+        [JsonPropertyName("cmd")]
+        public string? Command { get; set; }
     }
 }

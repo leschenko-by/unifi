@@ -10,6 +10,7 @@ namespace Unifi.Gateway.Common.Interfaces
         byte[] Key { get; }
         IPAddress IPAddress { get; }
         IPAddress Netmask { get; }
+        TimeSpan Interval { get; set; }
 
         Task<string> GetInformMessageAsync();
         void LoadConfigration();

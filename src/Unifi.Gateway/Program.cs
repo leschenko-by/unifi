@@ -33,12 +33,19 @@ static async Task SetAdopt(string[] args)
     var fingerprint = new byte[20];
     RandomNumberGenerator.Fill(fingerprint);
 
+    var serviceOptions = new GeneralServiceOptions();
+    var config = new ConfigurationBuilder()
+        .AddJsonFile("appsettings.json")
+        .Build();
+    config.GetSection("DiscoveryService").Bind(serviceOptions);
+
     var options = new Configuration
     {
         InformUrl = args[1],
         Key = args[2],
         Adopted = false,
-        Fingerprint = string.Join(":", fingerprint.Select(t => t.ToString("x2")))
+        Fingerprint = string.Join(":", fingerprint.Select(t => t.ToString("x2"))),
+        Firmware = serviceOptions.Firmware,
     };
     var json = JsonSerializer.Serialize(options, SourceGenerationContext.Default.Configuration);
     Directory.CreateDirectory("/etc/unifi");

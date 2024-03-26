@@ -18,7 +18,7 @@ namespace Unifi.Gateway.Services
 
         protected override async Task ExecuteAsync(CancellationToken token)
         {
-            var timer = new PeriodicTimer(TimeSpan.FromSeconds(5));
+            var interval = 5;
             while (!token.IsCancellationRequested)
             {
                 device.LoadConfigration();
@@ -49,7 +49,7 @@ namespace Unifi.Gateway.Services
                     }
                 }
 
-                await timer.WaitForNextTickAsync(token);
+                await Task.Delay(device.Interval, token);
             }
         }
 
