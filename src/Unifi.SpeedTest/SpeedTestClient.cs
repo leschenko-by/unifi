@@ -36,7 +36,8 @@ namespace Unifi.SpeedTest
                 {
                     Url = t.Groups["url"].Value,
                     Latitude = double.Parse(t.Groups["lat"].Value, CultureInfo.InvariantCulture),
-                    Longitude = double.Parse(t.Groups["lon"].Value, CultureInfo.InvariantCulture)
+                    Longitude = double.Parse(t.Groups["lon"].Value, CultureInfo.InvariantCulture),
+                    Sponsor = t.Groups["sponsor"].Value
                 })
                 .ToList();
 

@@ -4,6 +4,8 @@ namespace Unifi.SpeedTest.Models
 {
     public class Server
     {
+        public string Sponsor { get; set; }
+
         public string Url { get; set; }
 
         public double Latitude { get; set; }

@@ -44,7 +44,8 @@ namespace Unifi.Gateway.Services
                     }
                 }
 
-                await Task.Delay(device.Interval, token);
+                await Task.Delay(1000, token);
+                //await Task.Delay(device.Interval, token);
             }
         }
     }

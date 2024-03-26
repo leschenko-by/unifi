@@ -70,6 +70,7 @@ namespace Unifi.Gateway.Common.Devices
 
                 var client = new SpeedTestClient();
                 var server = await client.GetServerAsync();
+                //todo: use server.Sponsor
 
                 var latency = await client.TestServerLatencyAsync(server);
                 message["speedtest-status"] = new JsonObject
