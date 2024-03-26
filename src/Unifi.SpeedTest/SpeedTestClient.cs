@@ -1,22 +1,15 @@
 ﻿using System.Diagnostics;
+using System.Globalization;
 using System.Net;
 using System.Text;
-using SpeedTest;
+using System.Text.Json;
+using SpeedTest.Net.Models;
 using Unifi.SpeedTest.Models;
 
 namespace Unifi.SpeedTest
 {
     public class SpeedTestClient : ISpeedTestClient
     {
-        private const string ConfigUrl = "https://www.speedtest.net/speedtest-config.php";
-
-        private static readonly string[] ServersUrls = {
-            "https://www.speedtest.net/speedtest-servers-static.php",
-            "https://c.speedtest.net/speedtest-servers-static.php",
-            "https://www.speedtest.net/speedtest-servers.php",
-            "https://c.speedtest.net/speedtest-servers.php"
-        };
-
         private static readonly int[] DownloadSizes = [350, 750, 1500, 3000];
         private const string Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         private const int MaxUploadSize = 4; // 400 KB
@@ -25,38 +18,31 @@ namespace Unifi.SpeedTest
 
         /// <inheritdoc />
         /// <exception cref="InvalidOperationException"></exception>
-        public async Task<Settings> GetSettingsAsync()
+        public async Task<Server> GetServerAsync()
         {
-            using var client = new SpeedTestHttpClient();
-            var settings = await client.GetConfig<Settings>(ConfigUrl);
+            var client = new HttpClient();
+            var loc = JsonSerializer.Deserialize(
+                await client.GetStringAsync("https://ipinfo.io/json"),
+                SourceGenerationContext.Default.LocationModel);
+            var coordinate = new Coordinate(loc.Latitude, loc.Longitude);
 
-            var serversConfig = new ServersList();
-            foreach (var serversUrl in ServersUrls)
-            {
-                try
+            var text = await client.GetStringAsync("http://www.speedtest.net/speedtest-servers-static.php");
+            var lines = text.Split('\n');
+            var rx = Tools.GetServerRegex();
+            var servers = lines
+                .Select(line => rx.Match(line))
+                .Where(t => t.Success)
+                .Select(t => new Server
                 {
-                    serversConfig = await client.GetConfig<ServersList>(serversUrl);
-                    if (serversConfig.Servers.Count > 0) break;
-                }
-                catch
-                {
-                    //
-                }
-            }
-
-            if (serversConfig.Servers.Count <= 0)
-            {
-                throw new InvalidOperationException("SpeedTest does not return any server");
-            }
-
-            var ignoredIds = settings.ServerConfig.IgnoreIds.Split(",", StringSplitOptions.RemoveEmptyEntries);
-            serversConfig.CalculateDistances(settings.Client.GeoCoordinate);
-            settings.Servers = serversConfig.Servers
-                .Where(s => !ignoredIds.Contains(s.Id.ToString()))
-                .OrderBy(s => s.Distance)
+                    Url = t.Groups["url"].Value,
+                    Latitude = double.Parse(t.Groups["lat"].Value, CultureInfo.InvariantCulture),
+                    Longitude = double.Parse(t.Groups["lon"].Value, CultureInfo.InvariantCulture)
+                })
                 .ToList();
 
-            return settings;
+            var config = new ServersList(servers);
+            config.CalculateDistances(coordinate);
+            return config.Servers.OrderBy(s => s.Distance).First();
         }
 
         /// <inheritdoc />

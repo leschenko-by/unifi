@@ -63,8 +63,7 @@ namespace Unifi.Gateway.Common.Devices
                 Log(response = await protocol.SendRequestAsync(InformUrl, Key, request, default));
 
                 var client = new SpeedTestClient();
-                var settings = await client.GetSettingsAsync();
-                var server = await settings.GetServer();
+                var server = await client.GetServerAsync();
 
                 var latency = await client.TestServerLatencyAsync(server);
                 message["speedtest-status"] = new JsonObject

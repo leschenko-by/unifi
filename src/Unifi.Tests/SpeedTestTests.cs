@@ -9,23 +9,21 @@ namespace Unifi.Tests
         [Fact]
         public async void GetSettings()
         {
-            var settings = await client.GetSettingsAsync();
+            var settings = await client.GetServerAsync();
             Assert.NotNull(settings);
         }
 
         [Fact]
         public async Task GetServers()
         {
-            var settings = await client.GetSettingsAsync();
-            var server = await settings.GetServer();
+            var server = await client.GetServerAsync();
             Assert.NotNull(server);
         }
 
         [Fact]  
         public async Task GetLatency()
         {
-            var settings = await client.GetSettingsAsync();
-            var server = await settings.GetServer();
+            var server = await client.GetServerAsync();
             var latency = await client.TestServerLatencyAsync(server);
             Assert.True(latency > 0);
         }
@@ -33,8 +31,7 @@ namespace Unifi.Tests
         [Fact]
         public async Task GetDownloadSpeed()
         {
-            var settings = await client.GetSettingsAsync();
-            var server = await settings.GetServer();
+            var server = await client.GetServerAsync();
             var speed = await client.TestDownloadSpeedAsync(server, 8);
             Assert.True(speed > 0);
         }
