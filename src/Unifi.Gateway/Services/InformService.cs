@@ -18,7 +18,7 @@ namespace Unifi.Gateway.Services
 
         protected override async Task ExecuteAsync(CancellationToken token)
         {
-            var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+            var timer = new PeriodicTimer(TimeSpan.FromSeconds(5));
             while (!token.IsCancellationRequested)
             {
                 device.LoadConfigration();
