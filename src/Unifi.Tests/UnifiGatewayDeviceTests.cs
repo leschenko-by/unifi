@@ -46,12 +46,12 @@ namespace Unifi.Tests
         }
 
         [Fact]
-        public void GetInformMessage()
+        public async Task GetInformMessage()
         {
             // Arrange
 
             // Act
-            var message = device.GetInformMessage();
+            var message = await device.GetInformMessageAsync();
 
             // Assert
             Assert.NotNull(message);

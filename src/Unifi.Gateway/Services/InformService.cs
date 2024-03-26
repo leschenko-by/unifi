@@ -31,7 +31,7 @@ namespace Unifi.Gateway.Services
                     {
                         logger.LogInformation("Sending inform to {InformUrl}", informUrl);
 
-                        var message = device.GetInformMessage();
+                        var message = await device.GetInformMessageAsync();
                         logger.LogInformation("Sending inform message: {Message}", message);
                         var requestMessageData = Encoding.UTF8.GetBytes(message);
 

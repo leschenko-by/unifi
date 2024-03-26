@@ -11,7 +11,7 @@ namespace Unifi.Gateway.Common.Interfaces
         IPAddress IPAddress { get; }
         IPAddress Netmask { get; }
 
-        string GetInformMessage();
+        Task<string> GetInformMessageAsync();
         void LoadConfigration();
         Task ParseResponseAsync(string json);
         void SaveConfigration();

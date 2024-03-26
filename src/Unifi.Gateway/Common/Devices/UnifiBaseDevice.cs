@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
+using System.Diagnostics;
 using System.Net;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -10,8 +11,7 @@ namespace Unifi.Gateway.Common.Devices
 {
     public abstract class UnifiBaseDevice : IUnifiDevice
     {
-        protected readonly DateTime startTime = DateTime.Now;
-
+        private readonly ISystemInfoService systemInfo;
         protected readonly INetworkInfoService network;
         private readonly IConfigurationReader configurationReader;
         private readonly IConfigurationWriter configurationWriter;
@@ -35,11 +35,13 @@ namespace Unifi.Gateway.Common.Devices
         public string Firmware { get; }
 
         public UnifiBaseDevice(
+            ISystemInfoService systemInfo,
             INetworkInfoService network,
             IConfigurationReader configurationReader,
             IConfigurationWriter configurationWriter,
             IOptions<GeneralServiceOptions> serviceOptions)
         {
+            this.systemInfo = systemInfo;
             this.network = network;
             this.configurationReader = configurationReader;
             this.configurationWriter = configurationWriter;
@@ -86,7 +88,7 @@ namespace Unifi.Gateway.Common.Devices
 
                         configuration.Adopted = true;
 
-                        nextCommand = CreateBaseInform();
+                        nextCommand = await CreateBaseInformAsync();
                         nextCommand["inform_as_notif"] = true;
                         nextCommand["notif_reason"] = "setparam";
                         nextCommand["connect_request_ip"] = IPAddress.ToString();
@@ -98,14 +100,14 @@ namespace Unifi.Gateway.Common.Devices
             await Task.CompletedTask;
         }
 
-        public string GetInformMessage()
+        public async Task<string> GetInformMessageAsync()
         {
             if (nextCommand != null)
             {
                 return nextCommand.ToString();
             }
 
-            var message = CerateInformMessage();
+            var message = await CerateInformMessageAsync();
             if (configuration.Adopted != true)
             {
                 message["fingerprint"] = configuration.Fingerprint;
@@ -116,11 +118,11 @@ namespace Unifi.Gateway.Common.Devices
             return message.ToString();
         }
 
-        private JsonObject CerateInformMessage()
+        private async Task<JsonObject> CerateInformMessageAsync()
         {
-            var message = CreateBaseInform();
-            message["sys_stats"] = GetSysStats();
-            message["system-stats"] = GetSystemStats();
+            var message = await CreateBaseInformAsync();
+            message["sys_stats"] = await GetSysStats();
+            message["system-stats"] = await GetSystemStats();
             if (configuration.Adopted)
             {
                 message["connect_request_ip"] = IPAddress.ToString();
@@ -133,32 +135,37 @@ namespace Unifi.Gateway.Common.Devices
 
         protected abstract void AddExtraInformMessage(JsonObject message);
 
-        private JsonObject GetSysStats() => new JsonObject
+        private async Task<JsonObject> GetSysStats()
         {
-            ["loadavg_1"] = "0.09",
-            ["loadavg_5"] = "0.16",
-            ["loadavg_15"] = "0.08",
-            ["mem_buffer"] = 0,
-            ["mem_total"] = 128593920,
-            ["mem_used"] = 50077696,
-        };
-
-        private JsonObject GetSystemStats()
-        {
-            var uptime = (int)(DateTime.Now - startTime).TotalSeconds;
+            var totalMem = await systemInfo.GetTotalMemoryAsync();
+            var usedMem = await systemInfo.GetUsedMemoryAsync();
 
             return new JsonObject
             {
-                ["cpu"] = "5.2",
-                ["mem"] = "38.8",
-                ["uptime"] = uptime.ToString(),
+                ["loadavg_1"] = "0.09",
+                ["loadavg_5"] = "0.16",
+                ["loadavg_15"] = "0.08",
+                ["mem_buffer"] = 0,
+                ["mem_total"] = totalMem,
+                ["mem_used"] = Math.Min(usedMem, totalMem),
             };
         }
 
-        private JsonObject CreateBaseInform()
+        private async Task<JsonObject> GetSystemStats()
         {
-            var uptime = (int)(DateTime.Now - startTime).TotalSeconds;
+            var totalMem = await systemInfo.GetTotalMemoryAsync();
+            var usedMem = await systemInfo.GetUsedMemoryAsync();
 
+            return new JsonObject
+            {
+                ["cpu"] = (await systemInfo.GetCpuUsageAsync()).ToString(),
+                ["mem"] = totalMem > 0 ? (100 * Math.Min(usedMem, totalMem) / totalMem).ToString() : "0",
+                ["uptime"] = (await systemInfo.GetUptimeAsync()).ToString(),
+            };
+        }
+
+        private async Task<JsonObject> CreateBaseInformAsync()
+        {
             var utcNow = DateTimeOffset.UtcNow;
             var time = utcNow.ToUnixTimeSeconds();
             var uri = new Uri(InformUrl);
@@ -191,7 +198,7 @@ namespace Unifi.Gateway.Common.Devices
                 ["time"] = utcNow.ToUnixTimeSeconds(),
                 ["time_ms"] = utcNow.Millisecond,
                 ["tm_ready"] = true,
-                ["uptime"] = uptime,
+                ["uptime"] = await systemInfo.GetUptimeAsync(),
                 ["version"] = Firmware,
                 ["upgrade_duration"] = 150,
                 ["reboot_duration"] = 30,

@@ -49,6 +49,7 @@ static async Task RunAsync(string[] args)
 {
     var builder = WebApplication.CreateSlimBuilder(args);
     builder.Services.Configure<GeneralServiceOptions>(builder.Configuration.GetSection("DiscoveryService"));
+    builder.Services.AddTransient<ISystemInfoService, SystemInfoService>();
     builder.Services.AddTransient<IRequestEncoder, RequestEncoder>();
     builder.Services.AddTransient<IRequestDecoder, RequestDecoder>();
     builder.Services.AddTransient<INetworkInfoService, NetworkInfoService>();
