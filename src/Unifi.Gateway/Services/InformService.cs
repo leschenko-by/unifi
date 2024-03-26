@@ -4,17 +4,13 @@ using Unifi.Gateway.Common.Interfaces;
 namespace Unifi.Gateway.Services
 {
     public class InformService(
-        IRequestEncoder encoder,
-        IRequestDecoder decoder,
+        IUnifiProtocol protocol,
         IUnifiDevice device,
-        ILogger<InformService> logger,
-        IHttpClientFactory httpClientFactory) : BackgroundService()
+        ILogger<InformService> logger) : BackgroundService()
     {
-        private readonly IRequestEncoder encoder = encoder;
-        private readonly IRequestDecoder decoder = decoder;
+        private readonly IUnifiProtocol protocol = protocol;
         private readonly IUnifiDevice device = device;
         private readonly ILogger<InformService> logger = logger;
-        private readonly HttpClient httpClient = httpClientFactory.CreateClient();
 
         protected override async Task ExecuteAsync(CancellationToken token)
         {
@@ -34,7 +30,7 @@ namespace Unifi.Gateway.Services
                         logger.LogInformation("Sending inform message: {Message}", message);
                         var requestMessageData = Encoding.UTF8.GetBytes(message);
 
-                        var responseMessageData = await SendRequestAsync(informUrl, key, requestMessageData, token);
+                        var responseMessageData = await protocol.SendRequestAsync(informUrl, key, requestMessageData, token);
 
                         var json = Encoding.UTF8.GetString(responseMessageData);
                         await device.ParseResponseAsync(json);
@@ -51,30 +47,5 @@ namespace Unifi.Gateway.Services
                 await Task.Delay(device.Interval, token);
             }
         }
-
-        private async Task<byte[]> SendRequestAsync(string informUrl, byte[] key, byte[] data, CancellationToken token)
-        {
-            var body = encoder.Encode(data, key, device.MacAddress, CompressMode.Zlib, EncryptMode.Gcm);
-            using var request = CreateRequestMessage(informUrl, body);
-            using var reponse = await httpClient.SendAsync(request, token);
-            body = await reponse.EnsureSuccessStatusCode().Content.ReadAsByteArrayAsync(token);
-            return decoder.Decode(body, key);
-        }
-
-        private static HttpRequestMessage CreateRequestMessage(string url, byte[] data) =>
-            new(HttpMethod.Post, url)
-            {
-                Headers =
-                {
-                    { "User-Agent", "AirControl Agent v1.0" },
-                },
-                Content = new ByteArrayContent(data)
-                {
-                    Headers =
-                    {
-                        ContentType = new("application/x-binary"),
-                    },
-                },
-            };
     }
 }

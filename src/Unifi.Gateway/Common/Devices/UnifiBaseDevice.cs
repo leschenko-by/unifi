@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Options;
-using System.Diagnostics;
 using System.Net;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -17,6 +16,7 @@ namespace Unifi.Gateway.Common.Devices
         private readonly IConfigurationWriter configurationWriter;
         private JsonObject? nextCommand = null;
         protected Configuration configuration;
+        private TimeSpan interval = TimeSpan.FromSeconds(10);
 
         public byte[] MacAddress => network.LanMacAddress;
 
@@ -33,7 +33,24 @@ namespace Unifi.Gateway.Common.Devices
         public string DeviceName { get; }
         public string DeviceDisplayName { get; }
 
-        public TimeSpan Interval { get; set; } = TimeSpan.FromSeconds(10);
+        public bool Immediate { get; set; }
+
+        public TimeSpan Interval
+        {
+            get
+            {
+                if (Immediate)
+                {
+                    Immediate = false;
+                    return TimeSpan.FromSeconds(0.1);
+                }
+                return interval;
+            }
+            set
+            {
+                interval = value;
+            }
+        }
 
         public UnifiBaseDevice(
             ISystemInfoService systemInfo,
@@ -101,6 +118,10 @@ namespace Unifi.Gateway.Common.Devices
                         nextCommand["connect_request_port"] = "52884";
                         break;
                     case "noop":
+                        if (data.Immediate != null)
+                        {
+                            Immediate = true;
+                        }
                         if (data.Interval != null)
                         {
                             Interval = TimeSpan.FromSeconds(data.Interval.Value);

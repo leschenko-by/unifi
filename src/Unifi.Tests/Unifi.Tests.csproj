@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Unifi.SpeedTest\Unifi.SpeedTest.csproj" />
     <ProjectReference Include="..\Unifi.Gateway\Unifi.Gateway.csproj" />
   </ItemGroup>
 

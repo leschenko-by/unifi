@@ -7,7 +7,6 @@ using Unifi.Gateway.Options;
 
 namespace Unifi.Gateway.Services
 {
-
     public class DiscoveryService(INetworkInfoService network, IOptions<GeneralServiceOptions> options) : BackgroundService
     {
         private readonly DateTime startTime = DateTime.Now;

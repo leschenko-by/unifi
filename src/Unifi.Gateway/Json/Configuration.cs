@@ -1,5 +1,4 @@
-﻿using System.Text.Json.Nodes;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace Unifi.Gateway.Json
 {
@@ -34,6 +33,9 @@ namespace Unifi.Gateway.Json
 
         [JsonPropertyName("interval")]
         public int? Interval { get; set; }
+
+        [JsonPropertyName("immediate")]
+        public int? Immediate { get; set; }
 
         [JsonPropertyName("version")]
         public string? Firmware { get; set; }

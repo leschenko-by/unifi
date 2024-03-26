@@ -1,4 +1,3 @@
-using System.Net.Mail;
 using System.Security.Cryptography;
 using System.Text.Json;
 using Unifi.Gateway.Common.Devices;
@@ -62,6 +61,7 @@ static async Task RunAsync(string[] args)
     builder.Services.AddTransient<INetworkInfoService, NetworkInfoService>();
     builder.Services.AddTransient<IConfigurationReader, ConfigurationReader>();
     builder.Services.AddTransient<IConfigurationWriter, ConfigurationWriter>();
+    builder.Services.AddTransient<IUnifiProtocol, UnifiProtocol>();
     builder.Services.AddTransient<IUnifiDevice, UnifiGatewayDevice>();
     builder.Services.AddHostedService<DiscoveryService>();
     builder.Services.AddHostedService<InformService>();
