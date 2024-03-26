@@ -15,10 +15,12 @@ namespace Unifi.Gateway.Common.Devices
         INetworkInfoService network,
         IConfigurationReader configurationReader,
         IConfigurationWriter configurationWriter,
-        IOptions<GeneralServiceOptions> serviceOptions)
+        IOptions<GeneralServiceOptions> serviceOptions,
+        ILogger<UnifiGatewayDevice> logger)
         : UnifiBaseDevice(systemInfo, network, configurationReader, configurationWriter, serviceOptions)
     {
         private readonly IUnifiProtocol protocol = protocol;
+        private readonly ILogger<UnifiGatewayDevice> logger = logger;
 
         protected override async Task ProcessDataAsync(ResponseData data)
         {
@@ -38,7 +40,8 @@ namespace Unifi.Gateway.Common.Devices
 
         private async void StartSpeedTest()
         {
-            byte[] body;
+            byte[] request;
+            byte[] response;
             try
             {
                 var message = await CreateBaseInformAsync();
@@ -56,8 +59,8 @@ namespace Unifi.Gateway.Common.Devices
                     ["xput_download"] = 0,
                     ["xput_upload"] = 0,
                 };
-                body = Encoding.UTF8.GetBytes(message.ToString());
-                await protocol.SendRequestAsync(InformUrl, Key, body, default);
+                Log(request = Encoding.UTF8.GetBytes(message.ToString()));
+                Log(response = await protocol.SendRequestAsync(InformUrl, Key, request, default));
 
                 var client = new SpeedTestClient();
                 var settings = await client.GetSettingsAsync();
@@ -76,8 +79,8 @@ namespace Unifi.Gateway.Common.Devices
                     ["xput_download"] = 0,
                     ["xput_upload"] = 0,
                 };
-                body = Encoding.UTF8.GetBytes(message.ToString());
-                await protocol.SendRequestAsync(InformUrl, Key, body, default);
+                Log(request = Encoding.UTF8.GetBytes(message.ToString()));
+                Log(response = await protocol.SendRequestAsync(InformUrl, Key, request, default));
 
                 var download = await client.TestDownloadSpeedAsync(server, 8);
 
@@ -93,8 +96,8 @@ namespace Unifi.Gateway.Common.Devices
                     ["xput_download"] = download / 1024,
                     ["xput_upload"] = 0,
                 };
-                body = Encoding.UTF8.GetBytes(message.ToString());
-                await protocol.SendRequestAsync(InformUrl, Key, body, default);
+                Log(request = Encoding.UTF8.GetBytes(message.ToString()));
+                Log(response = await protocol.SendRequestAsync(InformUrl, Key, request, default));
 
                 var upload = await client.TestUploadSpeedAsync(server, 8);
 
@@ -110,8 +113,8 @@ namespace Unifi.Gateway.Common.Devices
                     ["xput_download"] = download / 1024,
                     ["xput_upload"] = upload / 1024,
                 };
-                body = Encoding.UTF8.GetBytes(message.ToString());
-                await protocol.SendRequestAsync(InformUrl, Key, body, default);
+                Log(request = Encoding.UTF8.GetBytes(message.ToString()));
+                Log(response = await protocol.SendRequestAsync(InformUrl, Key, request, default));
             }
             catch (Exception)
             {
@@ -214,6 +217,12 @@ namespace Unifi.Gateway.Common.Devices
                 }
             );
 #pragma warning restore CA1416 // Validate platform compatibility
+        }
+
+        private void Log(byte[] data)
+        {
+            var message = Encoding.UTF8.GetString(data);
+            logger.LogInformation(message);
         }
     }
 }
