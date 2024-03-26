@@ -6,17 +6,17 @@ using Unifi.Gateway.Common.Interfaces;
 using Unifi.Gateway.Json;
 using Unifi.Gateway.Options;
 
-namespace Unifi.Gateway.Common.Services
+namespace Unifi.Gateway.Common.Devices
 {
-    public class UnifiGatewayDevice : IUnifiDevice
+    public abstract class UnifiBaseDevice : IUnifiDevice
     {
-        private readonly DateTime startTime = DateTime.Now;
+        protected readonly DateTime startTime = DateTime.Now;
 
-        private readonly INetworkInfoService network;
+        protected readonly INetworkInfoService network;
         private readonly IConfigurationReader configurationReader;
         private readonly IConfigurationWriter configurationWriter;
-        private Configuration configuration;
         private JsonObject? nextCommand = null;
+        protected Configuration configuration;
 
         public byte[] MacAddress => network.MacAddress;
 
@@ -32,7 +32,7 @@ namespace Unifi.Gateway.Common.Services
         public string DeviceDisplayName { get; }
         public string Firmware { get; }
 
-        public UnifiGatewayDevice(
+        public UnifiBaseDevice(
             INetworkInfoService network,
             IConfigurationReader configurationReader,
             IConfigurationWriter configurationWriter,
@@ -85,12 +85,11 @@ namespace Unifi.Gateway.Common.Services
                             }
                         }
 
-                        nextCommand = CreateBaseInform();
-                        nextCommand["inform_as_notif"] = true;
-                        nextCommand["notif_reason"] = "stun";
-                        nextCommand["state"] = 0; // DS_ADOPTING
-
                         configuration.Adopted = true;
+
+                        nextCommand = CerateInformMessage();
+                        nextCommand["inform_as_notif"] = true;
+                        nextCommand["notif_reason"] = "setparam";
                         break;
                 }
             }
@@ -123,8 +122,17 @@ namespace Unifi.Gateway.Common.Services
             message["discovery_response"] = false;
             message["sys_stats"] = GetSysStats();
             message["system-stats"] = GetSystemStats();
+            if (configuration.Adopted)
+            {
+                message["connect_request_ip"] = IPAddress.ToString();
+                message["connect_request_port"] = "52884";
+            }
+
+            AddExtraInformMessage(message);
             return message;
         }
+
+        protected abstract void AddExtraInformMessage(JsonObject message);
 
         private JsonObject GetSysStats() => new JsonObject
         {
@@ -166,10 +174,11 @@ namespace Unifi.Gateway.Common.Services
                 ["dualboot"] = true,
                 ["hash_id"] = Convert.ToHexString(MacAddress),
                 ["hostname"] = Dns.GetHostName(),
+                ["inform_min_interval"] = 5,
                 ["inform_url"] = InformUrl,
                 ["ip"] = IPAddress.ToString(),
                 ["isolated"] = false,
-                ["kernel_version"] = "4.1.20-ubnt",
+                ["kernel_version"] = "4.4.153",
                 ["locating"] = false,
                 ["mac"] = string.Join(":", MacAddress.Select(t => t.ToString("x2"))),
                 ["manufacturer_id"] = 4,
@@ -184,8 +193,6 @@ namespace Unifi.Gateway.Common.Services
                 ["time_ms"] = utcNow.Millisecond,
                 ["uptime"] = uptime,
                 ["version"] = Firmware,
-                ["connect_request_ip"] = IPAddress.ToString(),
-                ["connect_request_port"] = 57201,
             };
 
             string GetConfigVersion()

@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Options;
 using Moq.AutoMock;
 using System.Net;
+using Unifi.Gateway.Common.Devices;
 using Unifi.Gateway.Common.Interfaces;
-using Unifi.Gateway.Common.Services;
 using Unifi.Gateway.Json;
 using Unifi.Gateway.Options;
 
@@ -11,7 +11,7 @@ namespace Unifi.Tests
     public class UnifiGatewayDeviceTests
     {
         private readonly AutoMocker mocker = new();
-        private readonly UnifiGatewayDevice device;
+        private readonly UnifiBaseDevice device;
 
         public UnifiGatewayDeviceTests()
         {
@@ -36,7 +36,7 @@ namespace Unifi.Tests
                     Adopted = false
                 });
 
-            device = mocker.CreateInstance<UnifiGatewayDevice>();
+            device = mocker.CreateInstance<UnifiBaseDevice>();
         }
 
         [Fact]

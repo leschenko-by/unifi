@@ -1,6 +1,7 @@
 using System.Net.Mail;
 using System.Security.Cryptography;
 using System.Text.Json;
+using Unifi.Gateway.Common.Devices;
 using Unifi.Gateway.Common.Interfaces;
 using Unifi.Gateway.Common.Services;
 using Unifi.Gateway.Json;
