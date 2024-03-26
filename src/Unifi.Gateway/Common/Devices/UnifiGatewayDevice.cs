@@ -30,17 +30,17 @@ namespace Unifi.Gateway.Common.Devices
             message["config_port_table"] = new JsonArray(
                 new JsonObject
                 {
-                    ["ifname"] = "eth1",
+                    ["ifname"] = "eth0",
                     ["name"] = "lan",
                 },
                 new JsonObject
                 {
-                    ["ifname"] = "eth2",
+                    ["ifname"] = "eth1",
                     ["name"] = "lan2",
                 },
                 new JsonObject
                 {
-                    ["ifname"] = "eth0",
+                    ["ifname"] = "eth2",
                     ["name"] = "wan",
                 },
                 new JsonObject
@@ -58,12 +58,13 @@ namespace Unifi.Gateway.Common.Devices
                 new JsonObject
                 {
                     ["full_duplex"] = true,
-                    ["name"] = "eth1",
+                    ["name"] = "eth0",
+                    ["enable"] = true,
                     ["ip"] = IPAddress.ToString(),
                     ["mac"] = MacAddressString,
                     ["netmask"] = Netmask.ToString(),
                     ["up"] = true,
-                    ["num_port"] = 1,
+                    ["num_port"] = 0,
                     ["rx_bytes"] = lan?.BytesReceived ?? 0,
                     ["rx_dropped"] = lan?.IncomingPacketsDiscarded ?? 0,
                     ["rx_errors"] = lan?.IncomingPacketsWithErrors ?? 0,
@@ -77,19 +78,19 @@ namespace Unifi.Gateway.Common.Devices
                 },
                 new JsonObject
                 {
-                    ["name"] = "eth2",
+                    ["name"] = "eth1",
                     ["enable"] = false,
-                    ["num_port"] = 2,
                 },
                 new JsonObject
                 {
                     ["full_duplex"] = true,
-                    ["name"] = "eth0",
+                    ["name"] = "eth2",
+                    ["enable"] = true,
                     ["ip"] = network.WanIPAddress.ToString(),
                     ["mac"] = string.Join(":", network.WanMacAddress.Select(t => t.ToString("x2"))),
-                    ["netmask"] = "0.0.0.0",
+                    ["netmask"] = network.WanNetmask.ToString(),
                     ["up"] = true,
-                    ["num_port"] = 3,
+                    ["num_port"] = 0,
                     ["rx_bytes"] = wan?.BytesReceived ?? 0,
                     ["rx_dropped"] = wan?.IncomingPacketsDiscarded ?? 0,
                     ["rx_errors"] = wan?.IncomingPacketsWithErrors ?? 0,
@@ -105,7 +106,6 @@ namespace Unifi.Gateway.Common.Devices
                 {
                     ["name"] = "eth3",
                     ["enable"] = false,
-                    ["num_port"] = 4,
                 }
             );
 #pragma warning restore CA1416 // Validate platform compatibility

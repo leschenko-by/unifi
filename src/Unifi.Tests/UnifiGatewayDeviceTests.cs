@@ -30,6 +30,8 @@ namespace Unifi.Tests
                 .SetupGet(t => t.LanMacAddress).Returns(Convert.FromHexString("00:15:5d:02:09:2d".Replace(":", "")));
             mocker.GetMock<INetworkInfoService>()
                 .SetupGet(t => t.WanMacAddress).Returns(Convert.FromHexString("00:15:5d:02:09:02".Replace(":", "")));
+            mocker.GetMock<INetworkInfoService>()
+                .SetupGet(t => t.WanNetmask).Returns(IPAddress.Parse("255.255.255.0"));
 
             mocker.GetMock<IConfigurationReader>()
                 .Setup(t => t.LoadConfiguration())
