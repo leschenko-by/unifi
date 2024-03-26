@@ -89,9 +89,12 @@ namespace Unifi.Gateway.Common.Devices
 
                         configuration.Adopted = true;
 
-                        nextCommand = CerateInformMessage();
+                        nextCommand = CreateBaseInform();
                         nextCommand["inform_as_notif"] = true;
-                        nextCommand["notif_reason"] = "setparam";
+                        nextCommand["notif_reason"] = "stun";
+                        nextCommand["state"] = 0; // DS_ADOPTING
+                        nextCommand["connect_request_ip"] = IPAddress.ToString();
+                        nextCommand["connect_request_port"] = "52884";
                         break;
                 }
             }
@@ -120,8 +123,6 @@ namespace Unifi.Gateway.Common.Devices
         private JsonObject CerateInformMessage()
         {
             var message = CreateBaseInform();
-            message["state"] = 2; // DS_READY
-            message["discovery_response"] = false;
             message["sys_stats"] = GetSysStats();
             message["system-stats"] = GetSystemStats();
             if (configuration.Adopted)
@@ -167,9 +168,9 @@ namespace Unifi.Gateway.Common.Devices
             var uri = new Uri(InformUrl);
             return new JsonObject
             {
-                ["fingerprint_req"] = true,
+                ["architecture"] = "mips",
                 ["board_rev"] = 33,
-                ["bootid"] = 1,
+                ["bootid"] = 0,
                 ["bootrom_version"] = "unifi-enlarge-buf.-1-g63fe9b5d-dirty",
                 ["cfgversion"] = GetConfigVersion(),
                 ["default"] = false,
@@ -193,8 +194,15 @@ namespace Unifi.Gateway.Common.Devices
                 ["state"] = 2,
                 ["time"] = utcNow.ToUnixTimeSeconds(),
                 ["time_ms"] = utcNow.Millisecond,
+                ["tm_ready"] = true,
                 ["uptime"] = uptime,
                 ["version"] = Firmware,
+                ["upgrade_duration"] = 150,
+                ["reboot_duration"] = 30,
+                ["state"] = 2, // DS_READY
+                ["discovery_response"] = false,
+                ["has_crash_logs"] = false,
+                ["sys_error_caps"] = 0,
             };
 
             string GetConfigVersion()

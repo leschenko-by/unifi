@@ -20,7 +20,6 @@ namespace Unifi.Gateway.Common.Devices
             message["has_dpi"] = true;
             message["has_vti"] = true;
             message["has_ssh_disable"] = true;
-            message["has_crash_logs"] = false;
             message["fw_caps"] = 3;
             message["has_default_route_distance"] = true;
             message["config_network_wan"] = new JsonObject
