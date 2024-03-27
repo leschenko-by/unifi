@@ -53,57 +53,56 @@ namespace Unifi.Gateway.Common.Devices
                 var message = await CreateBaseInformAsync();
                 message["sys_stats"] = await GetSysStats();
                 message["system-stats"] = await GetSystemStats();
-                //message["speedtest-status"] = new JsonObject
-                //{
-                //    ["latency"] = 0,
-                //    ["rundate"] = GetTime(),
-                //    ["runtime"] = GetTime(),
-                //    ["status_download"] = 0,
-                //    ["status_ping"] = 11,
-                //    ["status_summary"] = 1,
-                //    ["status_upload"] = 0,
-                //    ["xput_download"] = 0,
-                //    ["xput_upload"] = 0,
-                //};
-                //Log("Request", request = Encoding.UTF8.GetBytes(message.ToString()));
-                //Log("Response", response = await protocol.SendRequestAsync(InformUrl, Key, request, default));
+                message["speedtest-status"] = new JsonObject
+                {
+                    ["latency"] = 0,
+                    ["rundate"] = GetTime(),
+                    ["runtime"] = GetTime(),
+                    ["status_download"] = 0,
+                    ["status_ping"] = 11,
+                    ["status_summary"] = 1,
+                    ["status_upload"] = 0,
+                    ["xput_download"] = 0,
+                    ["xput_upload"] = 0,
+                };
+                Log("Request", request = Encoding.UTF8.GetBytes(message.ToString()));
+                Log("Response", response = await protocol.SendRequestAsync(InformUrl, Key, request, default));
 
                 var client = new SpeedTestClient();
                 var server = await client.GetServerAsync();
-                //todo: use server.Sponsor
 
                 var latency = await client.TestServerLatencyAsync(server);
-                //message["speedtest-status"] = new JsonObject
-                //{
-                //    ["latency"] = latency,
-                //    ["rundate"] = GetTime(),
-                //    ["runtime"] = GetTime(),
-                //    ["status_download"] = 1,
-                //    ["status_ping"] = 2,
-                //    ["status_summary"] = 1,
-                //    ["status_upload"] = 0,
-                //    ["xput_download"] = 0,
-                //    ["xput_upload"] = 0,
-                //};
-                //Log("Request", request = Encoding.UTF8.GetBytes(message.ToString()));
-                //Log("Response", response = await protocol.SendRequestAsync(InformUrl, Key, request, default));
+                message["speedtest-status"] = new JsonObject
+                {
+                    ["latency"] = latency,
+                    ["rundate"] = GetTime(),
+                    ["runtime"] = GetTime(),
+                    ["status_download"] = 1,
+                    ["status_ping"] = 2,
+                    ["status_summary"] = 1,
+                    ["status_upload"] = 0,
+                    ["xput_download"] = 0,
+                    ["xput_upload"] = 0,
+                };
+                Log("Request", request = Encoding.UTF8.GetBytes(message.ToString()));
+                Log("Response", response = await protocol.SendRequestAsync(InformUrl, Key, request, default));
 
                 var download = await client.TestDownloadSpeedAsync(server, 8);
 
-                //message["speedtest-status"] = new JsonObject
-                //{
-                //    ["latency"] = latency,
-                //    ["rundate"] = GetTime(),
-                //    ["runtime"] = GetTime(),
-                //    ["status_download"] = 2,
-                //    ["status_ping"] = 2,
-                //    ["status_summary"] = 1,
-                //    ["status_upload"] = 2,
-                //    ["xput_download"] = download / 1024,
-                //    ["xput_upload"] = 0,
-                //};
-                //Log("Request", request = Encoding.UTF8.GetBytes(message.ToString()));
-                //Log("Response", response = await protocol.SendRequestAsync(InformUrl, Key, request, default));
+                message["speedtest-status"] = new JsonObject
+                {
+                    ["latency"] = latency,
+                    ["rundate"] = GetTime(),
+                    ["runtime"] = GetTime(),
+                    ["status_download"] = 2,
+                    ["status_ping"] = 2,
+                    ["status_summary"] = 1,
+                    ["status_upload"] = 2,
+                    ["xput_download"] = download / 1024,
+                    ["xput_upload"] = 0,
+                };
+                Log("Request", request = Encoding.UTF8.GetBytes(message.ToString()));
+                Log("Response", response = await protocol.SendRequestAsync(InformUrl, Key, request, default));
 
                 var upload = await client.TestUploadSpeedAsync(server, 8);
 
