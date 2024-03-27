@@ -8,7 +8,7 @@ using Unifi.Gateway.Options;
 
 namespace Unifi.Gateway.Common.Devices
 {
-    public abstract class UnifiBaseDevice : IUnifiDevice
+    public abstract class BaseUnifiDevice : IUnifiDevice
     {
         private readonly ISystemInfoService systemInfo;
         protected readonly INetworkInfoService network;
@@ -30,8 +30,8 @@ namespace Unifi.Gateway.Common.Devices
 
         public byte[] Key => Convert.FromHexString(configuration.Key);
 
-        public string DeviceName { get; }
-        public string DeviceDisplayName { get; }
+        public string DeviceName { get; protected set; } = string.Empty;
+        public string DeviceDisplayName { get; protected set; } = string.Empty;
 
         public bool Immediate { get; set; }
 
@@ -52,20 +52,16 @@ namespace Unifi.Gateway.Common.Devices
             }
         }
 
-        public UnifiBaseDevice(
+        public BaseUnifiDevice(
             ISystemInfoService systemInfo,
             INetworkInfoService network,
             IConfigurationReader configurationReader,
-            IConfigurationWriter configurationWriter,
-            IOptions<GeneralServiceOptions> serviceOptions)
+            IConfigurationWriter configurationWriter)
         {
             this.systemInfo = systemInfo;
             this.network = network;
             this.configurationReader = configurationReader;
             this.configurationWriter = configurationWriter;
-            DeviceName = serviceOptions.Value.Device;
-            DeviceDisplayName = serviceOptions.Value.DisplayName;
-
             configuration = configurationReader.LoadConfiguration();
         }
 

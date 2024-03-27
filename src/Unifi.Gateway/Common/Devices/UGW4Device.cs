@@ -8,18 +8,25 @@ using Unifi.SpeedTest;
 
 namespace Unifi.Gateway.Common.Devices
 {
-    public class UnifiGatewayDevice(
-        IUnifiProtocol protocol,
-        ISystemInfoService systemInfo,
-        INetworkInfoService network,
-        IConfigurationReader configurationReader,
-        IConfigurationWriter configurationWriter,
-        IOptions<GeneralServiceOptions> serviceOptions,
-        ILogger<UnifiGatewayDevice> logger)
-        : UnifiBaseDevice(systemInfo, network, configurationReader, configurationWriter, serviceOptions)
+    public class UGW4Device : BaseUnifiDevice
     {
-        private readonly IUnifiProtocol protocol = protocol;
-        private readonly ILogger<UnifiGatewayDevice> logger = logger;
+        private readonly IUnifiProtocol protocol;
+        private readonly ILogger<UGW4Device> logger;
+
+        public UGW4Device(
+            IUnifiProtocol protocol,
+            ISystemInfoService systemInfo,
+            INetworkInfoService network,
+            IConfigurationReader configurationReader,
+            IConfigurationWriter configurationWriter,
+            ILogger<UGW4Device> logger) 
+            : base(systemInfo, network, configurationReader, configurationWriter)
+        {
+            this.protocol = protocol;
+            this.logger = logger;
+            DeviceName = "UGW4";
+            DeviceDisplayName = "UniFi Security Gateway-Pro";
+        }
 
         protected override async Task ProcessDataAsync(ResponseData data)
         {
