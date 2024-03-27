@@ -3,12 +3,12 @@ using Unifi.Gateway.Common.Interfaces;
 
 namespace Unifi.Gateway.Services
 {
-    public class UDPConnectRequestService : BackgroundService
+    public class ConnectRequestService : BackgroundService
     {
         private readonly IConnectRequest connectRequest;
-        private readonly ILogger<UDPConnectRequestService> logger;
+        private readonly ILogger<ConnectRequestService> logger;
 
-        public UDPConnectRequestService(IConnectRequest connectRequest, ILogger<UDPConnectRequestService> logger)
+        public ConnectRequestService(IConnectRequest connectRequest, ILogger<ConnectRequestService> logger)
         {
             this.connectRequest = connectRequest;
             this.logger = logger;

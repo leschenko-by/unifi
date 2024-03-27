@@ -67,8 +67,7 @@ static async Task RunAsync(string[] args)
     builder.Services.AddTransient<IUnifiDevice, UGW4Device>();
     builder.Services.AddHostedService<DiscoveryService>();
     builder.Services.AddHostedService<InformService>();
-    builder.Services.AddHostedService<TCPConnectRequestService>();
-    builder.Services.AddHostedService<UDPConnectRequestService>();
+    builder.Services.AddHostedService<ConnectRequestService>();
     builder.Services.AddHttpClient();
     builder.Services.AddSystemd();
     var app = builder.Build();
