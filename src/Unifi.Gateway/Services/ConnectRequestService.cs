@@ -30,7 +30,7 @@ namespace Unifi.Gateway.Services
                         logger.LogInformation("UDP: Received connect request from {EndPoint} with {data}",
                             data.RemoteEndPoint, Convert.ToHexString(data.Buffer));
 
-                        connectRequest.IsActive = true;
+                        connectRequest.Activate();
 
                         await Task.Delay(1000, token);
                     }

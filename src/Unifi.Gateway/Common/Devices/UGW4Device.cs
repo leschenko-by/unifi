@@ -87,7 +87,7 @@ namespace Unifi.Gateway.Common.Devices
                 Log("Request", request = Encoding.UTF8.GetBytes(message.ToString()));
                 Log("Response", response = await protocol.SendRequestAsync(InformUrl, Key, request, default));
 
-                var download = await client.TestDownloadSpeedAsync(server, 8);
+                var download = await client.TestDownloadSpeedAsync(server, 16);
 
                 message["speedtest-status"] = new JsonObject
                 {
@@ -104,7 +104,7 @@ namespace Unifi.Gateway.Common.Devices
                 Log("Request", request = Encoding.UTF8.GetBytes(message.ToString()));
                 Log("Response", response = await protocol.SendRequestAsync(InformUrl, Key, request, default));
 
-                var upload = await client.TestUploadSpeedAsync(server, 8);
+                var upload = await client.TestUploadSpeedAsync(server, 16);
 
                 message["speedtest-status"] = new JsonObject
                 {

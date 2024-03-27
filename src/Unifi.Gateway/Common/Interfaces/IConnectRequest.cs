@@ -2,7 +2,9 @@
 {
     public interface IConnectRequest
     {
-        bool IsActive { get; set; }
         int Port { get; set; }
+
+        public void Activate();
+        public bool IsRequestPending();
     }
 }
