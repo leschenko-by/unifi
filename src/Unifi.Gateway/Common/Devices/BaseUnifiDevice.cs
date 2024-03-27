@@ -122,7 +122,7 @@ namespace Unifi.Gateway.Common.Devices
                     }
                     if (data.Interval != null)
                     {
-                        Interval = TimeSpan.FromSeconds(Math.Min(10, data.Interval.Value));
+                        Interval = TimeSpan.FromSeconds(data.Interval.Value);
                     }
                     break;
                 case "upgrade":
