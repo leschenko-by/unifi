@@ -1,9 +1,7 @@
-﻿using Microsoft.Extensions.Options;
-using System.Text;
+﻿using System.Text;
 using System.Text.Json.Nodes;
 using Unifi.Gateway.Common.Interfaces;
 using Unifi.Gateway.Json;
-using Unifi.Gateway.Options;
 using Unifi.SpeedTest;
 
 namespace Unifi.Gateway.Common.Devices
@@ -13,17 +11,12 @@ namespace Unifi.Gateway.Common.Devices
         private readonly IUnifiProtocol protocol;
         private readonly ILogger<UGW4Device> logger;
 
-        public UGW4Device(
-            IUnifiProtocol protocol,
-            ISystemInfoService systemInfo,
-            INetworkInfoService network,
-            IConfigurationReader configurationReader,
-            IConfigurationWriter configurationWriter,
-            ILogger<UGW4Device> logger) 
-            : base(systemInfo, network, configurationReader, configurationWriter)
+        public UGW4Device(IServiceProvider serviceProvider, IUnifiProtocol protocol, ILogger<UGW4Device> logger)
+            : base(serviceProvider)
         {
             this.protocol = protocol;
             this.logger = logger;
+
             DeviceName = "UGW4";
             DeviceDisplayName = "UniFi Security Gateway-Pro";
         }

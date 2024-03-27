@@ -6,10 +6,12 @@ namespace Unifi.Gateway.Services
     public class InformService(
         IUnifiProtocol protocol,
         IUnifiDevice device,
+        IConnectRequest connectRequest,
         ILogger<InformService> logger) : BackgroundService()
     {
         private readonly IUnifiProtocol protocol = protocol;
         private readonly IUnifiDevice device = device;
+        private readonly IConnectRequest connectRequest = connectRequest;
         private readonly ILogger<InformService> logger = logger;
 
         protected override async Task ExecuteAsync(CancellationToken token)
@@ -44,8 +46,16 @@ namespace Unifi.Gateway.Services
                     }
                 }
 
-                await Task.Delay(1000, token);
-                //await Task.Delay(device.Interval, token);
+                var timeLimit = DateTime.UtcNow + device.Interval;
+                while (DateTime.UtcNow < timeLimit)
+                {
+                    await Task.Delay(500, token);
+                    if (connectRequest.IsActive)
+                    {
+                        connectRequest.IsActive = false;
+                        break;
+                    }
+                }
             }
         }
     }

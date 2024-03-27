@@ -54,7 +54,9 @@ static async Task SetAdopt(string[] args)
 static async Task RunAsync(string[] args)
 {
     var builder = WebApplication.CreateSlimBuilder(args);
+    builder.Logging.AddConsole();
     builder.Services.Configure<GeneralServiceOptions>(builder.Configuration.GetSection("DiscoveryService"));
+    builder.Services.AddSingleton<IConnectRequest, ConnectRequest>();
     builder.Services.AddTransient<ISystemInfoService, SystemInfoService>();
     builder.Services.AddTransient<IRequestEncoder, RequestEncoder>();
     builder.Services.AddTransient<IRequestDecoder, RequestDecoder>();
@@ -65,10 +67,9 @@ static async Task RunAsync(string[] args)
     builder.Services.AddTransient<IUnifiDevice, UGW4Device>();
     builder.Services.AddHostedService<DiscoveryService>();
     builder.Services.AddHostedService<InformService>();
-    builder.Services.AddHttpClient("inform", client =>
-    {
-        client.DefaultRequestHeaders.Add("User-Agent", "AirControl Agent v1.0");
-    });
+    builder.Services.AddHostedService<TCPConnectRequestService>();
+    builder.Services.AddHostedService<UDPConnectRequestService>();
+    builder.Services.AddHttpClient();
     builder.Services.AddSystemd();
     var app = builder.Build();
     app.MapGet("/", () => Results.Text("Ok"));

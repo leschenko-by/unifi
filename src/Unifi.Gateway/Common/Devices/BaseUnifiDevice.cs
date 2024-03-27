@@ -1,10 +1,8 @@
-﻿using Microsoft.Extensions.Options;
-using System.Net;
+﻿using System.Net;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Unifi.Gateway.Common.Interfaces;
 using Unifi.Gateway.Json;
-using Unifi.Gateway.Options;
 
 namespace Unifi.Gateway.Common.Devices
 {
@@ -14,6 +12,7 @@ namespace Unifi.Gateway.Common.Devices
         protected readonly INetworkInfoService network;
         private readonly IConfigurationReader configurationReader;
         private readonly IConfigurationWriter configurationWriter;
+        private readonly IConnectRequest connectRequest;
         private JsonObject? nextCommand = null;
         protected Configuration configuration;
         private TimeSpan interval = TimeSpan.FromSeconds(10);
@@ -52,16 +51,13 @@ namespace Unifi.Gateway.Common.Devices
             }
         }
 
-        public BaseUnifiDevice(
-            ISystemInfoService systemInfo,
-            INetworkInfoService network,
-            IConfigurationReader configurationReader,
-            IConfigurationWriter configurationWriter)
+        public BaseUnifiDevice(IServiceProvider serviceProvider)
         {
-            this.systemInfo = systemInfo;
-            this.network = network;
-            this.configurationReader = configurationReader;
-            this.configurationWriter = configurationWriter;
+            systemInfo = serviceProvider.GetRequiredService<ISystemInfoService>();
+            network = serviceProvider.GetRequiredService<INetworkInfoService>();
+            configurationReader = serviceProvider.GetRequiredService<IConfigurationReader>();
+            configurationWriter = serviceProvider.GetRequiredService<IConfigurationWriter>();
+            connectRequest = serviceProvider.GetRequiredService<IConnectRequest>();
             configuration = configurationReader.LoadConfiguration();
         }
 
@@ -117,7 +113,7 @@ namespace Unifi.Gateway.Common.Devices
                     nextCommand["inform_as_notif"] = true;
                     nextCommand["notif_reason"] = "setparam";
                     nextCommand["connect_request_ip"] = IPAddress.ToString();
-                    nextCommand["connect_request_port"] = "52884";
+                    nextCommand["connect_request_port"] = connectRequest.Port.ToString();
                     break;
                 case "noop":
                     if (data.Immediate != null)
@@ -164,7 +160,7 @@ namespace Unifi.Gateway.Common.Devices
             if (configuration.Adopted)
             {
                 message["connect_request_ip"] = IPAddress.ToString();
-                message["connect_request_port"] = "52884";
+                message["connect_request_port"] = connectRequest.Port.ToString();
             }
 
             AddExtraInformMessage(message);
