@@ -224,7 +224,10 @@ namespace Unifi.Gateway.Common.Devices
                     ["tx_dropped"] = wanStats?.OutgoingPacketsDiscarded ?? 0,
                     ["tx_errors"] = wanStats?.OutgoingPacketsWithErrors ?? 0,
                     ["tx_packets"] = wanStats?.UnicastPacketsSent ?? 0,
-                    ["latency"] = 1,
+
+                    ["isp_up"] = true,
+                    ["isp_name"] = "mts",
+                    ["latency"] = 5+new Random().Next(10),
                     ["uptime"] = Environment.TickCount64 / 1000,
 
                     ["speedtest_lastrun"] = DateTimeOffset.UtcNow.ToUnixTimeSeconds() - 60,
