@@ -1,4 +1,5 @@
 ﻿using System.Net.NetworkInformation;
+using System.Net.Sockets;
 using System.Text;
 using System.Text.Json.Nodes;
 using Unifi.Gateway.Common.Interfaces;
@@ -168,6 +169,11 @@ namespace Unifi.Gateway.Common.Devices
 
             var (_, lanStats) = network.GetLanStatistics();
             var (wan, wanStats) = network.GetWanStatistics();
+            var gateways = wan?.GetIPProperties().GatewayAddresses
+                .Select(gateway => gateway.Address)
+                .Where(t=>t.AddressFamily == AddressFamily.InterNetwork)
+                .Select(address => address.ToString())
+                .ToArray();
 
 #pragma warning disable CA1416 // Validate platform compatibility
             message["if_table"] = new JsonArray(
@@ -203,6 +209,7 @@ namespace Unifi.Gateway.Common.Devices
                     ["name"] = "eth2",
                     ["enable"] = true,
                     ["ip"] = network.WanIPAddress.ToString(),
+                    ["gateways"] = gateways,
                     ["mac"] = string.Join(":", network.WanMacAddress.Select(t => t.ToString("x2"))),
                     ["netmask"] = network.WanNetmask.ToString(),
                     ["up"] = wan?.OperationalStatus == OperationalStatus.Up,
