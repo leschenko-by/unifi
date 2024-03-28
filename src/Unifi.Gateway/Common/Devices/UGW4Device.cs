@@ -52,6 +52,7 @@ namespace Unifi.Gateway.Common.Devices
                 logger.LogInformation("Starting speed test");
 
                 var message = await CreateBaseInformAsync();
+                message["ips_type"] = "IPS_EVENT_TYPE_ALERT";
                 message["sys_stats"] = await GetSysStats();
                 message["system-stats"] = await GetSystemStats();
                 message["speedtest-status"] = new JsonObject
