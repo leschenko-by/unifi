@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Net.NetworkInformation;
+using System.Text;
 using System.Text.Json.Nodes;
 using Unifi.Gateway.Common.Interfaces;
 using Unifi.Gateway.Json;
@@ -165,8 +166,8 @@ namespace Unifi.Gateway.Common.Devices
                 }
             );
 
-            var lan = network.GetLanStatistics();
-            var wan = network.GetWanStatistics();
+            var (_, lanStats) = network.GetLanStatistics();
+            var (wan, wanStats) = network.GetWanStatistics();
 
 #pragma warning disable CA1416 // Validate platform compatibility
             message["if_table"] = new JsonArray(
@@ -180,16 +181,16 @@ namespace Unifi.Gateway.Common.Devices
                     ["netmask"] = Netmask.ToString(),
                     ["up"] = true,
                     ["num_port"] = 0,
-                    ["rx_bytes"] = lan?.BytesReceived ?? 0,
-                    ["rx_dropped"] = lan?.IncomingPacketsDiscarded ?? 0,
-                    ["rx_errors"] = lan?.IncomingPacketsWithErrors ?? 0,
-                    ["rx_multicast"] = lan?.NonUnicastPacketsReceived ?? 0,
-                    ["rx_packets"] = lan?.UnicastPacketsReceived ?? 0,
+                    ["rx_bytes"] = lanStats?.BytesReceived ?? 0,
+                    ["rx_dropped"] = lanStats?.IncomingPacketsDiscarded ?? 0,
+                    ["rx_errors"] = lanStats?.IncomingPacketsWithErrors ?? 0,
+                    ["rx_multicast"] = lanStats?.NonUnicastPacketsReceived ?? 0,
+                    ["rx_packets"] = lanStats?.UnicastPacketsReceived ?? 0,
                     ["speed"] = 1000,
-                    ["tx_bytes"] = lan?.BytesSent ?? 0,
-                    ["tx_dropped"] = lan?.OutgoingPacketsDiscarded ?? 0,
-                    ["tx_errors"] = lan?.OutgoingPacketsWithErrors ?? 0,
-                    ["tx_packets"] = lan?.UnicastPacketsSent ?? 0,
+                    ["tx_bytes"] = lanStats?.BytesSent ?? 0,
+                    ["tx_dropped"] = lanStats?.OutgoingPacketsDiscarded ?? 0,
+                    ["tx_errors"] = lanStats?.OutgoingPacketsWithErrors ?? 0,
+                    ["tx_packets"] = lanStats?.UnicastPacketsSent ?? 0,
                 },
                 new JsonObject
                 {
@@ -204,18 +205,26 @@ namespace Unifi.Gateway.Common.Devices
                     ["ip"] = network.WanIPAddress.ToString(),
                     ["mac"] = string.Join(":", network.WanMacAddress.Select(t => t.ToString("x2"))),
                     ["netmask"] = network.WanNetmask.ToString(),
-                    ["up"] = true,
+                    ["up"] = wan?.OperationalStatus == OperationalStatus.Up,
                     ["num_port"] = 0,
-                    ["rx_bytes"] = wan?.BytesReceived ?? 0,
-                    ["rx_dropped"] = wan?.IncomingPacketsDiscarded ?? 0,
-                    ["rx_errors"] = wan?.IncomingPacketsWithErrors ?? 0,
-                    ["rx_multicast"] = wan?.NonUnicastPacketsReceived ?? 0,
-                    ["rx_packets"] = wan?.UnicastPacketsReceived ?? 0,
+                    ["rx_bytes"] = wanStats?.BytesReceived ?? 0,
+                    ["rx_dropped"] = wanStats?.IncomingPacketsDiscarded ?? 0,
+                    ["rx_errors"] = wanStats?.IncomingPacketsWithErrors ?? 0,
+                    ["rx_multicast"] = wanStats?.NonUnicastPacketsReceived ?? 0,
+                    ["rx_packets"] = wanStats?.UnicastPacketsReceived ?? 0,
                     ["speed"] = 1000,
-                    ["tx_bytes"] = wan?.BytesSent ?? 0,
-                    ["tx_dropped"] = wan?.OutgoingPacketsDiscarded ?? 0,
-                    ["tx_errors"] = wan?.OutgoingPacketsWithErrors ?? 0,
-                    ["tx_packets"] = wan?.UnicastPacketsSent ?? 0,
+                    ["tx_bytes"] = wanStats?.BytesSent ?? 0,
+                    ["tx_dropped"] = wanStats?.OutgoingPacketsDiscarded ?? 0,
+                    ["tx_errors"] = wanStats?.OutgoingPacketsWithErrors ?? 0,
+                    ["tx_packets"] = wanStats?.UnicastPacketsSent ?? 0,
+                    ["latency"] = 1,
+                    ["uptime"] = Environment.TickCount64 / 1000,
+
+                    ["speedtest_lastrun"] = DateTimeOffset.UtcNow.ToUnixTimeSeconds() - 60,
+                    ["speedtest_ping"] = 18,
+                    ["speedtest_status"] = "Idle",
+                    ["xput_down"] = 321,
+                    ["xput_up"] = 123,
                 },
                 new JsonObject
                 {

@@ -62,18 +62,18 @@ namespace Unifi.Gateway.Common.Services
             }
         }
 
-        public IPInterfaceStatistics? GetLanStatistics()
+        public (NetworkInterface?, IPInterfaceStatistics?) GetLanStatistics()
         {
             var networks = NetworkInterface.GetAllNetworkInterfaces();
             var lan = networks.FirstOrDefault(network => network.Id == serviceOptions.Value.LanNetworkId);
-            return lan?.GetIPStatistics();
+            return (lan, lan?.GetIPStatistics());
         }
 
-        public IPInterfaceStatistics? GetWanStatistics()
+        public (NetworkInterface?, IPInterfaceStatistics?) GetWanStatistics()
         {
             var networks = NetworkInterface.GetAllNetworkInterfaces();
-            var lan = networks.FirstOrDefault(network => network.Id == serviceOptions.Value.WanNetworkId);
-            return lan?.GetIPStatistics();
+            var wan = networks.FirstOrDefault(network => network.Id == serviceOptions.Value.WanNetworkId);
+            return (wan, wan?.GetIPStatistics());
         }
     }
 }
