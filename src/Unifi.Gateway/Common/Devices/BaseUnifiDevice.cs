@@ -117,6 +117,9 @@ namespace Unifi.Gateway.Common.Devices
 
                     Interval = TimeSpan.FromSeconds(1);
                     break;
+                case "reboot":
+                    Interval = TimeSpan.FromSeconds(1);
+                    break;
                 case "noop":
                     if (data.Immediate != null)
                     {
