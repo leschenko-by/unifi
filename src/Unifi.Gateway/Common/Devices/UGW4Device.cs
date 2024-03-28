@@ -225,9 +225,7 @@ namespace Unifi.Gateway.Common.Devices
                     ["tx_errors"] = wanStats?.OutgoingPacketsWithErrors ?? 0,
                     ["tx_packets"] = wanStats?.UnicastPacketsSent ?? 0,
 
-                    ["isp_up"] = true,
-                    ["isp_name"] = "mts",
-                    ["latency"] = 5+new Random().Next(10),
+                    ["latency"] = 1,
                     ["uptime"] = Environment.TickCount64 / 1000,
 
                     ["speedtest_lastrun"] = DateTimeOffset.UtcNow.ToUnixTimeSeconds() - 60,
@@ -240,94 +238,9 @@ namespace Unifi.Gateway.Common.Devices
                 {
                     ["name"] = "eth3",
                     ["enable"] = false,
-                },
-                new JsonObject
-                {
-                    ["subsystem"] = "www",
-                    ["status"] = "ok",
-                    ["tx_bytes-r"] = 100000,
-                    ["rx_bytes-r"] = 50000,
-                    ["latency"] = 25,
-                    ["uptime"] = Environment.TickCount64 / 1000,
-                    ["speedtest_lastrun"] = DateTimeOffset.UtcNow.ToUnixTimeSeconds() - 60,
-                    ["speedtest_ping"] = 18,
-                    ["speedtest_status"] = "Idle",
-                    ["xput_down"] = 321,
-                    ["xput_up"] = 123,
                 }
             );
 #pragma warning restore CA1416 // Validate platform compatibility
-            //message["dpi-stats"] = new JsonArray(new JsonObject
-            //{
-            //    ["initialized"] = true,
-            //    ["mac"] = MacAddressString,
-            //    ["stats"] = new JsonObject
-            //    {
-            //        ["app"] = 5,
-            //        ["cat"] = 3,
-            //        ["rx_bytes"] = 82297468,
-            //        ["rx_packets"] = 57565,
-            //        ["tx_bytes"] = 1710174,
-            //        ["tx_packets"] = 25324,
-            //    }
-            //});
-            //message["dpi-stats-table"] = new JsonArray(new JsonObject
-            //{
-            //    ["_id"] = "5aec9b73fc92ac1eb4d8a150",
-            //    ["_subid"] = "5e67f0961b24b874966aa014",
-            //    ["initialized"] = "1584128269122",
-            //    ["by_app"] = new JsonArray(new JsonObject
-            //    {
-            //        ["app"] = 5,
-            //        ["cat"] = 3,
-            //        ["rx_bytes"] = 82297468,
-            //        ["rx_packets"] = 57565,
-            //        ["tx_bytes"] = 1710174,
-            //        ["tx_packets"] = 25324,
-            //    }),
-            //    ["by_cat"] = new JsonArray(new JsonObject
-            //    {
-            //        ["apps"] = new JsonArray(5),
-            //        ["cat"] = 3,
-            //        ["rx_bytes"] = 82297468,
-            //        ["rx_packets"] = 57565,
-            //        ["tx_bytes"] = 1710174,
-            //        ["tx_packets"] = 25324,
-            //    })
-            //}, new JsonObject
-            //{
-            //    ["_id"] = "5aec9b73fc92ac1eb4d8a150",
-            //    ["_subid"] = "5e67f0961b24b874966aa014",
-            //    ["initialized"] = "1584128269122",
-            //    ["is_ugw"] = true,
-            //    ["by_app"] = new JsonArray(new JsonObject
-            //    {
-            //        ["app"] = 5,
-            //        ["cat"] = 3,
-            //        ["clients"] = new JsonArray(new JsonObject
-            //        {
-            //            ["mac"] = "D8-5E-D3-D4-EF-7F".ToLower().Replace("-", ":"),
-            //            ["rx_bytes"] = 82297468,
-            //            ["rx_packets"] = 57565,
-            //            ["tx_bytes"] = 1710174,
-            //            ["tx_packets"] = 25324,
-            //        }),
-            //        ["known_clients"] = 1,
-            //        ["rx_bytes"] = 82297468,
-            //        ["rx_packets"] = 57565,
-            //        ["tx_bytes"] = 1710174,
-            //        ["tx_packets"] = 25324,
-            //    }),
-            //    ["by_cat"] = new JsonArray(new JsonObject
-            //    {
-            //        ["apps"] = new JsonArray(5),
-            //        ["cat"] = 3,
-            //        ["rx_bytes"] = 82297468,
-            //        ["rx_packets"] = 57565,
-            //        ["tx_bytes"] = 1710174,
-            //        ["tx_packets"] = 25324,
-            //    })
-            //});
         }
 
         private void Log(string direction, byte[] data)
