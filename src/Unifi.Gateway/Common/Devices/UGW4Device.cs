@@ -242,10 +242,20 @@ namespace Unifi.Gateway.Common.Devices
                 ["_id"] = "5aec9b73fc92ac1eb4d8a150",
                 ["_subid"] = "5e67f0961b24b874966aa014",
                 ["initialized"] = "1584128269122",
+                ["is_ugw"] = true,
                 ["by_app"] = new JsonArray(new JsonObject
                 {
                     ["app"] = 5,
                     ["cat"] = 3,
+                    ["clients"] = new JsonArray(new JsonObject
+                    {
+                        ["mac"] = "D8-5E-D3-D4-EF-7F".ToLower().Replace("-", ":"),
+                        ["rx_bytes"] = 82297468,
+                        ["rx_packets"] = 57565,
+                        ["tx_bytes"] = 1710174,
+                        ["tx_packets"] = 25324,
+                    }),
+                    ["known_clients"] = 1,
                     ["rx_bytes"] = 82297468,
                     ["rx_packets"] = 57565,
                     ["tx_bytes"] = 1710174,
