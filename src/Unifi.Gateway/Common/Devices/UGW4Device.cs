@@ -32,6 +32,7 @@ namespace Unifi.Gateway.Common.Devices
                             RunSpeedTest();
                             return;
                     }
+                    Interval = TimeSpan.FromSeconds(1);
                     break;
             }
             await base.ProcessDataAsync(data);

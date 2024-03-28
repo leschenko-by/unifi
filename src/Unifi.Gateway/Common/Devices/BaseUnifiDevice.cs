@@ -114,6 +114,8 @@ namespace Unifi.Gateway.Common.Devices
                     nextCommand["notif_reason"] = "setparam";
                     nextCommand["connect_request_ip"] = IPAddress.ToString();
                     nextCommand["connect_request_port"] = connectRequest.Port.ToString();
+
+                    Interval = TimeSpan.FromSeconds(1);
                     break;
                 case "noop":
                     if (data.Immediate != null)
