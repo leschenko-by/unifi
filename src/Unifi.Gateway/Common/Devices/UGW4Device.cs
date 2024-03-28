@@ -138,11 +138,14 @@ namespace Unifi.Gateway.Common.Devices
             message["has_vti"] = false;
             message["has_ssh_disable"] = true;
             message["fw_caps"] = 3;
+            message["guest_token"] = "4C1D46707239C6EB5A2366F505A44A91";
             message["has_default_route_distance"] = true;
+            message["has_dnsmasq_hostfile_update"] = false;
             message["config_network_wan"] = new JsonObject
             {
                 ["type"] = "dhcp"
             };
+            message["uplink"] = "eth2";
             message["vpn"] = new JsonArray();
             message["config_port_table"] = new JsonArray(
                 new JsonObject
@@ -186,7 +189,7 @@ namespace Unifi.Gateway.Common.Devices
                     ["mac"] = MacAddressString,
                     ["netmask"] = Netmask.ToString(),
                     ["up"] = true,
-                    ["num_port"] = 0,
+                    ["num_port"] = 1,
                     ["rx_bytes"] = lanStats?.BytesReceived ?? 0,
                     ["rx_dropped"] = lanStats?.IncomingPacketsDiscarded ?? 0,
                     ["rx_errors"] = lanStats?.IncomingPacketsWithErrors ?? 0,
@@ -202,6 +205,7 @@ namespace Unifi.Gateway.Common.Devices
                 {
                     ["name"] = "eth1",
                     ["enable"] = false,
+                    ["num_port"] = 2,
                 },
                 new JsonObject
                 {
@@ -213,7 +217,7 @@ namespace Unifi.Gateway.Common.Devices
                     ["mac"] = string.Join(":", network.WanMacAddress.Select(t => t.ToString("x2"))),
                     ["netmask"] = network.WanNetmask.ToString(),
                     ["up"] = wan?.OperationalStatus == OperationalStatus.Up,
-                    ["num_port"] = 0,
+                    ["num_port"] = 3,
                     ["rx_bytes"] = wanStats?.BytesReceived ?? 0,
                     ["rx_dropped"] = wanStats?.IncomingPacketsDiscarded ?? 0,
                     ["rx_errors"] = wanStats?.IncomingPacketsWithErrors ?? 0,
@@ -238,10 +242,65 @@ namespace Unifi.Gateway.Common.Devices
                 {
                     ["name"] = "eth3",
                     ["enable"] = false,
+                    ["num_port"] = 4,
+                }
+            );
+            message["network_table"] = new JsonArray(
+                new JsonObject
+                {
+                    ["autoneg"] = true,
+                    ["duplex"] = "full",
+                    ["name"] = "eth0",
+                    ["address"] = IPAddress.ToString() + "/24",
+                    ["addresses"] = new JsonArray(IPAddress.ToString()),
+                    ["l1up"] = true,
+                    ["mac"] = MacAddressString,
+                    ["mtu"] = 1500,
+                    ["speed"] = 1000,
+                    ["stats"] = new JsonObject
+                    {
+                        ["rx_bytes"] = lanStats?.BytesReceived ?? 0,
+                        ["rx_dropped"] = lanStats?.IncomingPacketsDiscarded ?? 0,
+                        ["rx_errors"] = lanStats?.IncomingPacketsWithErrors ?? 0,
+                        ["rx_multicast"] = lanStats?.NonUnicastPacketsReceived ?? 0,
+                        ["rx_packets"] = lanStats?.UnicastPacketsReceived ?? 0,
+                        ["tx_bytes"] = lanStats?.BytesSent ?? 0,
+                        ["tx_dropped"] = lanStats?.OutgoingPacketsDiscarded ?? 0,
+                        ["tx_errors"] = lanStats?.OutgoingPacketsWithErrors ?? 0,
+                        ["tx_packets"] = lanStats?.UnicastPacketsSent ?? 0,
+                    },
+                    ["up"] = true,
+                },
+                new JsonObject
+                {
+                    ["autoneg"] = true,
+                    ["duplex"] = "full",
+                    ["name"] = "eth2",
+                    ["address"] = network.WanIPAddress.ToString(),
+                    ["addresses"] = new JsonArray(network.WanIPAddress.ToString()),
+                    ["gateways"] = new JsonArray(gateways?.Select(t => JsonValue.Create(t)).ToArray() ?? []),
+                    ["mac"] = string.Join(":", network.WanMacAddress.Select(t => t.ToString("x2"))),
+                    ["l1up"] = true,
+                    ["mtu"] = 1500,
+                    ["speed"] = 1000,
+                    ["stats"] = new JsonObject
+                    {
+                        ["rx_bytes"] = wanStats?.BytesReceived ?? 0,
+                        ["rx_dropped"] = wanStats?.IncomingPacketsDiscarded ?? 0,
+                        ["rx_errors"] = wanStats?.IncomingPacketsWithErrors ?? 0,
+                        ["rx_multicast"] = wanStats?.NonUnicastPacketsReceived ?? 0,
+                        ["rx_packets"] = wanStats?.UnicastPacketsReceived ?? 0,
+                        ["tx_bytes"] = wanStats?.BytesSent ?? 0,
+                        ["tx_dropped"] = wanStats?.OutgoingPacketsDiscarded ?? 0,
+                        ["tx_errors"] = wanStats?.OutgoingPacketsWithErrors ?? 0,
+                        ["tx_packets"] = wanStats?.UnicastPacketsSent ?? 0,
+                    },
+                    ["up"] = wan?.OperationalStatus == OperationalStatus.Up,
                 }
             );
 #pragma warning restore CA1416 // Validate platform compatibility
         }
+
 
         private void Log(string direction, byte[] data)
         {
