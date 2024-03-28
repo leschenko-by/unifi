@@ -209,7 +209,7 @@ namespace Unifi.Gateway.Common.Devices
                     ["name"] = "eth2",
                     ["enable"] = true,
                     ["ip"] = network.WanIPAddress.ToString(),
-                    ["gateways"] = gateways,
+                    ["gateways"] = new JsonArray(gateways?.Select(t => JsonValue.Create(t)).ToArray() ?? []),
                     ["mac"] = string.Join(":", network.WanMacAddress.Select(t => t.ToString("x2"))),
                     ["netmask"] = network.WanNetmask.ToString(),
                     ["up"] = wan?.OperationalStatus == OperationalStatus.Up,
