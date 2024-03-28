@@ -276,7 +276,7 @@ namespace Unifi.Gateway.Common.Devices
                     ["autoneg"] = true,
                     ["duplex"] = "full",
                     ["name"] = "eth2",
-                    ["address"] = network.WanIPAddress.ToString(),
+                    ["address"] = network.WanIPAddress.ToString() + "/24",
                     ["addresses"] = new JsonArray(network.WanIPAddress.ToString()),
                     ["gateways"] = new JsonArray(gateways?.Select(t => JsonValue.Create(t)).ToArray() ?? []),
                     ["mac"] = string.Join(":", network.WanMacAddress.Select(t => t.ToString("x2"))),
