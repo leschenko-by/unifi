@@ -64,8 +64,6 @@ namespace Unifi.Gateway.Common.Devices
                     ["status_upload"] = 0,
                     ["xput_download"] = 0,
                     ["xput_upload"] = 0,
-                    ["upload-progress"] = 0,
-                    ["download-progress"] = 0,
                 };
                 Log("Request", request = Encoding.UTF8.GetBytes(message.ToString()));
                 Log("Response", response = await protocol.SendRequestAsync(InformUrl, Key, request, default));
@@ -85,8 +83,6 @@ namespace Unifi.Gateway.Common.Devices
                     ["status_upload"] = 0,
                     ["xput_download"] = 0,
                     ["xput_upload"] = 0,
-                    ["upload-progress"] = new JsonArray(0, 100, 150, 200),
-                    ["download-progress"] = new JsonArray(0, 100, 150, 200),
                 };
                 Log("Request", request = Encoding.UTF8.GetBytes(message.ToString()));
                 Log("Response", response = await protocol.SendRequestAsync(InformUrl, Key, request, default));
@@ -121,8 +117,6 @@ namespace Unifi.Gateway.Common.Devices
                     ["status_upload"] = 2,
                     ["xput_download"] = download / 1024,
                     ["xput_upload"] = upload / 1024,
-                    ["upload-progress"] = new JsonArray(0, 100, 150, 200),
-                    ["download-progress"] = new JsonArray(0, 100, 150, 200),
                 };
                 Log("Request", request = Encoding.UTF8.GetBytes(message.ToString()));
                 Log("Response", response = await protocol.SendRequestAsync(InformUrl, Key, request, default));
