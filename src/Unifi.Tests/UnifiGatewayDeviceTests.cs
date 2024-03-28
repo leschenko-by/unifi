@@ -42,6 +42,26 @@ namespace Unifi.Tests
                     Adopted = false
                 });
 
+            mocker.GetMock<IServiceProvider>()
+                .Setup(t => t.GetService(typeof(ISystemInfoService)))
+                .Returns(mocker.GetMock<ISystemInfoService>().Object);
+
+            mocker.GetMock<IServiceProvider>()
+                .Setup(t => t.GetService(typeof(INetworkInfoService)))
+                .Returns(mocker.GetMock<INetworkInfoService>().Object);
+
+            mocker.GetMock<IServiceProvider>()
+                .Setup(t => t.GetService(typeof(IConfigurationReader)))
+                .Returns(mocker.GetMock<IConfigurationReader>().Object);
+
+            mocker.GetMock<IServiceProvider>()
+                .Setup(t => t.GetService(typeof(IConfigurationWriter)))
+                .Returns(mocker.GetMock<IConfigurationWriter>().Object);
+
+            mocker.GetMock<IServiceProvider>()
+                .Setup(t => t.GetService(typeof(IConnectRequest)))
+                .Returns(mocker.GetMock<IConnectRequest>().Object);
+
             device = mocker.CreateInstance<UGW4Device>();
         }
 

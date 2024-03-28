@@ -250,7 +250,7 @@ namespace Unifi.Gateway.Common.Devices
                     ["rx_packets"] = 57565,
                     ["tx_bytes"] = 1710174,
                     ["tx_packets"] = 25324,
-                })
+                }),
                 ["by_cat"] = new JsonArray(new JsonObject
                 {
                     ["apps"] = new JsonArray(5),
