@@ -240,6 +240,20 @@ namespace Unifi.Gateway.Common.Devices
                 {
                     ["name"] = "eth3",
                     ["enable"] = false,
+                },
+                new JsonObject
+                {
+                    ["subsystem"] = "www",
+                    ["status"] = "ok",
+                    ["tx_bytes-r"] = 100000,
+                    ["rx_bytes-r"] = 50000,
+                    ["latency"] = 25,
+                    ["uptime"] = Environment.TickCount64 / 1000,
+                    ["speedtest_lastrun"] = DateTimeOffset.UtcNow.ToUnixTimeSeconds() - 60,
+                    ["speedtest_ping"] = 18,
+                    ["speedtest_status"] = "Idle",
+                    ["xput_down"] = 321,
+                    ["xput_up"] = 123,
                 }
             );
 #pragma warning restore CA1416 // Validate platform compatibility
