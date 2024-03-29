@@ -55,8 +55,13 @@ static async Task RunAsync(string[] args)
 {
     var builder = WebApplication.CreateSlimBuilder(args);
     builder.Logging.AddConsole();
+    builder.Services.AddHttpClient();
+    builder.Services.AddSystemd();
     builder.Services.Configure<GeneralServiceOptions>(builder.Configuration.GetSection("DiscoveryService"));
+
     builder.Services.AddSingleton<IConnectRequest, ConnectRequest>();
+
+    builder.Services.AddTransient<ISystemConfigurationService, SystemConfigurationService>();
     builder.Services.AddTransient<ISystemInfoService, SystemInfoService>();
     builder.Services.AddTransient<IRequestEncoder, RequestEncoder>();
     builder.Services.AddTransient<IRequestDecoder, RequestDecoder>();
@@ -64,11 +69,12 @@ static async Task RunAsync(string[] args)
     builder.Services.AddTransient<IConfigurationReader, ConfigurationReader>();
     builder.Services.AddTransient<IConfigurationWriter, ConfigurationWriter>();
     builder.Services.AddTransient<IUnifiProtocol, UnifiProtocol>();
+    builder.Services.AddTransient<IUfwService, UfwService>();
     builder.Services.AddTransient<IUnifiDevice, UGW4Device>();
+
     builder.Services.AddHostedService<InformService>();
     builder.Services.AddHostedService<ConnectRequestService>();
-    builder.Services.AddHttpClient();
-    builder.Services.AddSystemd();
+
     var app = builder.Build();
     app.MapGet("/", () => Results.Text("Ok"));
     await app.RunAsync();

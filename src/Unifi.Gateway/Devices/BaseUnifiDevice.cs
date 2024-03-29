@@ -12,11 +12,13 @@ namespace Unifi.Gateway.Devices
 {
     public abstract class BaseUnifiDevice : IUnifiDevice
     {
-        private readonly ISystemInfoService systemInfo;
         protected readonly INetworkInfoService network;
+
+        private readonly ISystemInfoService systemInfo;
         private readonly IConfigurationReader configurationReader;
         private readonly IConfigurationWriter configurationWriter;
         private readonly IConnectRequest connectRequest;
+        private readonly IServiceProvider serviceProvider;
         private JsonObject? nextCommand = null;
         protected Configuration configuration;
         private TimeSpan interval = TimeSpan.FromSeconds(10);
@@ -63,6 +65,7 @@ namespace Unifi.Gateway.Devices
             configurationWriter = serviceProvider.GetRequiredService<IConfigurationWriter>();
             connectRequest = serviceProvider.GetRequiredService<IConnectRequest>();
             configuration = configurationReader.LoadConfiguration();
+            this.serviceProvider = serviceProvider;
         }
 
         public void LoadConfigration()
@@ -107,8 +110,8 @@ namespace Unifi.Gateway.Devices
                     }
                     if (!string.IsNullOrEmpty(data.SystemCfg))
                     {
-                        Directory.CreateDirectory("/etc/unifi");
-                        File.WriteAllText("/etc/unifi/system.json", data.SystemCfg);
+                        var configurator = serviceProvider.GetRequiredService<ISystemConfigurationService>();
+                        await configurator.ApplyAsync(data.SystemCfg);
                     }
 
                     configuration.Adopted = true;
