@@ -16,5 +16,6 @@ namespace Unifi.Gateway.Common.Interfaces
         void LoadConfigration();
         Task ParseResponseAsync(string json);
         void SaveConfigration();
+        Task SendDiscoveryAsync(int broadcastIndex);
     }
 }

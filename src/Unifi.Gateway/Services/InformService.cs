@@ -16,6 +16,8 @@ namespace Unifi.Gateway.Services
 
         protected override async Task ExecuteAsync(CancellationToken token)
         {
+            int broadcastIndex = 0;
+
             while (!token.IsCancellationRequested)
             {
                 device.LoadConfigration();
@@ -44,16 +46,23 @@ namespace Unifi.Gateway.Services
                     {
                         logger.LogError(ex, "Failed to send inform to {InformUrl}", informUrl);
                     }
-                }
 
-                var timeLimit = DateTime.UtcNow + device.Interval;
-                while (DateTime.UtcNow < timeLimit)
-                {
-                    await Task.Delay(500, token);
-                    if (connectRequest.IsRequestPending())
+                    var timeLimit = DateTime.UtcNow + device.Interval;
+                    while (DateTime.UtcNow < timeLimit)
                     {
-                        break;
+                        await Task.Delay(500, token);
+                        if (connectRequest.IsRequestPending())
+                        {
+                            break;
+                        }
                     }
+                }
+                else
+                {
+                    await device.SendDiscoveryAsync(broadcastIndex);
+                    await Task.Delay(TimeSpan.FromSeconds(1), token);
+
+                    broadcastIndex = (broadcastIndex + 1) % 20;
                 }
             }
         }

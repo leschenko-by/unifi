@@ -1,4 +1,7 @@
-﻿using System.Net;
+﻿using Microsoft.Extensions.Options;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Unifi.Gateway.Common.Interfaces;
@@ -257,6 +260,42 @@ namespace Unifi.Gateway.Common.Devices
 
                 return "?";
             }
+        }
+
+        public async Task SendDiscoveryAsync(int broadcastIndex)
+        {
+            var macAddress = network.LanMacAddress;
+            var ipAddress = network.LanIPAddress;
+            if (ipAddress is null) return;
+
+            var endPoint = new IPEndPoint(IPAddress.Parse("233.89.188.1"), 10001);
+            using var client = new UdpClient(new IPEndPoint(ipAddress, 0));
+
+            var datagram = await BuildDatagramAsync(broadcastIndex, macAddress, ipAddress.GetAddressBytes());
+            await client.SendAsync(datagram, datagram.Length, endPoint);
+        }
+
+        private async Task<byte[]> BuildDatagramAsync(int broadcastIndex, byte[] macAddress, byte[] ipAddress)
+        {
+            var uptime = await systemInfo.GetUptimeAsync();
+
+            var device = DeviceName;
+            var firmware = "4.4.44.5213871";
+
+            var builder = new UnifyDatagramBuilder();
+            builder.Add(1, macAddress);
+            builder.Add(2, [.. macAddress, .. ipAddress]);
+            builder.Add(3, Encoding.ASCII.GetBytes($"{device}.v{firmware}"));
+            builder.Add(10, BitConverter.GetBytes(uptime).Reverse().ToArray());
+            builder.Add(11, Encoding.ASCII.GetBytes("UBNT"));
+            builder.Add(12, Encoding.ASCII.GetBytes(device));
+            builder.Add(19, macAddress);
+            builder.Add(18, BitConverter.GetBytes(broadcastIndex).Reverse().ToArray());
+            builder.Add(21, Encoding.ASCII.GetBytes(device));
+            builder.Add(27, Encoding.ASCII.GetBytes(firmware));
+            builder.Add(22, Encoding.ASCII.GetBytes(firmware));
+
+            return builder.Build();
         }
     }
 }
