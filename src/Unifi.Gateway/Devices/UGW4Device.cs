@@ -137,7 +137,7 @@ namespace Unifi.Gateway.Devices
         {
             message["has_dpi"] = false;
             message["has_vti"] = false;
-            message["has_ssh_disable"] = true;
+            message["has_ssh_disable"] = false;
             message["fw_caps"] = 3;
             message["guest_token"] = "4C1D46707239C6EB5A2366F505A44A91";
             message["has_default_route_distance"] = true;
