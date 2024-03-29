@@ -95,6 +95,17 @@ namespace Unifi.Gateway.Devices
                 await GetWanInterfaceAsync("eth2", 3, network.WanIPAddress, network.WanNetmask, network.WanMacAddress, wanStats),
                 await GetDisableInterface("eth3", 4),
             ]);
+
+            message["pfor-stats"] = new JsonArray([
+                new JsonObject()
+                {
+                    ["id"] = "596add99e4b0a76e35003e00",
+                    ["rx_bytes"] = 41444574,
+                    ["rx_packets"] = 305634,
+                    ["tx_bytes"] = 88048319,
+                    ["tx_packets"] = 364768,
+                },
+            ]);
         }
 
         private void Log(string direction, byte[] data)
