@@ -307,7 +307,7 @@ namespace Unifi.Gateway.Devices
                     ["autoneg"] = true,
                     ["duplex"] = "full",
                     ["name"] = "eth0",
-                    ["address"] = IPAddress.ToString() + "/24",
+                    ["address"] = IPAddress.ToString(),
                     ["addresses"] = new JsonArray(IPAddress.ToString()),
                     ["l1up"] = true,
                     ["mac"] = MacAddressString,
@@ -332,7 +332,7 @@ namespace Unifi.Gateway.Devices
                     ["autoneg"] = true,
                     ["duplex"] = "full",
                     ["name"] = "eth2",
-                    ["address"] = network.WanIPAddress.ToString() + "/24",
+                    ["address"] = network.WanIPAddress.ToString(),
                     ["addresses"] = new JsonArray(network.WanIPAddress.ToString()),
                     ["gateways"] = new JsonArray(gateways?.Select(t => JsonValue.Create(t.ToString())).ToArray() ?? []),
                     ["mac"] = string.Join(":", network.WanMacAddress.Select(t => t.ToString("x2"))),
@@ -352,6 +352,23 @@ namespace Unifi.Gateway.Devices
                         ["tx_packets"] = wanStats?.UnicastPacketsSent ?? 0,
                     },
                     ["up"] = wan?.OperationalStatus == OperationalStatus.Up,
+                    ["host_table"] = new JsonArray([
+                        new JsonObject
+                        {
+                            ["age"] = 45,
+                            ["authorized"] = true,
+                            ["mac"] = "f0:9f:c2:09:2b:f3",
+                            ["bc_bytes"] = 5000,
+                            ["bc_packets"] = 3000,
+                            ["mc_bytes"] = 6000,
+                            ["mc_packets"] = 1000,
+                            ["rx_bytes"] = 332432,
+                            ["rx_packets"] = 2342,
+                            ["tx_bytes"] = 234244,
+                            ["tx_packets"] = 2343,
+                            ["uptime"] = 645635,
+                        }
+                    ])
                 }
             );
 #pragma warning restore CA1416 // Validate platform compatibility
