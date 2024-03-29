@@ -2,134 +2,15 @@
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json.Nodes;
-using Unifi.Gateway.Common.Interfaces;
-using Unifi.Gateway.Json;
-using Unifi.SpeedTest;
 
 namespace Unifi.Gateway.Common.Devices
 {
     public class UGW3Device : BaseUnifiDevice
     {
-        private readonly IUnifiProtocol protocol;
-        private readonly ILogger<UGW3Device> logger;
-
-        public UGW3Device(IServiceProvider serviceProvider, IUnifiProtocol protocol, ILogger<UGW3Device> logger)
-            : base(serviceProvider)
+        public UGW3Device(IServiceProvider serviceProvider) : base(serviceProvider)
         {
-            this.protocol = protocol;
-            this.logger = logger;
-
             DeviceName = "UGW3";
             DeviceDisplayName = "UniFi Security Gateway";
-        }
-
-        protected override async Task ProcessDataAsync(ResponseData data)
-        {
-            switch (data.Type)
-            {
-                case "cmd":
-                    switch (data.Command)
-                    {
-                        case "speed-test":
-                            RunSpeedTest();
-                            return;
-                    }
-                    Interval = TimeSpan.FromSeconds(1);
-                    break;
-            }
-            await base.ProcessDataAsync(data);
-
-            async void RunSpeedTest()
-            {
-                await Task.Run(StartSpeedTest);
-            }
-        }
-
-        private async Task StartSpeedTest()
-        {
-            byte[] request;
-            byte[] response;
-            try
-            {
-                logger.LogInformation("Starting speed test");
-
-                var message = await CreateBaseInformAsync();
-                message["sys_stats"] = await GetSysStats();
-                message["system-stats"] = await GetSystemStats();
-                message["speedtest-status"] = new JsonObject
-                {
-                    ["latency"] = 0,
-                    ["rundate"] = GetTime(),
-                    ["runtime"] = GetTime(),
-                    ["status_download"] = 0,
-                    ["status_ping"] = 11,
-                    ["status_summary"] = 1,
-                    ["status_upload"] = 0,
-                    ["xput_download"] = 0,
-                    ["xput_upload"] = 0,
-                };
-                Log("Request", request = Encoding.UTF8.GetBytes(message.ToString()));
-                Log("Response", response = await protocol.SendRequestAsync(InformUrl, Key, request, default));
-
-                var client = new SpeedTestClient();
-                var server = await client.GetServerAsync();
-
-                var latency = await client.TestServerLatencyAsync(server);
-                message["speedtest-status"] = new JsonObject
-                {
-                    ["latency"] = latency,
-                    ["rundate"] = GetTime(),
-                    ["runtime"] = GetTime(),
-                    ["status_download"] = 1,
-                    ["status_ping"] = 2,
-                    ["status_summary"] = 1,
-                    ["status_upload"] = 0,
-                    ["xput_download"] = 0,
-                    ["xput_upload"] = 0,
-                };
-                Log("Request", request = Encoding.UTF8.GetBytes(message.ToString()));
-                Log("Response", response = await protocol.SendRequestAsync(InformUrl, Key, request, default));
-
-                var download = await client.TestDownloadSpeedAsync(server, 16);
-
-                message["speedtest-status"] = new JsonObject
-                {
-                    ["latency"] = latency,
-                    ["rundate"] = GetTime(),
-                    ["runtime"] = GetTime(),
-                    ["status_download"] = 2,
-                    ["status_ping"] = 2,
-                    ["status_summary"] = 1,
-                    ["status_upload"] = 2,
-                    ["xput_download"] = download / 1024,
-                    ["xput_upload"] = 0,
-                };
-                Log("Request", request = Encoding.UTF8.GetBytes(message.ToString()));
-                Log("Response", response = await protocol.SendRequestAsync(InformUrl, Key, request, default));
-
-                var upload = await client.TestUploadSpeedAsync(server, 16);
-
-                message["speedtest-status"] = new JsonObject
-                {
-                    ["latency"] = latency,
-                    ["rundate"] = GetTime(),
-                    ["runtime"] = GetTime(),
-                    ["status_download"] = 2,
-                    ["status_ping"] = 2,
-                    ["status_summary"] = 2,
-                    ["status_upload"] = 2,
-                    ["xput_download"] = download / 1024,
-                    ["xput_upload"] = upload / 1024,
-                };
-                Log("Request", request = Encoding.UTF8.GetBytes(message.ToString()));
-                Log("Response", response = await protocol.SendRequestAsync(InformUrl, Key, request, default));
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Speed test has been failed.");
-            }
-
-            static double GetTime() => DateTimeOffset.Now.ToUnixTimeMilliseconds() / 1000;
         }
 
         protected override void AddExtraInformMessage(JsonObject message)
@@ -288,13 +169,6 @@ namespace Unifi.Gateway.Common.Devices
                 }
             );
 #pragma warning restore CA1416 // Validate platform compatibility
-        }
-
-
-        private void Log(string direction, byte[] data)
-        {
-            var message = Encoding.UTF8.GetString(data);
-            logger.LogInformation("{direction}: {message}", direction, message);
         }
     }
 }

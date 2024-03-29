@@ -64,8 +64,7 @@ static async Task RunAsync(string[] args)
     builder.Services.AddTransient<IConfigurationReader, ConfigurationReader>();
     builder.Services.AddTransient<IConfigurationWriter, ConfigurationWriter>();
     builder.Services.AddTransient<IUnifiProtocol, UnifiProtocol>();
-    builder.Services.AddTransient<IUnifiDevice, UGW3Device>();
-    //builder.Services.AddHostedService<DiscoveryService>();
+    builder.Services.AddTransient<IUnifiDevice, UGW4Device>();
     builder.Services.AddHostedService<InformService>();
     builder.Services.AddHostedService<ConnectRequestService>();
     builder.Services.AddHttpClient();
