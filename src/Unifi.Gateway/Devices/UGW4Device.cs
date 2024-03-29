@@ -123,6 +123,8 @@ namespace Unifi.Gateway.Devices
                 logger.LogInformation("Starting speed test");
 
                 var message = await CreateBaseInformAsync();
+                message["isp_name"] = "MTS Belarus";
+                message["isp_organization"] = "Mobile TeleSystems JLLC";
                 message["sys_stats"] = await GetSysStats();
                 message["system-stats"] = await GetSystemStats();
                 message["speedtest-status"] = new JsonObject
