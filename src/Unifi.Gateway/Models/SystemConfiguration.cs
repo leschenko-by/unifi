@@ -6,6 +6,15 @@ namespace Unifi.Gateway.Models
     {
         [JsonPropertyName("port-forward")]
         public PortForwardConfiguration PortForward { get; set; } = new();
+
+        [JsonPropertyName("unifi")]
+        public UnifiSystemConfiguration Unifi { get; set; } = new();
+    }
+
+    public class UnifiSystemConfiguration
+    {
+        [JsonPropertyName("echo_server")]
+        public string EchoServer { get; set; } = string.Empty;
     }
 
     public class PortForwardConfiguration

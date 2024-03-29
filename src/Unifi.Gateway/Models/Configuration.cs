@@ -13,5 +13,7 @@
         public string Fingerprint { get; set; } = string.Empty;
 
         public string Firmware { get; set; } = string.Empty;
+
+        public string EchoServer { get; set; } = "ping.ui.com";
     }
 }

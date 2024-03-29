@@ -111,7 +111,7 @@ namespace Unifi.Gateway.Devices
                     if (!string.IsNullOrEmpty(data.SystemCfg))
                     {
                         var configurator = serviceProvider.GetRequiredService<ISystemConfigurationService>();
-                        await configurator.ApplyAsync(data.SystemCfg);
+                        await configurator.ApplyAsync(data.SystemCfg, configuration);
                     }
 
                     configuration.Adopted = true;
@@ -175,11 +175,11 @@ namespace Unifi.Gateway.Devices
                 message["connect_request_port"] = connectRequest.Port.ToString();
             }
 
-            AddExtraInformMessage(message);
+            await AddExtraInformMessage(message);
             return message;
         }
 
-        protected abstract void AddExtraInformMessage(JsonObject message);
+        protected abstract Task AddExtraInformMessage(JsonObject message);
 
         protected async Task<JsonObject> GetSysStats()
         {

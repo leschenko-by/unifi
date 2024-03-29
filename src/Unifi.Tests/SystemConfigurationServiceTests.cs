@@ -1,5 +1,6 @@
 ﻿using Moq.AutoMock;
 using Unifi.Gateway.Common.Services;
+using Unifi.Gateway.Models;
 
 namespace Unifi.Tests
 {
@@ -17,10 +18,15 @@ namespace Unifi.Tests
         public async Task ApplyAsync()
         {
             // Arrange
+            var configuration = new Configuration();
+
             var systemCfg = File.ReadAllText(Path.Combine("dump", "system.json"));
 
             // Act
-            await service.ApplyAsync(systemCfg);
+            await service.ApplyAsync(systemCfg, configuration);
+
+            // Assert
+            Assert.Equal("8.8.8.8", configuration.EchoServer);
         }
     }
 }

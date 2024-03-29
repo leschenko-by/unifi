@@ -1,4 +1,5 @@
-﻿using System.Net.NetworkInformation;
+﻿using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json.Nodes;
@@ -13,7 +14,7 @@ namespace Unifi.Gateway.Devices
             DeviceDisplayName = "UniFi Security Gateway";
         }
 
-        protected override void AddExtraInformMessage(JsonObject message)
+        protected override async Task AddExtraInformMessage(JsonObject message)
         {
             message["has_dpi"] = false;
             message["has_vti"] = false;
@@ -54,6 +55,26 @@ namespace Unifi.Gateway.Devices
                 .Select(address => address.ToString())
                 .ToArray();
 
+            var latency = 0L;
+            try
+            {
+                var ping = new Ping();
+                var addresses = await Dns.GetHostAddressesAsync(configuration.EchoServer);
+                var echoServer = addresses.FirstOrDefault();
+                if (echoServer != null)
+                {
+                    var reply = await ping.SendPingAsync(echoServer);
+                    if (reply != null && reply.Status == IPStatus.Success)
+                    {
+                        latency = reply.RoundtripTime;
+                    }
+                }
+            }
+            catch
+            {
+                latency = 0L;
+            }
+
 #pragma warning disable CA1416 // Validate platform compatibility
             message["if_table"] = new JsonArray(
                 new JsonObject
@@ -78,7 +99,7 @@ namespace Unifi.Gateway.Devices
                     ["tx_errors"] = wanStats?.OutgoingPacketsWithErrors ?? 0,
                     ["tx_packets"] = wanStats?.UnicastPacketsSent ?? 0,
 
-                    ["latency"] = 1,
+                    ["latency"] = latency,
                     ["uptime"] = Environment.TickCount64 / 1000,
 
                     ["speedtest_lastrun"] = DateTimeOffset.UtcNow.ToUnixTimeSeconds() - 60,

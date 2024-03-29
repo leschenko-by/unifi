@@ -15,7 +15,7 @@ namespace Unifi.Gateway.Common.Services
             this.ufw = ufw;
         }
 
-        public async Task ApplyAsync(string systemCfg)
+        public async Task ApplyAsync(string systemCfg, Configuration configuration)
         {
             Directory.CreateDirectory("/etc/unifi");
             await File.WriteAllTextAsync("/etc/unifi/system.json", systemCfg);
@@ -26,7 +26,14 @@ namespace Unifi.Gateway.Common.Services
                 return;
             }
 
+            ApplyEchoServer(configuration, cfg);
+
             await ApplyPortForwardingAsync(cfg);
+        }
+
+        private void ApplyEchoServer(Configuration configuration, SystemConfiguration cfg)
+        {
+            configuration.EchoServer = cfg.Unifi.EchoServer;
         }
 
         private async Task ApplyPortForwardingAsync(SystemConfiguration cfg)
