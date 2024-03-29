@@ -175,8 +175,45 @@ namespace Unifi.Gateway.Devices
             var gateways = wan?.GetIPProperties().GatewayAddresses
                 .Select(gateway => gateway.Address)
                 .Where(t => t.AddressFamily == AddressFamily.InterNetwork)
-                .Select(address => address.ToString())
                 .ToArray();
+
+            message["routes"] = new JsonArray([
+                new JsonObject
+                {
+                    ["pfx"] = "0.0.0.0/0",
+                    ["nh"] = new JsonArray([
+                        new JsonObject
+                        {
+                            ["intf"] = "eth2",
+                            ["metric"] = "1/0",
+                            ["t"] = "S>*",
+                            ["via"] = gateways?.FirstOrDefault()?.ToString() ?? "0.0.0.0",
+                        }
+                    ]),
+                },
+                new JsonObject
+                {
+                    ["pfx"] = string.Join(".", network.WanIPAddress.GetAddressBytes().Take(3).Select(t=>t.ToString())) + ".0/24",
+                    ["nh"] = new JsonArray([
+                        new JsonObject
+                        {
+                            ["intf"] = "eth2",
+                            ["t"] = "C>*",
+                        },
+                    ]),
+                },
+                new JsonObject
+                {
+                    ["pfx"] = string.Join(".", network.LanIPAddress.GetAddressBytes().Take(3).Select(t=>t.ToString())) + ".0/24",
+                    ["nh"] = new JsonArray([
+                        new JsonObject
+                        {
+                            ["intf"] = "eth0",
+                            ["t"] = "C>*",
+                        },
+                    ]),
+                },
+            ]);
 
 #pragma warning disable CA1416 // Validate platform compatibility
             message["if_table"] = new JsonArray(
@@ -213,7 +250,7 @@ namespace Unifi.Gateway.Devices
                     ["name"] = "eth2",
                     ["enable"] = true,
                     ["ip"] = network.WanIPAddress.ToString(),
-                    ["gateways"] = new JsonArray(gateways?.Select(t => JsonValue.Create(t)).ToArray() ?? []),
+                    ["gateways"] = new JsonArray(gateways?.Select(t => JsonValue.Create(t.ToString())).ToArray() ?? []),
                     ["mac"] = string.Join(":", network.WanMacAddress.Select(t => t.ToString("x2"))),
                     ["netmask"] = network.WanNetmask.ToString(),
                     ["up"] = wan?.OperationalStatus == OperationalStatus.Up,
