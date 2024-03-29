@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.Options;
+using Moq;
 using Moq.AutoMock;
 using System.Net;
+using System.Net.NetworkInformation;
 using Unifi.Gateway.Common.Interfaces;
 using Unifi.Gateway.Devices;
 using Unifi.Gateway.Json;
@@ -61,6 +63,14 @@ namespace Unifi.Tests
             mocker.GetMock<IServiceProvider>()
                 .Setup(t => t.GetService(typeof(IConnectRequest)))
                 .Returns(mocker.GetMock<IConnectRequest>().Object);
+
+            mocker.GetMock<INetworkInfoService>()
+                .Setup(t => t.GetLanStatistics())
+                .Returns((new Mock<NetworkInterface>().Object, new Mock<IPInterfaceStatistics>().Object));
+
+            mocker.GetMock<INetworkInfoService>()
+                .Setup(t => t.GetWanStatistics())
+                .Returns((new Mock<NetworkInterface>().Object, new Mock<IPInterfaceStatistics>().Object));
 
             device = mocker.CreateInstance<UGW4Device>();
         }

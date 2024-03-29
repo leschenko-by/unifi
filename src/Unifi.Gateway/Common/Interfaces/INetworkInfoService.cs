@@ -13,7 +13,7 @@ namespace Unifi.Gateway.Common.Interfaces
         IPAddress WanIPAddress { get; }
         IPAddress WanNetmask { get; }
 
-        (NetworkInterface?, IPInterfaceStatistics?) GetLanStatistics();
-        (NetworkInterface?, IPInterfaceStatistics?) GetWanStatistics();
+        (NetworkInterface, IPInterfaceStatistics) GetLanStatistics();
+        (NetworkInterface, IPInterfaceStatistics) GetWanStatistics();
     }
 }
