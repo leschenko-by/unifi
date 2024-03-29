@@ -1,4 +1,4 @@
-﻿using Unifi.Gateway.Json;
+﻿using Unifi.Gateway.Models;
 
 namespace Unifi.Gateway.Common.Interfaces
 {

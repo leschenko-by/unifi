@@ -1,4 +1,4 @@
-﻿namespace Unifi.Gateway.Options
+﻿namespace Unifi.Gateway.Models
 {
     public class GeneralServiceOptions
     {

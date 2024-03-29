@@ -1,10 +1,10 @@
 ﻿using Microsoft.Extensions.Options;
 using Moq.AutoMock;
 using System.Net;
-using Unifi.Gateway.Common.Devices;
 using Unifi.Gateway.Common.Interfaces;
+using Unifi.Gateway.Devices;
 using Unifi.Gateway.Json;
-using Unifi.Gateway.Options;
+using Unifi.Gateway.Models;
 
 namespace Unifi.Tests
 {

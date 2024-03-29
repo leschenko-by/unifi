@@ -3,7 +3,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.Json.Nodes;
 
-namespace Unifi.Gateway.Common.Devices
+namespace Unifi.Gateway.Devices
 {
     public class UGW3Device : BaseUnifiDevice
     {
@@ -50,7 +50,7 @@ namespace Unifi.Gateway.Common.Devices
             var (wan, wanStats) = network.GetWanStatistics();
             var gateways = wan?.GetIPProperties().GatewayAddresses
                 .Select(gateway => gateway.Address)
-                .Where(t=>t.AddressFamily == AddressFamily.InterNetwork)
+                .Where(t => t.AddressFamily == AddressFamily.InterNetwork)
                 .Select(address => address.ToString())
                 .ToArray();
 

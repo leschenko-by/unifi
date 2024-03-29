@@ -3,7 +3,7 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using Unifi.Gateway.Common.Interfaces;
-using Unifi.Gateway.Options;
+using Unifi.Gateway.Models;
 
 namespace Unifi.Gateway.Common.Services
 {

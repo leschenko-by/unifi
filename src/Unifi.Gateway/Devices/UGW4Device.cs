@@ -3,10 +3,10 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.Json.Nodes;
 using Unifi.Gateway.Common.Interfaces;
-using Unifi.Gateway.Json;
+using Unifi.Gateway.Models;
 using Unifi.SpeedTest;
 
-namespace Unifi.Gateway.Common.Devices
+namespace Unifi.Gateway.Devices
 {
     public class UGW4Device : BaseUnifiDevice
     {
@@ -23,7 +23,7 @@ namespace Unifi.Gateway.Common.Devices
             DeviceDisplayName = "UniFi Security Gateway-Pro";
         }
 
-        protected override async Task ProcessDataAsync(ResponseData data)
+        protected override async Task ProcessDataAsync(InformResponseMessage data)
         {
             switch (data.Type)
             {
@@ -174,7 +174,7 @@ namespace Unifi.Gateway.Common.Devices
             var (wan, wanStats) = network.GetWanStatistics();
             var gateways = wan?.GetIPProperties().GatewayAddresses
                 .Select(gateway => gateway.Address)
-                .Where(t=>t.AddressFamily == AddressFamily.InterNetwork)
+                .Where(t => t.AddressFamily == AddressFamily.InterNetwork)
                 .Select(address => address.ToString())
                 .ToArray();
 

@@ -1,10 +1,10 @@
 using System.Security.Cryptography;
 using System.Text.Json;
-using Unifi.Gateway.Common.Devices;
 using Unifi.Gateway.Common.Interfaces;
 using Unifi.Gateway.Common.Services;
+using Unifi.Gateway.Devices;
 using Unifi.Gateway.Json;
-using Unifi.Gateway.Options;
+using Unifi.Gateway.Models;
 using Unifi.Gateway.Services;
 
 if (args.Length > 0)

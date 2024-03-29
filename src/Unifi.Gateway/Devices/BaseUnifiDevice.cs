@@ -6,8 +6,9 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Unifi.Gateway.Common.Interfaces;
 using Unifi.Gateway.Json;
+using Unifi.Gateway.Models;
 
-namespace Unifi.Gateway.Common.Devices
+namespace Unifi.Gateway.Devices
 {
     public abstract class BaseUnifiDevice : IUnifiDevice
     {
@@ -78,14 +79,14 @@ namespace Unifi.Gateway.Common.Devices
         {
             nextCommand = null;
 
-            var data = JsonSerializer.Deserialize(json, SourceGenerationContext.Default.ResponseData);
+            var data = JsonSerializer.Deserialize(json, SourceGenerationContext.Default.InformResponseMessage);
             if (data is not null)
             {
                 await ProcessDataAsync(data);
             }
         }
 
-        protected virtual async Task ProcessDataAsync(ResponseData data)
+        protected virtual async Task ProcessDataAsync(InformResponseMessage data)
         {
             switch (data.Type)
             {
