@@ -161,7 +161,7 @@ namespace Unifi.Gateway.Devices
                 message["state"] = 1; // DS_UNKNOWN
             }
 
-            return message.ToString();
+            return JsonSerializer.Serialize(message, SourceGenerationContext.Default.JsonObject);
         }
 
         private async Task<JsonObject> CerateInformMessageAsync()
