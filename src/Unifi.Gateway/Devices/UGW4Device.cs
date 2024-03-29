@@ -216,7 +216,7 @@ namespace Unifi.Gateway.Devices
                 }
             );
 
-            string GetNetwork(IPAddress address, IPAddress netmask)
+            static string GetNetwork(IPAddress address, IPAddress netmask)
             {
                 var bytes = address.GetAddressBytes();
                 var mask = netmask.GetAddressBytes();
@@ -334,7 +334,7 @@ namespace Unifi.Gateway.Devices
                     ["name"] = "eth2",
                     ["address"] = network.WanIPAddress.ToString() + "/24",
                     ["addresses"] = new JsonArray(network.WanIPAddress.ToString()),
-                    ["gateways"] = new JsonArray(gateways?.Select(t => JsonValue.Create(t)).ToArray() ?? []),
+                    ["gateways"] = new JsonArray(gateways?.Select(t => JsonValue.Create(t.ToString())).ToArray() ?? []),
                     ["mac"] = string.Join(":", network.WanMacAddress.Select(t => t.ToString("x2"))),
                     ["l1up"] = true,
                     ["mtu"] = 1500,
