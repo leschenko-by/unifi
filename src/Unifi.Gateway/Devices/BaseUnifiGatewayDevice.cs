@@ -45,6 +45,8 @@ namespace Unifi.Gateway.Devices
             result["speedtest_status"] = "Idle";
             result["xput_down"] = 50 + new Random().Next(50);
             result["xput_up"] = 50 + new Random().Next(50);
+            result["isp_name"] = "MTS Belarus";
+            result["isp_organization"] = "Mobile TeleSystems JLLC";
             return result;
         }
 
