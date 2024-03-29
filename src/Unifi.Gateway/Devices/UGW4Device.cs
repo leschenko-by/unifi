@@ -177,11 +177,11 @@ namespace Unifi.Gateway.Devices
                 .Where(t => t.AddressFamily == AddressFamily.InterNetwork)
                 .ToArray();
 
-            message["routes"] = new JsonArray([
+            message["routes"] = new JsonArray(
                 new JsonObject
                 {
                     ["pfx"] = "0.0.0.0/0",
-                    ["nh"] = new JsonArray([
+                    ["nh"] = new JsonArray(
                         new JsonObject
                         {
                             ["intf"] = "eth2",
@@ -189,31 +189,31 @@ namespace Unifi.Gateway.Devices
                             ["t"] = "S>*",
                             ["via"] = gateways?.FirstOrDefault()?.ToString() ?? "0.0.0.0",
                         }
-                    ]),
+                    ),
                 },
                 new JsonObject
                 {
                     ["pfx"] = string.Join(".", network.WanIPAddress.GetAddressBytes().Take(3).Select(t=>t.ToString())) + ".0/24",
-                    ["nh"] = new JsonArray([
+                    ["nh"] = new JsonArray(
                         new JsonObject
                         {
                             ["intf"] = "eth2",
                             ["t"] = "C>*",
-                        },
-                    ]),
+                        }
+                    ),
                 },
                 new JsonObject
                 {
                     ["pfx"] = string.Join(".", network.LanIPAddress.GetAddressBytes().Take(3).Select(t=>t.ToString())) + ".0/24",
-                    ["nh"] = new JsonArray([
+                    ["nh"] = new JsonArray(
                         new JsonObject
                         {
                             ["intf"] = "eth0",
                             ["t"] = "C>*",
-                        },
-                    ]),
-                },
-            ]);
+                        }
+                    ),
+                }
+            );
 
 #pragma warning disable CA1416 // Validate platform compatibility
             message["if_table"] = new JsonArray(
