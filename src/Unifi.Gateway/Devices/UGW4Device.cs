@@ -216,26 +216,8 @@ namespace Unifi.Gateway.Devices
                 }
             );
 
-            static string GetNetwork(IPAddress address, IPAddress netmask)
-            {
-                var bytes = address.GetAddressBytes();
-                var mask = netmask.GetAddressBytes();
-                var network = bytes.Zip(mask, (a, b) => (byte)(a & b)).ToArray();
-                var length = 0;
-                foreach (var m in mask)
-                {
-                    var b = m;
-                    while ((b & 128) != 0)
-                    {
-                        length++;
-                        b = (byte)((b << 1) & 255);
-                    }
-                }
-                return string.Join(".", network.Select(t=>t.ToString())) + "/" + length;
-            }
-
 #pragma warning disable CA1416 // Validate platform compatibility
-            message["if_table"] = new JsonArray(
+            message["if_table"] = new JsonArray([
                 new JsonObject
                 {
                     ["full_duplex"] = true,
@@ -299,8 +281,8 @@ namespace Unifi.Gateway.Devices
                     ["name"] = "eth3",
                     ["enable"] = false,
                     ["num_port"] = 4,
-                }
-            );
+                },
+            ]);
             message["network_table"] = new JsonArray(
                 new JsonObject
                 {
@@ -379,6 +361,24 @@ namespace Unifi.Gateway.Devices
         {
             var message = Encoding.UTF8.GetString(data);
             logger.LogInformation("{direction}: {message}", direction, message);
+        }
+
+        private static string GetNetwork(IPAddress address, IPAddress netmask)
+        {
+            var bytes = address.GetAddressBytes();
+            var mask = netmask.GetAddressBytes();
+            var network = bytes.Zip(mask, (a, b) => (byte)(a & b)).ToArray();
+            var length = 0;
+            foreach (var m in mask)
+            {
+                var b = m;
+                while ((b & 128) != 0)
+                {
+                    length++;
+                    b = (byte)((b << 1) & 255);
+                }
+            }
+            return string.Join(".", network.Select(t => t.ToString())) + "/" + length;
         }
     }
 }
