@@ -1,4 +1,5 @@
-﻿using System.Net.NetworkInformation;
+﻿using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json.Nodes;
@@ -193,7 +194,7 @@ namespace Unifi.Gateway.Devices
                 },
                 new JsonObject
                 {
-                    ["pfx"] = string.Join(".", network.WanIPAddress.GetAddressBytes().Take(3).Select(t=>t.ToString())) + ".0/24",
+                    ["pfx"] = GetNetwork(network.WanIPAddress, network.WanNetmask),
                     ["nh"] = new JsonArray(
                         new JsonObject
                         {
@@ -204,7 +205,7 @@ namespace Unifi.Gateway.Devices
                 },
                 new JsonObject
                 {
-                    ["pfx"] = string.Join(".", network.LanIPAddress.GetAddressBytes().Take(3).Select(t=>t.ToString())) + ".0/24",
+                    ["pfx"] = GetNetwork(network.LanIPAddress, network.LanNetmask),
                     ["nh"] = new JsonArray(
                         new JsonObject
                         {
@@ -214,6 +215,24 @@ namespace Unifi.Gateway.Devices
                     ),
                 }
             );
+
+            string GetNetwork(IPAddress address, IPAddress netmask)
+            {
+                var bytes = address.GetAddressBytes();
+                var mask = netmask.GetAddressBytes();
+                var network = bytes.Zip(mask, (a, b) => (byte)(a & b)).ToArray();
+                var length = 0;
+                foreach (var m in mask)
+                {
+                    var b = m;
+                    while ((b & 128) != 0)
+                    {
+                        length++;
+                        b = (byte)((b << 1) & 255);
+                    }
+                }
+                return string.Join(".", network.Select(t=>t.ToString())) + "/" + length;
+            }
 
 #pragma warning disable CA1416 // Validate platform compatibility
             message["if_table"] = new JsonArray(
