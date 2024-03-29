@@ -16,8 +16,10 @@ namespace Unifi.Gateway.Devices
 
         protected override async Task AddExtraInformMessage(JsonObject message)
         {
-            message["has_dpi"] = false;
-            message["has_vti"] = false;
+            message["has_eth1"] = true;
+            message["has_porta"] = true;
+            message["has_dpi"] = true;
+            message["has_vti"] = true;
             message["has_ssh_disable"] = true;
             message["fw_caps"] = 3;
             message["guest_token"] = "4C1D46707239C6EB5A2366F505A44A91";

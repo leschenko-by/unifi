@@ -13,8 +13,8 @@ namespace Unifi.Gateway.Devices
     public abstract class BaseUnifiDevice : IUnifiDevice
     {
         protected readonly INetworkInfoService network;
+        protected readonly ISystemInfoService systemInfo;
 
-        private readonly ISystemInfoService systemInfo;
         private readonly IConfigurationReader configurationReader;
         private readonly IConfigurationWriter configurationWriter;
         private readonly IConnectRequest connectRequest;
