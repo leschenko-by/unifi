@@ -48,8 +48,6 @@ namespace Unifi.Gateway.Devices
 
         protected override async Task AddExtraInformMessage(JsonObject message)
         {
-            message["isp_name"] = "MTS Belarus";
-            message["isp_organization"] = "Mobile TeleSystems JLLC";
             message["has_dpi"] = false;
             message["has_vti"] = false;
             message["has_ssh_disable"] = false;
@@ -123,8 +121,6 @@ namespace Unifi.Gateway.Devices
                 logger.LogInformation("Starting speed test");
 
                 var message = await CreateBaseInformAsync();
-                message["isp_name"] = "MTS Belarus";
-                message["isp_organization"] = "Mobile TeleSystems JLLC";
                 message["sys_stats"] = await GetSysStats();
                 message["system-stats"] = await GetSystemStats();
                 message["speedtest-status"] = new JsonObject
