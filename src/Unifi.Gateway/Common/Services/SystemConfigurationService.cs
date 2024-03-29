@@ -61,8 +61,14 @@ namespace Unifi.Gateway.Common.Services
                             var dst_port = options["dst_port"].Trim('\'');
                             var fwd_port = options["fwd_port"].Trim('\'');
 
-                            var proto = (tcp && udp ? "" : tcp ? "-p tcp" : udp ? "-p udp" : "");
-                            output.AppendLine($"-A PREROUTING -i eth0 {proto} --dport {dst_port} -j DNAT --to-destination {options["fwd"]}:{fwd_port}");
+                            if (tcp)
+                            {
+                                output.AppendLine($"-A PREROUTING -i eth0 -p tcp --dport {dst_port} -j DNAT --to-destination {options["fwd"]}:{fwd_port}");
+                            }
+                            if (udp)
+                            {
+                                output.AppendLine($"-A PREROUTING -i eth0 -p udp --dport {dst_port} -j DNAT --to-destination {options["fwd"]}:{fwd_port}");
+                            }
                         }
 
                         injected = true;
