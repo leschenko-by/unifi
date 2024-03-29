@@ -32,11 +32,6 @@ namespace Unifi.Gateway.Common.Services
         private async Task ApplyPortForwardingAsync(SystemConfiguration cfg)
         {
             await Task.Yield();
-            var rules = cfg.Unifi.PortForwarding.Rules;
-            if (cfg.Unifi.PortForwarding.Status != "enable")
-            {
-                rules.Clear();
-            }
 
             var started = false;
             var finished = false;
@@ -49,25 +44,18 @@ namespace Unifi.Gateway.Common.Services
                 {
                     if (!injected)
                     {
-                        foreach (var (key, value) in rules)
+                        foreach (var (_, rule) in cfg.PortForward.Rules)
                         {
-                            output.AppendLine($"# {key} => {value}");
-                            var options = value.Split(",").Select(t => t.Split("="))
-                                .ToDictionary(t => t[0], t => t[1]);
-
-                            var tcp = options["tcp"] == "1";
-                            var udp = options["udp"] == "1";
-
-                            var dst_port = options["dst_port"].Trim('\'');
-                            var fwd_port = options["fwd_port"].Trim('\'');
-
-                            if (tcp)
+                            var originalPort = rule.OriginalPort;
+                            var targetPort = rule.Destination.Port ?? rule.OriginalPort;
+                            var address = rule.Destination.Address;
+                            if (rule.Protocol.Contains("tcp"))
                             {
-                                output.AppendLine($"-A PREROUTING -i eth0 -p tcp --dport {dst_port} -j DNAT --to-destination {options["fwd"]}:{fwd_port}");
+                                output.AppendLine($"-A PREROUTING -i eth0 -p tcp --dport {originalPort} -j DNAT --to-destination {address}:{targetPort}");
                             }
-                            if (udp)
+                            if (rule.Protocol.Contains("udp"))
                             {
-                                output.AppendLine($"-A PREROUTING -i eth0 -p udp --dport {dst_port} -j DNAT --to-destination {options["fwd"]}:{fwd_port}");
+                                output.AppendLine($"-A PREROUTING -i eth0 -p udp --dport {originalPort} -j DNAT --to-destination {address}:{targetPort}");
                             }
                         }
 

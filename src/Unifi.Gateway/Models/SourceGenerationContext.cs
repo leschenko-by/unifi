@@ -7,7 +7,6 @@ namespace Unifi.Gateway.Json
     [JsonSerializable(typeof(Configuration))]
     [JsonSerializable(typeof(InformResponseMessage))]
     [JsonSerializable(typeof(SystemConfiguration))]
-    [JsonSerializable(typeof(UnifiConfiguration))]
     internal partial class SourceGenerationContext : JsonSerializerContext
     {
     }
