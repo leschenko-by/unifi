@@ -58,19 +58,19 @@ namespace Unifi.Gateway.Devices
                 new JsonObject
                 {
                     ["ifname"] = "eth0",
-                    ["name"] = "wan",
+                    ["name"] = "lan",
                 },
                 new JsonObject
                 {
                     ["ifname"] = "eth1",
-                    ["name"] = "lan",
+                    ["name"] = "wan",
                 },
             ]);
 
             var (_, lanStats) = network.GetLanStatistics();
             var (_, wanStats) = network.GetWanStatistics();
 
-            message["uplink"] = "eth2";
+            message["uplink"] = "eth1";
             message["if_table"] = new JsonArray([
                 await GetLanInterface("eth0", 1, IPAddress, Netmask, MacAddress, lanStats),
                 await GetWanInterfaceAsync("eth1", 2, network.WanIPAddress, network.WanNetmask, network.WanMacAddress, wanStats),
