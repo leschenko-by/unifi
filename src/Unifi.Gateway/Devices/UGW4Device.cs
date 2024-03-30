@@ -11,7 +11,7 @@ using Unifi.SpeedTest;
 
 namespace Unifi.Gateway.Devices
 {
-    public class UGW4Device : BaseUnifiGatewayDevice
+    public class UGW4Device : BaseGatewayV1Device
     {
         private readonly IUnifiProtocol protocol;
         private readonly ILogger<UGW4Device> logger;

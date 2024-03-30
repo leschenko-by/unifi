@@ -14,11 +14,11 @@ namespace Unifi.Gateway.Devices
     {
         protected readonly INetworkInfoService network;
         protected readonly ISystemInfoService systemInfo;
+        protected readonly IServiceProvider serviceProvider;
 
         private readonly IConfigurationReader configurationReader;
         private readonly IConfigurationWriter configurationWriter;
         private readonly IConnectRequest connectRequest;
-        private readonly IServiceProvider serviceProvider;
         private JsonObject? nextCommand = null;
         protected Configuration configuration;
         private TimeSpan interval = TimeSpan.FromSeconds(10);
@@ -110,8 +110,7 @@ namespace Unifi.Gateway.Devices
                     }
                     if (!string.IsNullOrEmpty(data.SystemCfg))
                     {
-                        var configurator = serviceProvider.GetRequiredService<ISystemConfigurationService>();
-                        await configurator.ApplyAsync(data.SystemCfg, configuration);
+                        await ApplySystemConfigurationAsync(data);
                     }
 
                     configuration.Adopted = true;
@@ -145,6 +144,8 @@ namespace Unifi.Gateway.Devices
                     break;
             }
         }
+
+        protected abstract Task ApplySystemConfigurationAsync(InformResponseMessage data);
 
         public async Task<string> GetInformMessageAsync()
         {

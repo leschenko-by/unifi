@@ -61,7 +61,8 @@ static async Task RunAsync(string[] args)
 
     builder.Services.AddSingleton<IConnectRequest, ConnectRequest>();
 
-    builder.Services.AddTransient<ISystemConfigurationService, SystemConfigurationService>();
+    builder.Services.AddKeyedTransient<ISystemConfigurationService, SystemConfigurationV1Service>("v1");
+    builder.Services.AddKeyedTransient<ISystemConfigurationService, SystemConfigurationV2Service>("v2");
     builder.Services.AddTransient<ISystemInfoService, SystemInfoService>();
     builder.Services.AddTransient<IRequestEncoder, RequestEncoder>();
     builder.Services.AddTransient<IRequestDecoder, RequestDecoder>();
@@ -70,8 +71,8 @@ static async Task RunAsync(string[] args)
     builder.Services.AddTransient<IConfigurationWriter, ConfigurationWriter>();
     builder.Services.AddTransient<IUnifiProtocol, UnifiProtocol>();
     builder.Services.AddTransient<IUfwService, UfwService>();
-    builder.Services.AddTransient<IUnifiDevice, UGW4Device>();
-    //builder.Services.AddTransient<IUnifiDevice, UXGDevice>();
+    //builder.Services.AddTransient<IUnifiDevice, UGW4Device>();
+    builder.Services.AddTransient<IUnifiDevice, UXGDevice>();
 
     builder.Services.AddHostedService<InformService>();
     builder.Services.AddHostedService<ConnectRequestService>();

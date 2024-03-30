@@ -6,7 +6,7 @@ using System.Text.Json.Nodes;
 
 namespace Unifi.Gateway.Devices
 {
-    public class UGW3Device : BaseUnifiGatewayDevice
+    public class UGW3Device : BaseGatewayV1Device
     {
         public UGW3Device(IServiceProvider serviceProvider) : base(serviceProvider)
         {

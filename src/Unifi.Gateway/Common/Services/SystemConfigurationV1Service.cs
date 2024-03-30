@@ -6,11 +6,11 @@ using Unifi.Gateway.Models;
 
 namespace Unifi.Gateway.Common.Services
 {
-    public class SystemConfigurationService : ISystemConfigurationService
+    public class SystemConfigurationV1Service : ISystemConfigurationService
     {
         public readonly IUfwService ufw;
 
-        public SystemConfigurationService(IUfwService ufw)
+        public SystemConfigurationV1Service(IUfwService ufw)
         {
             this.ufw = ufw;
         }

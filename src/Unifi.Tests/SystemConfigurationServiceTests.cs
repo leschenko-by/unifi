@@ -7,11 +7,11 @@ namespace Unifi.Tests
     public class SystemConfigurationServiceTests
     {
         private readonly AutoMocker mocker = new();
-        private readonly SystemConfigurationService service;
+        private readonly SystemConfigurationV1Service service;
 
         public SystemConfigurationServiceTests()
         {
-            service = mocker.CreateInstance<SystemConfigurationService>();
+            service = mocker.CreateInstance<SystemConfigurationV1Service>();
         }
 
         [Fact]
