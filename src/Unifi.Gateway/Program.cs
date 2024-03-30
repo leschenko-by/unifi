@@ -76,14 +76,19 @@ static async Task RunAsync(string[] args)
     builder.Services.AddKeyedTransient<IUnifiDevice, UGW4Device>("UGW4");
     builder.Services.AddKeyedTransient<IUnifiDevice, UXGDevice>("UXG");
 
-    string[] devices = ["UXG", "UGW3", "UGW4"];
-    var deviceName = args.Length > 0 ? args[0].ToUpper() : "";
-    if (!devices.Contains(deviceName))
+    builder.Services.AddHostedService(provider =>
     {
-        deviceName = "UXG";
-    }
+        string[] devices = ["UXG", "UGW3", "UGW4"];
 
-    builder.Services.AddHostedService(provider => new InformService(deviceName, provider));
+        var configuration = provider.GetRequiredService<IConfiguration>();
+        var deviceName = configuration["Device"] ?? "";
+        if (!devices.Contains(deviceName))
+        {
+            deviceName = "UXG";
+        }
+
+        return new InformService(deviceName, provider);
+    });
     builder.Services.AddHostedService<ConnectRequestService>();
 
     var app = builder.Build();
