@@ -57,7 +57,7 @@ namespace Unifi.Gateway.Devices
             var result = await GetLanInterface(name, port, address, netmask, mac, stats);
             result["latency"] = latency;
             result["uptime"] = await systemInfo.GetUptimeAsync();
-            result["ip_v6"] = "2a02:bf0:6:10::34";
+            //result["ip_v6"] = "2a02:bf0:6:10::34";
             //result["speedtest_lastrun"] = DateTimeOffset.Now.ToUnixTimeSeconds();
             //result["speedtest_ping"] = 1;
             //result["speedtest_status"] = "Idle";
