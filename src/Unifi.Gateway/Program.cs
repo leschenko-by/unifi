@@ -83,7 +83,7 @@ static async Task RunAsync(string[] args)
         deviceName = "UGW4";
     }
 
-    builder.Services.AddHostedService(provider => new InformService("", provider));
+    builder.Services.AddHostedService(provider => new InformService(deviceName, provider));
     builder.Services.AddHostedService<ConnectRequestService>();
 
     var app = builder.Build();
