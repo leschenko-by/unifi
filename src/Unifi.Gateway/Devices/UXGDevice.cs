@@ -6,7 +6,7 @@ using Unifi.SpeedTest;
 
 namespace Unifi.Gateway.Devices
 {
-    public class UXGDevice : BaseGatewayV1Device
+    public class UXGDevice : BaseGatewayV2Device
     {
         private readonly IUnifiProtocol protocol;
         private readonly ILogger<UXGDevice> logger;
