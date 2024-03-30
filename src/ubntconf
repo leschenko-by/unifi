@@ -1,0 +1,37 @@
+# misc
+# unifi
+unifi.version=8.1.113
+unifi.anonymous_controller_id=4233776a-a5e9-4998-bb58-0cdf95a91669
+unifi.anonymous_site_id=b05aba43-f7e3-4afc-9e6e-8cc047912e76
+unifi.reporterid=4233776a-a5e9-4998-bb58-0cdf95a91669
+unifi.siteid=5e4f9f80a3e1d23b38297a3e
+unifi.idp=enabled
+unifi.mcip=239.254.127.63
+unifi.key=94700c0a1e0b7301e517c81ac76ee3de
+unifi.feature.always_send_crash_logs=enabled
+unifi.cfgcap_info=0x7
+# qos
+qos.status=disabled
+# ebtables
+ebtables.status=disabled
+# ipset
+ipset.status=disabled
+# redirector
+redirector.status=disabled
+# syslog
+syslog.status=enabled
+syslog.level=8
+syslog.remote.encrypt=enabled
+syslog.remote.key=56163767bd4ba19bc98ec0e6c3cbee5025233a5efe5ede57233b658fdac20e22
+syslog.remote.ip=192.168.2.12
+syslog.remote.port=5514
+syslog.remote.status=enabled
+netconsole.host=192.168.2.12
+netconsole.port=5514
+netconsole.status=enabled
+# system
+system.analytics.status=enabled
+system.monitor.memory.threshold=90
+system.monitor.critical_memory.threshold=95
+system.timezone=<+03>-3
+locale.timezone=<+03>-3

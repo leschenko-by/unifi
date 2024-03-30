@@ -1,0 +1,931 @@
+{
+  "udapi": {
+    "interfaces": [
+      {
+        "identification": {
+          "id": "lo",
+          "type": "loopback"
+        },
+        "status": {
+          "enabled": true,
+          "mtu": 65536
+        },
+        "addresses": [
+          {
+            "type": "static",
+            "cidr": "127.0.0.1/8",
+            "version": "v4"
+          }
+        ]
+      },
+      {
+        "identification": {
+          "id": "eth1",
+          "type": "ethernet"
+        },
+        "status": {
+          "enabled": true,
+          "comment": "WAN"
+        },
+        "addresses": [
+          {
+            "type": "dynamic",
+            "cidr": null,
+            "origin": "dhcp",
+            "version": "v4"
+          }
+        ],
+        "ipv4": {
+        },
+        "ethernet": {
+          "lldp": {
+            "enabled": false
+          }
+        }
+      },
+      {
+        "identification": {
+          "id": "eth0",
+          "type": "ethernet"
+        },
+        "status": {
+          "enabled": true
+        }
+      },
+      {
+        "identification": {
+          "id": "br0",
+          "type": "bridge"
+        },
+        "status": {
+          "enabled": true,
+          "comment": "LAN"
+        },
+        "addresses": [
+          {
+            "type": "static",
+            "cidr": "192.168.2.254/24",
+            "version": "v4"
+          }
+        ],
+        "bridge": {
+          "interfaces": [
+            {
+              "id": "eth0"
+            }
+          ],
+          "id": 0
+        }
+      }
+    ],
+    "services": {
+      "sshServer": {
+        "sshPort": 22,
+        "enabled": true
+      },
+      "systemLog": {
+        "enabled": true,
+        "server": "192.168.2.12",
+        "port": 5514,
+        "level": "debug"
+      },
+      "unifiNetwork": {
+        "enabled": true,
+        "sitename": "default",
+        "token": "OnLykcKD17kQMEItxS9If107LF1uHdOfpOO1lgx86uCwICcBmwQIPJOigHAt2eS1",
+        "controllerURL": "https://192.168.2.12:8443",
+        "informURL": "http://192.168.2.12:8080/inform"
+      },
+      "lldp": {
+        "enabled": false
+      },
+      "ntpClient": {
+        "enabled": true,
+        "ntpServers": [
+          "0.ubnt.pool.ntp.org",
+          "1.ubnt.pool.ntp.org",
+          "2.ubnt.pool.ntp.org",
+          "3.ubnt.pool.ntp.org"
+        ]
+      },
+      "dnsForwarder": {
+        "hostRecords": [
+          {
+            "hostName": "unifi.vitaliy.org",
+            "registerNonQualified": true,
+            "address": {
+              "address": "192.168.2.12",
+              "version": "v4"
+            }
+          },
+          {
+            "hostName": "setup.ui.com",
+            "registerNonQualified": false,
+            "address": {
+              "address": "192.168.2.254",
+              "version": "v4"
+            }
+          }
+        ],
+        "forwardBehavior": "allServers",
+        "enabled": true,
+        "listenInterfaces": [
+          {
+            "id": "br0"
+          }
+        ]
+      },
+      "idsIps": {
+        "enabled": false,
+        "tor": false,
+        "alien": false,
+        "signatureScheduler": 0
+      },
+      "arpInspection": {
+        "enabled": false,
+        "interfaces": [
+          {
+            "id": "dummy"
+          }
+        ]
+      },
+      "bleHTTPTransport": {
+        "enabled": true,
+        "serviceUUID": null,
+        "advertiseName": null,
+        "advertiseMAC": null,
+        "advertiseIPv4": null,
+        "httpHostAddress": "https://127.0.0.1:443"
+      },
+      "wanFailover": {
+        "enabled": true,
+        "wanInterfaces": [
+          {
+            "interface": {
+              "id": "eth1"
+            },
+            "monitors": [
+              {
+                "id": 1,
+                "interval": 60,
+                "timePeriod": 86400,
+                "target": "1.1.1.1"
+              },
+              {
+                "id": 2,
+                "interval": 3,
+                "timePeriod": 60,
+                "target": "1.1.1.1",
+                "alert": {
+                  "lossThreshold": 50
+                }
+              }
+            ],
+            "metric": 1,
+            "routingTable": 201
+          }
+        ]
+      }
+    },
+    "system": {
+      "domainName": "vitaliy.org",
+      "dnsServers": [
+        {
+          "type": "static",
+          "address": "1.1.1.1",
+          "version": "v4",
+          "interface": "lo",
+          "priority": 1
+        }
+      ],
+      "arp": {
+        "baseReachableTime": 600
+      },
+      "users": [
+        {
+          "password": "$6$/FAR1uZt$IyHNnEW6qTF4plPd55q4eXIQ11zY/KBbV60WfkhOoz5jMkjL02BYtwgt35GyzuJGotmRzq35QKBIr6nqbfH3t0",
+          "aliases": [
+            "vleschenko"
+          ],
+          "username": "root",
+          "readOnly": true
+        }
+      ],
+      "timezone": "Europe/Minsk",
+      "fwReleaseChannel": "release"
+    },
+    "unifi": {
+    },
+    "version": 1,
+    "firewall/nat": [
+      {
+        "id": 1,
+        "chain": "POSTROUTING",
+        "target": "MASQUERADE",
+        "enabled": true,
+        "log": false,
+        "source": {
+          "sets": [
+            "!ADDRv4_eth1"
+          ]
+        },
+        "outInterface": {
+          "id": "eth1"
+        },
+        "ipVersion": "v4only"
+      },
+      {
+        "id": 2,
+        "chain": "PREROUTING",
+        "target": "DNAT",
+        "translation": {
+          "address": "192.168.2.12",
+          "port": "8443"
+        },
+        "description": "PortForward DNAT [unifi.vitaliy.org]",
+        "enabled": true,
+        "log": false,
+        "protocol": "tcp",
+        "source": {
+        },
+        "destination": {
+          "sets": [
+            "ADDRv4_eth1"
+          ],
+          "port": "8443"
+        },
+        "ipVersion": "v4only"
+      },
+      {
+        "id": 3,
+        "chain": "POSTROUTING",
+        "target": "MASQUERADE",
+        "description": "PortForward MASQUERADE [unifi.vitaliy.org]",
+        "enabled": true,
+        "log": false,
+        "protocol": "tcp",
+        "source": {
+          "sets": [
+            "NETv4_br0"
+          ]
+        },
+        "destination": {
+          "address": "192.168.2.12",
+          "port": "8443"
+        },
+        "ipVersion": "v4only"
+      }
+    ],
+    "firewall/sets": [
+      {
+        "identification": {
+          "name": "unifi_controller_addresse",
+          "type": "address"
+        },
+        "description": "UniFi addresses"
+      },
+      {
+        "identification": {
+          "name": "guest_network",
+          "type": "address"
+        },
+        "description": "guest subnets"
+      },
+      {
+        "identification": {
+          "name": "guest_networkv6",
+          "type": "address"
+        },
+        "description": "IPv6 guest subnets"
+      },
+      {
+        "identification": {
+          "name": "corporate_network",
+          "type": "address"
+        },
+        "description": "corporate subnets",
+        "entries": [
+          "192.168.2.0/24"
+        ]
+      },
+      {
+        "identification": {
+          "name": "corporate_networkv6",
+          "type": "address"
+        },
+        "description": "IPv6 corporate subnets"
+      },
+      {
+        "identification": {
+          "name": "local_network",
+          "type": "address"
+        },
+        "description": "local subnets (corporate + guest)",
+        "entries": [
+          "192.168.2.0/24"
+        ]
+      },
+      {
+        "identification": {
+          "name": "local_networkv6",
+          "type": "address"
+        },
+        "description": "IPv6 local subnets (corporate + guest)"
+      },
+      {
+        "identification": {
+          "name": "remote_user_vpn_network",
+          "type": "address"
+        },
+        "description": "Remote User VPN subnets"
+      },
+      {
+        "identification": {
+          "name": "remote_client_vpn_network",
+          "type": "address"
+        },
+        "description": "remote client VPN subnets"
+      },
+      {
+        "identification": {
+          "name": "remote_site_vpn_network",
+          "type": "address"
+        },
+        "description": "remote site VPN subnets"
+      },
+      {
+        "identification": {
+          "name": "guest_allow_dns_servers",
+          "type": "address"
+        },
+        "description": "allow dns servers for guests"
+      },
+      {
+        "identification": {
+          "name": "captive_portal_subnets",
+          "type": "address"
+        },
+        "description": "captive portal subnets"
+      },
+      {
+        "identification": {
+          "name": "guest_portal_address",
+          "type": "address"
+        },
+        "description": "guest portal address",
+        "entries": [
+          "192.168.2.12"
+        ]
+      },
+      {
+        "identification": {
+          "name": "5e4fa05ca3e1d23b38297a5d",
+          "type": "mac"
+        }
+      },
+      {
+        "identification": {
+          "name": "5e5159e6a3e1d23b382980f2",
+          "type": "mac"
+        }
+      },
+      {
+        "identification": {
+          "name": "5e7c7896a3e1d20585c64e71",
+          "type": "mac"
+        }
+      },
+      {
+        "identification": {
+          "name": "5ef1d56fa3e1d205850761f5",
+          "type": "mac"
+        }
+      },
+      {
+        "identification": {
+          "name": "guest_portal_ports",
+          "type": "port"
+        },
+        "description": "guest portal ports",
+        "entries": [
+          "8880",
+          "8843"
+        ]
+      },
+      {
+        "identification": {
+          "name": "guest_portal_redirector_p",
+          "type": "port"
+        },
+        "description": "guest portal redirector ports",
+        "entries": [
+          "39080"
+        ]
+      },
+      {
+        "identification": {
+          "name": "unifi_controller_ports-tc",
+          "type": "port"
+        },
+        "description": "unifi tcp ports",
+        "entries": [
+          "8080"
+        ]
+      },
+      {
+        "identification": {
+          "name": "unifi_controller_ports-ud",
+          "type": "port"
+        },
+        "description": "unifi udp ports",
+        "entries": [
+          "3478"
+        ]
+      }
+    ],
+    "firewall/filter": [
+      {
+        "config": {
+          "name": "INPUT",
+          "policy": "ACCEPT",
+          "logDefault": false
+        },
+        "rules": [
+          {
+            "id": 30001,
+            "target": "WAN_LOCAL",
+            "description": "WAN_LOCAL jump (interface: eth1)",
+            "inInterface": {
+              "id": "eth1"
+            },
+            "ipVersion": "both"
+          },
+          {
+            "id": 30002,
+            "target": "LAN_LOCAL",
+            "description": "LAN_LOCAL jump (interface: br0)",
+            "inInterface": {
+              "id": "br0"
+            },
+            "ipVersion": "both"
+          }
+        ]
+      },
+      {
+        "config": {
+          "name": "FORWARD",
+          "policy": "ACCEPT",
+          "logDefault": false
+        },
+        "rules": [
+          {
+            "id": 30001,
+            "target": "FORWARD_IN",
+            "description": "FORWARD_IN jump",
+            "ipVersion": "both"
+          },
+          {
+            "id": 30002,
+            "target": "FORWARD_OUT",
+            "description": "FORWARD_OUT jump",
+            "ipVersion": "both"
+          }
+        ]
+      },
+      {
+        "config": {
+          "name": "OUTPUT",
+          "policy": "ACCEPT",
+          "logDefault": false
+        }
+      },
+      {
+        "config": {
+          "name": "FORWARD_IN",
+          "logDefault": false
+        },
+        "rules": [
+          {
+            "id": 30001,
+            "target": "WAN_PF_IN",
+            "description": "WAN_IN_PF jump (interface: eth1)",
+            "inInterface": {
+              "id": "eth1"
+            },
+            "ipVersion": "both"
+          },
+          {
+            "id": 30002,
+            "target": "WAN_IN",
+            "description": "WAN_IN jump (interface: eth1)",
+            "inInterface": {
+              "id": "eth1"
+            },
+            "ipVersion": "both"
+          },
+          {
+            "id": 30003,
+            "target": "LAN_IN",
+            "description": "LAN_IN jump (interface: br0)",
+            "inInterface": {
+              "id": "br0"
+            },
+            "ipVersion": "both"
+          }
+        ]
+      },
+      {
+        "config": {
+          "name": "FORWARD_OUT",
+          "logDefault": false
+        },
+        "rules": [
+          {
+            "id": 30001,
+            "target": "WAN_PF_OUT",
+            "description": "WAN_OUT_PF jump (interface: eth1)",
+            "outInterface": {
+              "id": "eth1"
+            },
+            "ipVersion": "both"
+          },
+          {
+            "id": 30002,
+            "target": "WAN_OUT",
+            "description": "WAN_OUT jump (interface: eth1)",
+            "outInterface": {
+              "id": "eth1"
+            },
+            "ipVersion": "both"
+          },
+          {
+            "id": 30003,
+            "target": "LAN_OUT",
+            "description": "LAN_OUT jump (interface: br0)",
+            "outInterface": {
+              "id": "br0"
+            },
+            "ipVersion": "both"
+          }
+        ]
+      },
+      {
+        "config": {
+          "name": "WAN_LOCAL",
+          "logDefault": false
+        },
+        "rules": [
+          {
+            "id": 30001,
+            "target": "RETURN",
+            "description": "[WAN_LOCAL]Allow Established/Related Traffic",
+            "connectionState": [
+              "established",
+              "related"
+            ],
+            "ipVersion": "v4only"
+          },
+          {
+            "id": 30002,
+            "target": "DROP",
+            "description": "[WAN_LOCAL]Drop Invalid Traffic",
+            "connectionState": [
+              "invalid"
+            ],
+            "ipVersion": "v4only"
+          },
+          {
+            "id": 30003,
+            "target": "RETURN",
+            "description": "[WANv6_LOCAL]Allow Established/Related Traffic",
+            "connectionState": [
+              "established",
+              "related"
+            ],
+            "ipVersion": "v6only"
+          },
+          {
+            "id": 30004,
+            "target": "DROP",
+            "description": "[WANv6_LOCAL]Drop Invalid Traffic",
+            "connectionState": [
+              "invalid"
+            ],
+            "ipVersion": "v6only"
+          },
+          {
+            "id": 30005,
+            "target": "RETURN",
+            "description": "[WANv6_LOCAL]Allow neighbor solicitation",
+            "protocol": "ipv6-icmp",
+            "icmpv6Type": "neighbor-solicitation",
+            "ipVersion": "v6only"
+          },
+          {
+            "id": 30006,
+            "target": "RETURN",
+            "description": "[WANv6_LOCAL]Allow neighbor advertisements",
+            "protocol": "ipv6-icmp",
+            "icmpv6Type": "neighbor-advertisement",
+            "ipVersion": "v6only"
+          },
+          {
+            "id": 2147483646,
+            "target": "DROP",
+            "description": "[WANv6_LOCAL]Drop All Other Traffic",
+            "log": false,
+            "ipVersion": "v6only"
+          },
+          {
+            "id": 2147483647,
+            "target": "DROP",
+            "description": "[WAN_LOCAL]Drop All Other Traffic",
+            "log": false,
+            "ipVersion": "v4only"
+          }
+        ]
+      },
+      {
+        "config": {
+          "name": "WAN_IN",
+          "logDefault": false
+        },
+        "rules": [
+          {
+            "id": 30001,
+            "target": "RETURN",
+            "description": "[WAN_IN]Allow Established/Related Traffic",
+            "connectionState": [
+              "established",
+              "related"
+            ],
+            "ipVersion": "v4only"
+          },
+          {
+            "id": 30002,
+            "target": "DROP",
+            "description": "[WAN_IN]Drop Invalid Traffic",
+            "connectionState": [
+              "invalid"
+            ],
+            "ipVersion": "v4only"
+          },
+          {
+            "id": 30003,
+            "target": "RETURN",
+            "description": "[WANv6_IN]Allow Established/Related Traffic",
+            "connectionState": [
+              "established",
+              "related"
+            ],
+            "ipVersion": "v6only"
+          },
+          {
+            "id": 30004,
+            "target": "DROP",
+            "description": "[WANv6_IN]Drop Invalid Traffic",
+            "connectionState": [
+              "invalid"
+            ],
+            "ipVersion": "v6only"
+          },
+          {
+            "id": 30005,
+            "target": "RETURN",
+            "description": "[WAN_IN] PortForward Allow [unifi.vitaliy.org]",
+            "protocol": "tcp",
+            "source": {
+            },
+            "destination": {
+              "address": "192.168.2.12",
+              "port": "8443"
+            },
+            "ipVersion": "v4only"
+          },
+          {
+            "id": 2147483646,
+            "target": "DROP",
+            "description": "[WANv6_IN]Drop All Other Traffic",
+            "log": false,
+            "ipVersion": "v6only"
+          },
+          {
+            "id": 2147483647,
+            "target": "DROP",
+            "description": "[WAN_IN]Drop All Other Traffic",
+            "log": false,
+            "ipVersion": "v4only"
+          }
+        ]
+      },
+      {
+        "config": {
+          "name": "WAN_OUT",
+          "logDefault": false
+        },
+        "rules": [
+          {
+            "id": 2147483646,
+            "target": "RETURN",
+            "log": false,
+            "ipVersion": "v6only"
+          },
+          {
+            "id": 2147483647,
+            "target": "RETURN",
+            "log": false,
+            "ipVersion": "v4only"
+          }
+        ]
+      },
+      {
+        "config": {
+          "name": "WAN_PF_IN",
+          "logDefault": false
+        },
+        "rules": [
+          {
+            "id": 899059168,
+            "target": "RETURN",
+            "description": "[WAN_PF_IN] PortForward Accounting [unifi.vitaliy.org]",
+            "log": false,
+            "protocol": "tcp",
+            "source": {
+            },
+            "destination": {
+              "address": "192.168.2.12",
+              "port": "8443"
+            },
+            "ipVersion": "v4only"
+          }
+        ]
+      },
+      {
+        "config": {
+          "name": "WAN_PF_OUT",
+          "logDefault": false
+        },
+        "rules": [
+          {
+            "id": 899059168,
+            "target": "RETURN",
+            "description": "[WAN_PF_OUT] PortForward Accounting [unifi.vitaliy.org]",
+            "log": false,
+            "protocol": "tcp",
+            "source": {
+              "address": "192.168.2.12",
+              "port": "8443"
+            },
+            "destination": {
+            },
+            "ipVersion": "v4only"
+          }
+        ]
+      },
+      {
+        "config": {
+          "name": "LAN_LOCAL",
+          "logDefault": false
+        },
+        "rules": [
+          {
+            "id": 2147483646,
+            "target": "RETURN",
+            "log": false,
+            "ipVersion": "v6only"
+          },
+          {
+            "id": 2147483647,
+            "target": "RETURN",
+            "log": false,
+            "ipVersion": "v4only"
+          }
+        ]
+      },
+      {
+        "config": {
+          "name": "LAN_IN",
+          "logDefault": false
+        },
+        "rules": [
+          {
+            "id": 60001,
+            "target": "RETURN",
+            "description": "[LAN_IN]accounting defined network 192.168.2.0/24",
+            "source": {
+              "address": "192.168.2.0/24"
+            },
+            "ipVersion": "v4only"
+          },
+          {
+            "id": 2147483646,
+            "target": "RETURN",
+            "log": false,
+            "ipVersion": "v6only"
+          },
+          {
+            "id": 2147483647,
+            "target": "RETURN",
+            "log": false,
+            "ipVersion": "v4only"
+          }
+        ]
+      },
+      {
+        "config": {
+          "name": "LAN_OUT",
+          "logDefault": false
+        },
+        "rules": [
+          {
+            "id": 60001,
+            "target": "RETURN",
+            "description": "[LAN_OUT]accounting defined network 192.168.2.0/24",
+            "destination": {
+              "address": "192.168.2.0/24"
+            },
+            "ipVersion": "v4only"
+          },
+          {
+            "id": 60002,
+            "target": "RETURN",
+            "description": "[LANv6_OUT]allow packets to corporate networks",
+            "destination": {
+              "sets": [
+                "corporate_networkv6"
+              ]
+            },
+            "ipVersion": "v6only"
+          },
+          {
+            "id": 2147483646,
+            "target": "RETURN",
+            "log": false,
+            "ipVersion": "v6only"
+          },
+          {
+            "id": 2147483647,
+            "target": "RETURN",
+            "log": false,
+            "ipVersion": "v4only"
+          }
+        ]
+      }
+    ],
+    "firewall/settings": {
+      "conntrackModules": {
+        "sip": false,
+        "ftp": true,
+        "gre": true,
+        "h323": true,
+        "pptp": true,
+        "tftp": true
+      },
+      "conntrackTimeouts": {
+        "icmp": 30,
+        "other": 600,
+        "tcpClose": 10,
+        "tcpCloseWait": 60,
+        "tcpEstablished": 7440,
+        "tcpFinWait": 120,
+        "tcpLastAck": 30,
+        "tcpSynRecv": 60,
+        "tcpSynSent": 120,
+        "tcpTimeWait": 120,
+        "udpOther": 30,
+        "udpStream": 180
+      }
+    },
+    "routes/static": [
+    ],
+    "services/radius-profiles": [
+      {
+        "id": "5e4f9f82a3e1d23b38297a55",
+        "name": "Default",
+        "authServers": [
+          {
+            "address": "192.168.2.254",
+            "port": 1812,
+            "secret": ""
+          }
+        ],
+        "vlanForWiredNetwork": false,
+        "vlanForWirelessNetwork": false
+      },
+      {
+        "id": "60939335a3e1d2063607860e",
+        "name": "dc1.vitaliy.org",
+        "authServers": [
+          {
+            "address": "192.168.2.1",
+            "port": 1812,
+            "secret": "kMm44jDu3uEkmOfQOmBQg29g"
+          }
+        ],
+        "vlanForWiredNetwork": true,
+        "vlanForWirelessNetwork": true
+      }
+    ]
+  },
+  "ubntconf": "# misc\n# unifi\nunifi.version=8.1.113\nunifi.anonymous_controller_id=4233776a-a5e9-4998-bb58-0cdf95a91669\nunifi.anonymous_site_id=b05aba43-f7e3-4afc-9e6e-8cc047912e76\nunifi.reporterid=4233776a-a5e9-4998-bb58-0cdf95a91669\nunifi.siteid=5e4f9f80a3e1d23b38297a3e\nunifi.idp=enabled\nunifi.mcip=239.254.127.63\nunifi.key=94700c0a1e0b7301e517c81ac76ee3de\nunifi.feature.always_send_crash_logs=enabled\nunifi.cfgcap_info=0x7\n# qos\nqos.status=disabled\n# ebtables\nebtables.status=disabled\n# ipset\nipset.status=disabled\n# redirector\nredirector.status=disabled\n# syslog\nsyslog.status=enabled\nsyslog.level=8\nsyslog.remote.encrypt=enabled\nsyslog.remote.key=56163767bd4ba19bc98ec0e6c3cbee5025233a5efe5ede57233b658fdac20e22\nsyslog.remote.ip=192.168.2.12\nsyslog.remote.port=5514\nsyslog.remote.status=enabled\nnetconsole.host=192.168.2.12\nnetconsole.port=5514\nnetconsole.status=enabled\n# system\nsystem.analytics.status=enabled\nsystem.monitor.memory.threshold=90\nsystem.monitor.critical_memory.threshold=95\nsystem.timezone=<+03>-3\nlocale.timezone=<+03>-3\n"
+}
