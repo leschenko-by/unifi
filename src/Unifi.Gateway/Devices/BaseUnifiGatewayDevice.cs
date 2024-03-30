@@ -1,11 +1,31 @@
 ﻿using System.Net;
 using System.Net.NetworkInformation;
+using System.Text.Json;
 using System.Text.Json.Nodes;
+using Unifi.Gateway.Json;
 
 namespace Unifi.Gateway.Devices
 {
     public abstract class BaseUnifiGatewayDevice(IServiceProvider serviceProvider) : BaseUnifiDevice(serviceProvider)
     {
+        protected override async Task AddExtraInformMessage(JsonObject message)
+        {
+            await Task.Yield();
+
+            JsonObject wan;
+
+            message["config_network_wan"] = wan = JsonSerializer.Deserialize(
+                configuration.ConfigNetworkWAN,
+                SourceGenerationContext.Default.JsonObject)!;
+
+            wan["isp_name"] = "MTS";
+            wan["isp_organization"] = "MTS";
+
+            message["config_network_wan2"] = JsonSerializer.Deserialize(
+                configuration.ConfigNetworkWAN2,
+                SourceGenerationContext.Default.JsonObject);
+        }
+
         protected async Task<JsonObject> GetLanInterface(string name, int port, IPAddress address, IPAddress netmask, byte[] mac, IPInterfaceStatistics stats)
         {
             await Task.Yield();
