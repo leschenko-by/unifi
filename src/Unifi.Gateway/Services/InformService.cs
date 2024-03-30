@@ -3,16 +3,21 @@ using Unifi.Gateway.Common.Interfaces;
 
 namespace Unifi.Gateway.Services
 {
-    public class InformService(
-        IUnifiProtocol protocol,
-        IUnifiDevice device,
-        IConnectRequest connectRequest,
-        ILogger<InformService> logger) : BackgroundService()
+    public class InformService : BackgroundService
     {
-        private readonly IUnifiProtocol protocol = protocol;
-        private readonly IUnifiDevice device = device;
-        private readonly IConnectRequest connectRequest = connectRequest;
-        private readonly ILogger<InformService> logger = logger;
+        private readonly IUnifiProtocol protocol;
+        private readonly IUnifiDevice device;
+        private readonly IConnectRequest connectRequest;
+        private readonly ILogger<InformService> logger;
+
+        public InformService(string deviceName, IServiceProvider serviceProvider)
+        {
+            protocol = serviceProvider.GetRequiredService<IUnifiProtocol>();
+            connectRequest = serviceProvider.GetRequiredService<IConnectRequest>();
+            logger = serviceProvider.GetRequiredService<ILogger<InformService>>();
+
+            device = serviceProvider.GetRequiredKeyedService<IUnifiDevice>(deviceName);
+        }
 
         protected override async Task ExecuteAsync(CancellationToken token)
         {

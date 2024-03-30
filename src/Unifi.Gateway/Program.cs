@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using System.Security.Cryptography;
 using System.Text.Json;
 using Unifi.Gateway.Common.Interfaces;
@@ -71,10 +72,18 @@ static async Task RunAsync(string[] args)
     builder.Services.AddTransient<IConfigurationWriter, ConfigurationWriter>();
     builder.Services.AddTransient<IUnifiProtocol, UnifiProtocol>();
     builder.Services.AddTransient<IUfwService, UfwService>();
-    //builder.Services.AddTransient<IUnifiDevice, UGW4Device>();
-    builder.Services.AddTransient<IUnifiDevice, UXGDevice>();
+    builder.Services.AddKeyedTransient<IUnifiDevice, UGW3Device>("UGW3");
+    builder.Services.AddKeyedTransient<IUnifiDevice, UGW4Device>("UGW4");
+    builder.Services.AddKeyedTransient<IUnifiDevice, UXGDevice>("UXG");
 
-    builder.Services.AddHostedService<InformService>();
+    string[] devices = ["UXG", "UGW3", "UGW4"];
+    var deviceName = args.Length > 0 ? args[0].ToUpper() : "";
+    if (!devices.Contains(deviceName))
+    {
+        deviceName = "UGW4";
+    }
+
+    builder.Services.AddHostedService(provider => new InformService("", provider));
     builder.Services.AddHostedService<ConnectRequestService>();
 
     var app = builder.Build();
