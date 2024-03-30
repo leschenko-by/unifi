@@ -304,6 +304,22 @@ namespace Unifi.Gateway.Devices
             return builder.Build();
         }
 
+        protected JsonArray GetConfigPortTable(int[] wanPorts)
+        {
+            var eths = new List<JsonObject>();
+            var i = 0;
+            foreach (var eth in network.Interfaces)
+            {
+                eths.Add(new JsonObject
+                {
+                    ["ifname"] = "eth" + i,
+                    ["name"] = wanPorts.Contains(i) ? "wan" : "lan",
+                });
+                i++;
+            }
+            return new JsonArray(eths.ToArray());
+        }
+
         protected async Task<JsonArray> GetInterfacesAsync(int[] wanPorts)
         {
             var eths = new List<JsonObject>();

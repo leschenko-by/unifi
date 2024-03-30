@@ -1,6 +1,8 @@
 ﻿using System.Text;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using Unifi.Gateway.Common.Interfaces;
+using Unifi.Gateway.Json;
 using Unifi.Gateway.Models;
 using Unifi.SpeedTest;
 
@@ -45,8 +47,6 @@ namespace Unifi.Gateway.Devices
 
         protected override async Task AddExtraInformMessage(JsonObject message)
         {
-            await base.AddExtraInformMessage(message);
-
             message["has_dpi"] = false;
             message["has_vti"] = false;
             message["has_ssh_disable"] = false;
@@ -54,31 +54,19 @@ namespace Unifi.Gateway.Devices
             message["guest_token"] = "4C1D46707239C6EB5A2366F505A44A91";
             message["has_default_route_distance"] = true;
             message["has_dnsmasq_hostfile_update"] = false;
-            message["config_port_table"] = new JsonArray(
-                new JsonObject
-                {
-                    ["ifname"] = "eth0",
-                    ["name"] = "lan",
-                },
-                new JsonObject
-                {
-                    ["ifname"] = "eth1",
-                    ["name"] = "lan2",
-                },
-                new JsonObject
-                {
-                    ["ifname"] = "eth2",
-                    ["name"] = "wan",
-                },
-                new JsonObject
-                {
-                    ["ifname"] = "eth3",
-                    ["name"] = "wan2",
-                }
-            );
+
+            message["vpn"] = new JsonArray();
+
+            message["config_network_wan"] = JsonSerializer.Deserialize(
+                configuration.ConfigNetworkWAN,
+                SourceGenerationContext.Default.JsonObject);
+
+            message["config_network_wan2"] = JsonSerializer.Deserialize(
+                configuration.ConfigNetworkWAN2,
+                SourceGenerationContext.Default.JsonObject);
 
             message["uplink"] = "eth2";
-
+            message["config_port_table"] = GetConfigPortTable([2, 3]);
             message["if_table"] = await GetInterfacesAsync([2,3]);
 
             message["pfor-stats"] = new JsonArray([

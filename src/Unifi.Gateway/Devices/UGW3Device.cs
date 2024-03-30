@@ -1,9 +1,6 @@
-﻿using Microsoft.AspNetCore.HttpOverrides;
-using System.Net;
-using System.Net.NetworkInformation;
-using System.Net.Sockets;
-using System.Text;
+﻿using System.Text.Json;
 using System.Text.Json.Nodes;
+using Unifi.Gateway.Json;
 
 namespace Unifi.Gateway.Devices
 {
@@ -26,30 +23,14 @@ namespace Unifi.Gateway.Devices
             message["guest_token"] = "4C1D46707239C6EB5A2366F505A44A91";
             message["has_default_route_distance"] = true;
             message["has_dnsmasq_hostfile_update"] = false;
-            message["config_network_wan"] = new JsonObject
-            {
-                ["type"] = "dhcp"
-            };
+
             message["vpn"] = new JsonArray();
-            message["config_port_table"] = new JsonArray(
-                new JsonObject
-                {
-                    ["ifname"] = "eth0",
-                    ["name"] = "wan",
-                },
-                new JsonObject
-                {
-                    ["ifname"] = "eth1",
-                    ["name"] = "lan",
-                },
-                new JsonObject
-                {
-                    ["ifname"] = "eth2",
-                    ["name"] = "wan2",
-                }
-            );
+            message["config_network_wan"] = JsonSerializer.Deserialize(
+                configuration.ConfigNetworkWAN,
+                SourceGenerationContext.Default.JsonObject);
 
             message["uplink"] = "eth0";
+            message["config_port_table"] = GetConfigPortTable([0]);
             message["if_table"] = await GetInterfacesAsync([0]);
         }
     }

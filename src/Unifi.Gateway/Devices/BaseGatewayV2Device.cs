@@ -1,5 +1,4 @@
-﻿using System.Text.Json.Nodes;
-using Unifi.Gateway.Common.Interfaces;
+﻿using Unifi.Gateway.Common.Interfaces;
 using Unifi.Gateway.Models;
 
 namespace Unifi.Gateway.Devices
@@ -10,18 +9,6 @@ namespace Unifi.Gateway.Devices
         {
             var configurator = serviceProvider.GetRequiredKeyedService<ISystemConfigurationService>("v2");
             await configurator.ApplyAsync(data.SystemCfg, configuration);
-        }
-
-        protected override async Task AddExtraInformMessage(JsonObject message)
-        {
-            await Task.Yield();
-
-            message["vpn"] = new JsonArray();
-
-            message["config_network_wan"] = new JsonObject
-            {
-                ["type"] = "dhcp"
-            };
         }
     }
 }
