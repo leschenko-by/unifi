@@ -1,11 +1,6 @@
-﻿using System.Net;
-using System.Net.NetworkInformation;
-using System.Net.Sockets;
-using System.Text;
-using System.Text.Json;
+﻿using System.Text;
 using System.Text.Json.Nodes;
 using Unifi.Gateway.Common.Interfaces;
-using Unifi.Gateway.Json;
 using Unifi.Gateway.Models;
 using Unifi.SpeedTest;
 
@@ -82,16 +77,9 @@ namespace Unifi.Gateway.Devices
                 }
             );
 
-            var (_, lanStats) = network.GetLanStatistics();
-            var (_, wanStats) = network.GetWanStatistics();
-
             message["uplink"] = "eth2";
-            message["if_table"] = new JsonArray([
-                await GetLanInterface("eth0", 1, IPAddress, Netmask, MacAddress, lanStats),
-                await GetDisableInterface("eth1", 2),
-                await GetWanInterfaceAsync("eth2", 3, network.WanIPAddress, network.WanNetmask, network.WanMacAddress, wanStats),
-                await GetDisableInterface("eth3", 4),
-            ]);
+
+            message["if_table"] = await GetInterfacesAsync([2,3]);
 
             message["pfor-stats"] = new JsonArray([
                 new JsonObject()

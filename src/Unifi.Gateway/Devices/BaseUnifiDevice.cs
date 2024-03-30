@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
@@ -15,21 +16,14 @@ namespace Unifi.Gateway.Devices
         protected readonly INetworkInfoService network;
         protected readonly ISystemInfoService systemInfo;
         protected readonly IServiceProvider serviceProvider;
-
+        private readonly IOptions<GeneralServiceOptions> serviceOptions;
         private readonly IConfigurationReader configurationReader;
         private readonly IConfigurationWriter configurationWriter;
         private readonly IConnectRequest connectRequest;
+        private readonly IEthernetInterface discoveryInterface;
         private JsonObject? nextCommand = null;
         protected Configuration configuration;
         private TimeSpan interval = TimeSpan.FromSeconds(10);
-
-        public byte[] MacAddress => network.LanMacAddress;
-
-        public string MacAddressString => string.Join(":", MacAddress.Select(t => t.ToString("x2")));
-
-        public IPAddress IPAddress => network.LanIPAddress;
-
-        public IPAddress Netmask => network.LanNetmask;
 
         public string InformUrl => configuration.InformUrl;
 
@@ -66,6 +60,10 @@ namespace Unifi.Gateway.Devices
             connectRequest = serviceProvider.GetRequiredService<IConnectRequest>();
             configuration = configurationReader.LoadConfiguration();
             this.serviceProvider = serviceProvider;
+
+            serviceOptions = serviceProvider.GetRequiredService<IOptions<GeneralServiceOptions>>();
+            discoveryInterface = network.Interfaces[serviceOptions.Value.DiscoveryPortId]
+                ?? throw new InvalidOperationException("Network interface is not ready");
         }
 
         public void LoadConfigration()
@@ -118,7 +116,7 @@ namespace Unifi.Gateway.Devices
                     nextCommand = await CreateBaseInformAsync();
                     nextCommand["inform_as_notif"] = true;
                     nextCommand["notif_reason"] = "setparam";
-                    nextCommand["connect_request_ip"] = IPAddress.ToString();
+                    nextCommand["connect_request_ip"] = discoveryInterface.IPAddress.ToString();
                     nextCommand["connect_request_port"] = connectRequest.Port.ToString();
 
                     Interval = TimeSpan.FromSeconds(1);
@@ -172,7 +170,7 @@ namespace Unifi.Gateway.Devices
             message["system-stats"] = await GetSystemStats();
             if (configuration.Adopted)
             {
-                message["connect_request_ip"] = IPAddress.ToString();
+                message["connect_request_ip"] = discoveryInterface.IPAddress.ToString();
                 message["connect_request_port"] = connectRequest.Port.ToString();
             }
 
@@ -225,22 +223,22 @@ namespace Unifi.Gateway.Devices
                 ["cfgversion"] = GetConfigVersion(),
                 ["default"] = false,
                 ["dualboot"] = true,
-                ["hash_id"] = Convert.ToHexString(MacAddress),
+                ["hash_id"] = Convert.ToHexString(discoveryInterface.MacAddress),
                 ["hostname"] = Dns.GetHostName(),
                 ["inform_min_interval"] = 5,
                 ["inform_url"] = InformUrl,
-                ["ip"] = IPAddress.ToString(),
+                ["ip"] = discoveryInterface.IPAddress.ToString(),
                 ["isolated"] = false,
                 ["kernel_version"] = "4.4.153",
                 ["locating"] = false,
-                ["mac"] = MacAddressString,
+                ["mac"] = string.Join(":", discoveryInterface.MacAddress.Select(t => t.ToString("x2"))),
                 ["manufacturer_id"] = 4,
                 ["model"] = DeviceName,
                 ["model_display"] = DeviceDisplayName,
-                ["netmask"] = Netmask.ToString(),
+                ["netmask"] = discoveryInterface.Netmask.ToString(),
                 ["required_version"] = "3.4.1",
                 ["selfrun_beacon"] = true,
-                ["serial"] = Convert.ToHexString(MacAddress),
+                ["serial"] = Convert.ToHexString(discoveryInterface.MacAddress),
                 ["time"] = utcNow.ToUnixTimeSeconds(),
                 ["time_ms"] = utcNow.Millisecond,
                 ["tm_ready"] = true,
@@ -269,8 +267,11 @@ namespace Unifi.Gateway.Devices
 
         public async Task SendDiscoveryAsync(int broadcastIndex)
         {
-            var macAddress = network.LanMacAddress;
-            var ipAddress = network.LanIPAddress;
+            var eth = network.Interfaces[serviceOptions.Value.DiscoveryPortId]
+                ?? throw new InvalidOperationException("Network interface is not ready");
+
+            var macAddress = eth.MacAddress;
+            var ipAddress = eth.IPAddress;
             if (ipAddress is null) return;
 
             var endPoint = new IPEndPoint(IPAddress.Parse("233.89.188.1"), 10001);
@@ -301,6 +302,108 @@ namespace Unifi.Gateway.Devices
             builder.Add(22, Encoding.ASCII.GetBytes(firmware));
 
             return builder.Build();
+        }
+
+        protected async Task<JsonArray> GetInterfacesAsync(int[] wanPorts)
+        {
+            var eths = new List<JsonObject>();
+            var i = 0;
+            foreach (var eth in network.Interfaces)
+            {
+                if (eth is null)
+                {
+                    eths.Add(await GetDisableInterface("eth" + i, i + 1));
+                }
+                else if (wanPorts.Contains(i))
+                {
+                    eths.Add(await GetWanInterfaceAsync("eth" + i, i + 1, eth.IPAddress, eth.Netmask, eth.MacAddress, eth.GetIPStatistics()));
+                }
+                else
+                {
+                    eths.Add(await GetLanInterface("eth" + i, i + 1, eth.IPAddress, eth.Netmask, eth.MacAddress, eth.GetIPStatistics()));
+                }
+                i++;
+            }
+            return new JsonArray(eths.ToArray());
+        }
+
+        protected async Task<JsonObject> GetDisableInterface(string name, int port)
+        {
+            await Task.Yield();
+            return new JsonObject
+            {
+                ["name"] = name,
+                ["enable"] = false,
+                ["num_port"] = port,
+            };
+        }
+
+        protected async Task<JsonObject> GetLanInterface(string name, int port, IPAddress address, IPAddress netmask, byte[] mac, IPInterfaceStatistics stats)
+        {
+            await Task.Yield();
+
+            return new JsonObject
+            {
+                ["full_duplex"] = true,
+                ["name"] = name,
+                ["enable"] = true,
+                ["ip"] = address.ToString(),
+                ["mac"] = string.Join(":", mac.Select(t => t.ToString("x2"))),
+                ["netmask"] = netmask.ToString(),
+                ["up"] = true,
+                ["num_port"] = port,
+                ["rx_bytes"] = stats.BytesReceived,
+                ["rx_dropped"] = stats.IncomingPacketsDiscarded,
+                ["rx_errors"] = stats.IncomingPacketsWithErrors,
+                ["rx_multicast"] = stats.NonUnicastPacketsReceived,
+                ["rx_packets"] = stats.UnicastPacketsReceived,
+                ["speed"] = 1000,
+                ["tx_bytes"] = stats.BytesSent,
+                ["tx_dropped"] = 0,
+                ["tx_errors"] = stats.OutgoingPacketsWithErrors,
+                ["tx_packets"] = stats.UnicastPacketsSent,
+            };
+        }
+
+        protected async Task<long> GetLatencyAsync()
+        {
+            var latency = 0L;
+            try
+            {
+                var ping = new Ping();
+                var addresses = await Dns.GetHostAddressesAsync(configuration.EchoServer);
+                var echoServer = addresses.FirstOrDefault();
+                if (echoServer != null)
+                {
+                    var reply = await ping.SendPingAsync(echoServer);
+                    if (reply != null && reply.Status == IPStatus.Success)
+                    {
+                        latency = reply.RoundtripTime;
+                    }
+                }
+            }
+            catch
+            {
+                latency = 0L;
+            }
+
+            return latency;
+        }
+
+        protected async Task<JsonObject> GetWanInterfaceAsync(
+            string name, int port, IPAddress address, IPAddress netmask, byte[] mac, IPInterfaceStatistics stats)
+        {
+            var latency = await GetLatencyAsync();
+            var result = await GetLanInterface(name, port, address, netmask, mac, stats);
+            result["latency"] = latency;
+            result["uptime"] = await systemInfo.GetUptimeAsync();
+            //result["ip_v6"] = "2a02:bf0:6:10::34";
+            //result["speedtest_lastrun"] = DateTimeOffset.Now.ToUnixTimeSeconds();
+            //result["speedtest_ping"] = 1;
+            //result["speedtest_status"] = "Idle";
+            //result["xput_down"] = 50 + new Random().Next(50);
+            //result["xput_up"] = 50 + new Random().Next(50);
+            return result;
         }
     }
 }

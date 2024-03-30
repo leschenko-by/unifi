@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using Microsoft.AspNetCore.HttpOverrides;
+using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
@@ -48,15 +49,8 @@ namespace Unifi.Gateway.Devices
                 }
             );
 
-            var (_, lanStats) = network.GetLanStatistics();
-            var (_, wanStats) = network.GetWanStatistics();
-
             message["uplink"] = "eth0";
-            message["if_table"] = new JsonArray([
-                await GetWanInterfaceAsync("eth0", 1, network.WanIPAddress, network.WanNetmask, network.WanMacAddress, wanStats),
-                await GetLanInterface("eth1", 2, IPAddress, Netmask, MacAddress, lanStats),
-                await GetDisableInterface("eth2", 2),
-            ]);
+            message["if_table"] = await GetInterfacesAsync([0]);
         }
     }
 }

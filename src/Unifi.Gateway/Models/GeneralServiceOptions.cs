@@ -3,7 +3,7 @@
     public class GeneralServiceOptions
     {
         public string Firmware { get; set; } = "4.4.44.5213871";
-        public string LanNetworkId { get; set; } = string.Empty;
-        public string WanNetworkId { get; set; } = string.Empty;
+        public string Ports { get; set; } = "eth0,eth1";
+        public int DiscoveryPortId { get; set; } = 1;
     }
 }

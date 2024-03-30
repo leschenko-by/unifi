@@ -67,14 +67,8 @@ namespace Unifi.Gateway.Devices
                 },
             ]);
 
-            var (_, lanStats) = network.GetLanStatistics();
-            var (_, wanStats) = network.GetWanStatistics();
-
             message["uplink"] = "eth1";
-            message["if_table"] = new JsonArray([
-                await GetLanInterface("eth0", 1, IPAddress, Netmask, MacAddress, lanStats),
-                await GetWanInterfaceAsync("eth1", 2, network.WanIPAddress, network.WanNetmask, network.WanMacAddress, wanStats),
-            ]);
+            message["if_table"] = await GetInterfacesAsync([1]);
         }
 
         private void Log(string direction, byte[] data)
