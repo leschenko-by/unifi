@@ -12,14 +12,11 @@ namespace Unifi.Gateway.Devices
         {
             await Task.Yield();
 
-            JsonObject wan;
+            message["vpn"] = new JsonArray();
 
-            message["config_network_wan"] = wan = JsonSerializer.Deserialize(
+            message["config_network_wan"] = JsonSerializer.Deserialize(
                 configuration.ConfigNetworkWAN,
-                SourceGenerationContext.Default.JsonObject)!;
-
-            wan["isp_name"] = "MTS";
-            wan["isp_organization"] = "MTS";
+                SourceGenerationContext.Default.JsonObject);
 
             message["config_network_wan2"] = JsonSerializer.Deserialize(
                 configuration.ConfigNetworkWAN2,
@@ -60,6 +57,7 @@ namespace Unifi.Gateway.Devices
             var result = await GetLanInterface(name, port, address, netmask, mac, stats);
             result["latency"] = latency;
             result["uptime"] = await systemInfo.GetUptimeAsync();
+            result["ipv6"] = "2a02:bf0:6:10::34";
             //result["speedtest_lastrun"] = DateTimeOffset.Now.ToUnixTimeSeconds();
             //result["speedtest_ping"] = 1;
             //result["speedtest_status"] = "Idle";
