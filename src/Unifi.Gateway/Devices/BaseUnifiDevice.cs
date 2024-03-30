@@ -226,6 +226,7 @@ namespace Unifi.Gateway.Devices
                 ["hash_id"] = Convert.ToHexString(discoveryInterface.MacAddress),
                 ["hostname"] = Dns.GetHostName(),
                 ["inform_min_interval"] = 5,
+                ["internet"] = true,
                 ["inform_url"] = InformUrl,
                 ["ip"] = discoveryInterface.IPAddress.ToString(),
                 ["isolated"] = false,

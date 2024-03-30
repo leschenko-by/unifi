@@ -18,6 +18,16 @@ namespace Unifi.Tests
         }
 
         [Fact]
+        public void DecodeRequestUS8()
+        {
+            var key = Convert.FromHexString("FA28E04A5F0BCD53542E404C6A3389E4");
+            var data = File.ReadAllBytes(Path.Combine("dump", $"us-8.bin"));
+            var decoded = decoder.Decode(data, key);
+            var test = Encoding.UTF8.GetString(decoded);
+            Assert.NotNull(test);
+        }
+
+        [Fact]
         public void DecodeResponse()
         {
             var key = Convert.FromHexString("2f6f1d244fe16242e4610476db608875");
