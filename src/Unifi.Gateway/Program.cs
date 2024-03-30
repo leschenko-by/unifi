@@ -1,12 +1,11 @@
-using Microsoft.Extensions.DependencyInjection;
 using System.Security.Cryptography;
 using System.Text.Json;
+using Unifi.Gateway.BackgroundServices;
 using Unifi.Gateway.Common.Interfaces;
 using Unifi.Gateway.Common.Services;
 using Unifi.Gateway.Devices;
 using Unifi.Gateway.Json;
 using Unifi.Gateway.Models;
-using Unifi.Gateway.Services;
 
 if (args.Length > 0)
 {
@@ -87,7 +86,7 @@ static async Task RunAsync(string[] args)
             deviceName = "UXG";
         }
 
-        return new InformService(deviceName, provider);
+        return new UnifiDeviceService(deviceName, provider);
     });
     builder.Services.AddHostedService<ConnectRequestService>();
 

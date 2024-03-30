@@ -87,9 +87,14 @@ namespace Unifi.Gateway.Common.Services
                 }
             }
 
-            await File.WriteAllTextAsync("/etc/ufw/before.rules", output.ToString().ReplaceLineEndings());
+            var input = string.Join("\r\n", lines.Concat([""])).ReplaceLineEndings();
+            var finalConfig = output.ToString().ReplaceLineEndings();
 
-            await ufw.ReloadAsync();
+            if (input != finalConfig)
+            {
+                await File.WriteAllTextAsync("/etc/ufw/before.rules", finalConfig);
+                await ufw.ReloadAsync();
+            }
         }
     }
 }

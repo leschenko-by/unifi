@@ -1,20 +1,20 @@
 ﻿using System.Text;
 using Unifi.Gateway.Common.Interfaces;
 
-namespace Unifi.Gateway.Services
+namespace Unifi.Gateway.BackgroundServices
 {
-    public class InformService : BackgroundService
+    public class UnifiDeviceService : BackgroundService
     {
         private readonly IUnifiProtocol protocol;
         private readonly IUnifiDevice device;
         private readonly IConnectRequest connectRequest;
-        private readonly ILogger<InformService> logger;
+        private readonly ILogger<UnifiDeviceService> logger;
 
-        public InformService(string deviceName, IServiceProvider serviceProvider)
+        public UnifiDeviceService(string deviceName, IServiceProvider serviceProvider)
         {
             protocol = serviceProvider.GetRequiredService<IUnifiProtocol>();
             connectRequest = serviceProvider.GetRequiredService<IConnectRequest>();
-            logger = serviceProvider.GetRequiredService<ILogger<InformService>>();
+            logger = serviceProvider.GetRequiredService<ILogger<UnifiDeviceService>>();
 
             device = serviceProvider.GetRequiredKeyedService<IUnifiDevice>(deviceName);
         }

@@ -1,7 +1,7 @@
 ﻿using System.Net.Sockets;
 using Unifi.Gateway.Common.Interfaces;
 
-namespace Unifi.Gateway.Services
+namespace Unifi.Gateway.BackgroundServices
 {
     public class ConnectRequestService : BackgroundService
     {
