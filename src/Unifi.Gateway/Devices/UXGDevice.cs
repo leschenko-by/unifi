@@ -72,8 +72,8 @@ namespace Unifi.Gateway.Devices
 
             message["uplink"] = "eth2";
             message["if_table"] = new JsonArray([
-                await GetWanInterfaceAsync("eth0", 1, network.WanIPAddress, network.WanNetmask, network.WanMacAddress, wanStats),
-                await GetLanInterface("eth1", 2, IPAddress, Netmask, MacAddress, lanStats),
+                await GetLanInterface("eth0", 1, IPAddress, Netmask, MacAddress, lanStats),
+                await GetWanInterfaceAsync("eth1", 2, network.WanIPAddress, network.WanNetmask, network.WanMacAddress, wanStats),
             ]);
         }
 
