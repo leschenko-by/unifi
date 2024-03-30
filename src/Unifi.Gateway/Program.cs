@@ -80,7 +80,7 @@ static async Task RunAsync(string[] args)
     var deviceName = args.Length > 0 ? args[0].ToUpper() : "";
     if (!devices.Contains(deviceName))
     {
-        deviceName = "UGW4";
+        deviceName = "UXG";
     }
 
     builder.Services.AddHostedService(provider => new InformService(deviceName, provider));
