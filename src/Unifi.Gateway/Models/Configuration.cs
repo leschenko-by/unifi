@@ -15,5 +15,9 @@
         public string Firmware { get; set; } = string.Empty;
 
         public string EchoServer { get; set; } = "ping.ui.com";
+
+        public string ConfigNetworkWAN { get; set; } = "{\"type\":\"dhcp\"}";
+
+        public string ConfigNetworkWAN2 { get; set; } = "{\"type\":\"disabled\"}";
     }
 }

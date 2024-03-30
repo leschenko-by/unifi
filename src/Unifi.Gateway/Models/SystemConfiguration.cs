@@ -15,6 +15,12 @@ namespace Unifi.Gateway.Models
     {
         [JsonPropertyName("echo_server")]
         public string EchoServer { get; set; } = string.Empty;
+
+        [JsonPropertyName("config_network_wan")]
+        public string ConfigNetworkWAN { get; set; } = string.Empty;
+
+        [JsonPropertyName("config_network_wan2")]
+        public string ConfigNetworkWAN2 { get; set; } = string.Empty;
     }
 
     public class PortForwardConfiguration

@@ -26,14 +26,16 @@ namespace Unifi.Gateway.Common.Services
                 return;
             }
 
-            ApplyEchoServer(configuration, cfg);
+            ApplyUnifiSettings(configuration, cfg);
 
             await ApplyPortForwardingAsync(cfg);
         }
 
-        private void ApplyEchoServer(Configuration configuration, SystemConfiguration cfg)
+        private void ApplyUnifiSettings(Configuration configuration, SystemConfiguration cfg)
         {
             configuration.EchoServer = cfg.Unifi.EchoServer;
+            configuration.ConfigNetworkWAN = cfg.Unifi.ConfigNetworkWAN;
+            configuration.ConfigNetworkWAN2 = cfg.Unifi.ConfigNetworkWAN2;
         }
 
         private async Task ApplyPortForwardingAsync(SystemConfiguration cfg)
