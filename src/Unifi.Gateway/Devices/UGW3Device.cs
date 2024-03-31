@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Nodes;
-using Unifi.Gateway.Json;
+using Unifi.Gateway.Models;
 
 namespace Unifi.Gateway.Devices
 {

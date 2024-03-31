@@ -1,10 +1,7 @@
 using System.Security.Cryptography;
 using System.Text.Json;
+using Unifi.Gateway;
 using Unifi.Gateway.BackgroundServices;
-using Unifi.Gateway.Common.Interfaces;
-using Unifi.Gateway.Common.Services;
-using Unifi.Gateway.Devices;
-using Unifi.Gateway.Json;
 using Unifi.Gateway.Models;
 
 if (args.Length > 0)
@@ -57,23 +54,7 @@ static async Task RunAsync(string[] args)
     builder.Logging.AddConsole();
     builder.Services.AddHttpClient();
     builder.Services.AddSystemd();
-    builder.Services.Configure<GeneralServiceOptions>(builder.Configuration.GetSection("DiscoveryService"));
-
-    builder.Services.AddSingleton<IConnectRequest, ConnectRequest>();
-
-    builder.Services.AddKeyedTransient<ISystemConfigurationService, SystemConfigurationV1Service>("v1");
-    builder.Services.AddKeyedTransient<ISystemConfigurationService, SystemConfigurationV2Service>("v2");
-    builder.Services.AddTransient<ISystemInfoService, SystemInfoService>();
-    builder.Services.AddTransient<IRequestEncoder, RequestEncoder>();
-    builder.Services.AddTransient<IRequestDecoder, RequestDecoder>();
-    builder.Services.AddTransient<INetworkInfoService, NetworkInfoService>();
-    builder.Services.AddTransient<IConfigurationReader, ConfigurationReader>();
-    builder.Services.AddTransient<IConfigurationWriter, ConfigurationWriter>();
-    builder.Services.AddTransient<IUnifiProtocol, UnifiProtocol>();
-    builder.Services.AddTransient<IUfwService, UfwService>();
-    builder.Services.AddKeyedTransient<IUnifiDevice, UGW3Device>("UGW3");
-    builder.Services.AddKeyedTransient<IUnifiDevice, UGW4Device>("UGW4");
-    builder.Services.AddKeyedTransient<IUnifiDevice, UXGDevice>("UXG");
+    ServiceRegister.Register(builder.Services, builder.Configuration);
 
     builder.Services.AddHostedService(provider =>
     {

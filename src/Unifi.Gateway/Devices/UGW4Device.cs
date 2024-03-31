@@ -2,7 +2,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Unifi.Gateway.Common.Interfaces;
-using Unifi.Gateway.Json;
 using Unifi.Gateway.Models;
 using Unifi.SpeedTest;
 

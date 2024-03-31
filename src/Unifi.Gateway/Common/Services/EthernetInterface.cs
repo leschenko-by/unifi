@@ -9,6 +9,7 @@ namespace Unifi.Gateway.Common.Services
     {
         private readonly NetworkInterface eth;
 
+        public string Id => eth.Id;
         public byte[] MacAddress { get; }
         public IPAddress IPAddress { get; } = IPAddress.None;
         public IPAddress Netmask { get; } = IPAddress.None;

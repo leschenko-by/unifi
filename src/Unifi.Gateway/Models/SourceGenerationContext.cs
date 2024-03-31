@@ -1,15 +1,16 @@
 ﻿using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
-using Unifi.Gateway.Models;
+using Unifi.Gateway.Models.NTop;
 
-namespace Unifi.Gateway.Json
+namespace Unifi.Gateway.Models
 {
     [JsonSourceGenerationOptions(WriteIndented = true)]
+    [JsonSerializable(typeof(NTopResponse))]
     [JsonSerializable(typeof(Configuration))]
     [JsonSerializable(typeof(InformResponseMessage))]
     [JsonSerializable(typeof(SystemConfiguration))]
     [JsonSerializable(typeof(JsonObject))]
-    internal partial class SourceGenerationContext : JsonSerializerContext
+    public partial class SourceGenerationContext : JsonSerializerContext
     {
     }
 }
