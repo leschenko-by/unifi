@@ -556,7 +556,7 @@ namespace Unifi.Gateway.Devices
                             ["age"] = 0,
                             ["authorized"] = true,
                             ["ip"] = g.Where(t => t.IpVersion == 4).Select(t => t.IpAddress).FirstOrDefault(),
-                            ["mac"] = g.Key,
+                            ["mac"] = g.Key.ToLower(),
                             ["uptime"] = g.Max(t => t.Duration),
                             ["tx_bytes"] = g.Sum(t => t.BytesSent),
                             ["rx_bytes"] = g.Sum(t => t.BytesReceived),
