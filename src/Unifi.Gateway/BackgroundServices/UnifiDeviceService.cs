@@ -56,7 +56,7 @@ namespace Unifi.Gateway.BackgroundServices
                     while (DateTime.UtcNow < timeLimit)
                     {
                         await Task.Delay(500, token);
-                        if (connectRequest.IsRequestPending())
+                        if (connectRequest.IsActive())
                         {
                             break;
                         }

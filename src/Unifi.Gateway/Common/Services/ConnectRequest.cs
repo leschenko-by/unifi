@@ -4,7 +4,7 @@ namespace Unifi.Gateway.Common.Services
 {
     public class ConnectRequest : IConnectRequest
     {
-        private int counter;
+        private volatile int counter;
 
         public int Port { get; set; } = 23513;
 
@@ -13,7 +13,7 @@ namespace Unifi.Gateway.Common.Services
             Interlocked.Increment(ref counter);
         }
 
-        public bool IsRequestPending()
+        public bool IsActive()
         {
             if (counter > 0)
             {

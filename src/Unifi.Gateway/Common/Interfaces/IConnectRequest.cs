@@ -5,6 +5,6 @@
         int Port { get; set; }
 
         public void Activate();
-        public bool IsRequestPending();
+        public bool IsActive();
     }
 }
