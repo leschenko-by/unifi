@@ -10,8 +10,8 @@ namespace Unifi.Gateway.Common.Services
         private readonly NetworkInterface eth;
 
         public byte[] MacAddress { get; }
-        public IPAddress IPAddress { get; }
-        public IPAddress Netmask { get; }
+        public IPAddress IPAddress { get; } = IPAddress.None;
+        public IPAddress Netmask { get; } = IPAddress.None;
         public IPAddress[] Gateways { get; } = [];
         public IPAddress[] DnsAddresses { get; } = [];
 
@@ -19,26 +19,20 @@ namespace Unifi.Gateway.Common.Services
         {
             this.eth = eth;
 
-            var address = eth.GetIPProperties()
-                .UnicastAddresses
+            MacAddress = eth.GetPhysicalAddress().GetAddressBytes();
+
+            var address = eth.GetIPProperties().UnicastAddresses
                 .FirstOrDefault(u => u.Address.AddressFamily == AddressFamily.InterNetwork);
 
             if (address != null)
             {
                 IPAddress = address.Address;
                 Netmask = address.IPv4Mask;
-                MacAddress = eth.GetPhysicalAddress().GetAddressBytes();
                 Gateways = eth.GetIPProperties().GatewayAddresses
                         .Select(gateway => gateway.Address)
                         .Where(t => t.AddressFamily == AddressFamily.InterNetwork)
                         .ToArray();
                 DnsAddresses = eth.GetIPProperties().DnsAddresses.Where(t => t.AddressFamily == AddressFamily.InterNetwork).ToArray();
-            }
-            else
-            {
-                IPAddress = IPAddress.None;
-                Netmask = IPAddress.None;
-                MacAddress = eth.GetPhysicalAddress().GetAddressBytes();
             }
         }
 
