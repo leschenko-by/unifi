@@ -1,8 +1,10 @@
-﻿using System.Text;
+﻿using System.Net.Http.Headers;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Unifi.Gateway.Common.Interfaces;
 using Unifi.Gateway.Models;
+using Unifi.Gateway.Models.NTop;
 using Unifi.SpeedTest;
 
 namespace Unifi.Gateway.Devices
@@ -66,9 +68,57 @@ namespace Unifi.Gateway.Devices
 
             message["uplink"] = "eth2";
             message["config_port_table"] = GetConfigPortTable([2, 3]);
-            message["if_table"] = await GetInterfacesAsync([2,3]);
+            message["if_table"] = await GetInterfacesAsync([2, 3]);
             message["network_table"] = await GetNetworkTableAsync();
             message["routes"] = await GetRoutesAsync();
+
+            try
+            {
+                var client = new HttpClient();
+                client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse("Basic " + serviceOptions.Value.NTopAuth);
+
+                var json = await client.GetStringAsync(serviceOptions.Value.NTopUri);
+                var response = JsonSerializer.Deserialize(json, SourceGenerationContext.Default.NTopResponse);
+
+                var query =
+                    from h in response?.Hosts ?? []
+                    where !string.IsNullOrEmpty(h.Router)
+                    group h by h.MacAddress into g
+                    select new
+                    {
+                        IP = g.Where(t => t.IpVersion == 4).Select(t => t.IpAddress).FirstOrDefault(),
+                        Mac = g.Key.ToLower(),
+                        Duration = g.Max(t => t.Duration),
+                        BytesSent = g.Sum(t => t.BytesSent),
+                        BytesReceived = g.Sum(t => t.BytesReceived),
+                        PacketsSent = g.Sum(t => t.PacketsSent),
+                        PacketsReceived = g.Sum(t => t.PacketsReceived),
+                    };
+                var hosts = query.ToArray();
+
+                message["dpi-clients"] = new JsonArray(hosts.Select(t => JsonValue.Create(t.Mac)).ToArray());
+                message["dpi-stats"] = new JsonArray(
+                    hosts.Select(t => new JsonObject
+                    {
+                        ["mac"] = t.Mac,
+                        ["initialized"] = "94107792805",
+                        ["stats"] = new JsonArray([
+                            new JsonObject
+                            {
+                                ["app"] = 5,
+                                ["cat"] = 3,
+                                ["rx_bytes"] = t.BytesReceived,
+                                ["rx_packets"] = t.PacketsReceived,
+                                ["tx_bytes"] = t.BytesSent,
+                                ["tx_packets"] = t.PacketsSent,
+                            }
+                        ])
+                    }).ToArray()
+                );
+            }
+            catch
+            {
+            }
         }
 
         private void Log(string direction, byte[] data)
