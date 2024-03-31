@@ -12,6 +12,8 @@ namespace Unifi.Gateway.Common.Services
         public byte[] MacAddress { get; }
         public IPAddress IPAddress { get; }
         public IPAddress Netmask { get; }
+        public IPAddress[] Gateways { get; } = [];
+        public IPAddress[] DnsAddresses { get; } = [];
 
         public EthernetInterface(NetworkInterface eth)
         {
@@ -26,6 +28,11 @@ namespace Unifi.Gateway.Common.Services
                 IPAddress = address.Address;
                 Netmask = address.IPv4Mask;
                 MacAddress = eth.GetPhysicalAddress().GetAddressBytes();
+                Gateways = eth.GetIPProperties().GatewayAddresses
+                        .Select(gateway => gateway.Address)
+                        .Where(t => t.AddressFamily == AddressFamily.InterNetwork)
+                        .ToArray();
+                DnsAddresses = eth.GetIPProperties().DnsAddresses.Where(t => t.AddressFamily == AddressFamily.InterNetwork).ToArray();
             }
             else
             {

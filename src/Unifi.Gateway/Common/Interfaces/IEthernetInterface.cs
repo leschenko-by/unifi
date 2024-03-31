@@ -8,6 +8,8 @@ namespace Unifi.Gateway.Common.Interfaces
         byte[] MacAddress { get; }
         IPAddress IPAddress { get; }
         IPAddress Netmask { get; }
+        IPAddress[] Gateways { get; }
+        IPAddress[] DnsAddresses { get; }
 
         IPInterfaceStatistics GetIPStatistics();
     }

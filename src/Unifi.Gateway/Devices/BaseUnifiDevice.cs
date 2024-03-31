@@ -308,15 +308,13 @@ namespace Unifi.Gateway.Devices
         protected JsonArray GetConfigPortTable(int[] wanPorts)
         {
             var eths = new List<JsonObject>();
-            var i = 0;
-            foreach (var eth in network.Interfaces)
+            for (var i = 0; i < network.Interfaces.Count; i++)
             {
                 eths.Add(new JsonObject
                 {
                     ["ifname"] = "eth" + i,
                     ["name"] = wanPorts.Contains(i) ? "wan" : "lan",
                 });
-                i++;
             }
             return new JsonArray(eths.ToArray());
         }
@@ -324,22 +322,23 @@ namespace Unifi.Gateway.Devices
         protected async Task<JsonArray> GetInterfacesAsync(int[] wanPorts)
         {
             var eths = new List<JsonObject>();
-            var i = 0;
-            foreach (var eth in network.Interfaces)
+            for (var i = 0; i < network.Interfaces.Count; i++)
             {
+                var port = i + 1;
+                var eth = network.Interfaces[i];
+                
                 if (eth is null)
                 {
-                    eths.Add(await GetDisableInterface("eth" + i, i + 1));
+                    eths.Add(await GetDisableInterface("eth" + i, port));
                 }
                 else if (wanPorts.Contains(i))
                 {
-                    eths.Add(await GetWanInterfaceAsync("eth" + i, i + 1, eth.IPAddress, eth.Netmask, eth.MacAddress, eth.GetIPStatistics()));
+                    eths.Add(await GetWanInterfaceAsync("eth" + i, port, eth.IPAddress, eth.Netmask, eth.MacAddress, eth.GetIPStatistics()));
                 }
                 else
                 {
-                    eths.Add(await GetLanInterface("eth" + i, i + 1, eth.IPAddress, eth.Netmask, eth.MacAddress, eth.GetIPStatistics()));
+                    eths.Add(await GetLanInterface("eth" + i, port, eth.IPAddress, eth.Netmask, eth.MacAddress, eth.GetIPStatistics()));
                 }
-                i++;
             }
             return new JsonArray(eths.ToArray());
         }
@@ -414,7 +413,6 @@ namespace Unifi.Gateway.Devices
             var result = await GetLanInterface(name, port, address, netmask, mac, stats);
             result["latency"] = latency;
             result["uptime"] = await systemInfo.GetUptimeAsync();
-            //result["ip_v6"] = "2a02:bf0:6:10::34";
             //result["speedtest_lastrun"] = DateTimeOffset.Now.ToUnixTimeSeconds();
             //result["speedtest_ping"] = 1;
             //result["speedtest_status"] = "Idle";

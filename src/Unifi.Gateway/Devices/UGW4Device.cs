@@ -1,4 +1,7 @@
-﻿using System.Text;
+﻿using Org.BouncyCastle.Asn1.Pkcs;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Unifi.Gateway.Common.Interfaces;
@@ -68,17 +71,156 @@ namespace Unifi.Gateway.Devices
             message["uplink"] = "eth2";
             message["config_port_table"] = GetConfigPortTable([2, 3]);
             message["if_table"] = await GetInterfacesAsync([2,3]);
+            message["network_table"] = await GetNetworkTableAsync();
+            message["routes"] = await GetRoutesAsync();
+        }
 
-            message["pfor-stats"] = new JsonArray([
-                new JsonObject()
+        private async Task<JsonArray> GetRoutesAsync()
+        {
+            await Task.Yield();
+            var eths = new List<JsonObject>
+            {
+                new JsonObject
                 {
-                    ["id"] = "596add99e4b0a76e35003e00",
-                    ["rx_bytes"] = 41444574,
-                    ["rx_packets"] = 305634,
-                    ["tx_bytes"] = 88048319,
-                    ["tx_packets"] = 364768,
-                },
-            ]);
+                    ["pfx"] = "127.0.0.0/8",
+                    ["nh"] = new JsonArray([
+                        new JsonObject()
+                        {
+                            ["intf"] = "lo",
+                            ["t"] = "C>*",
+                        }
+                    ]),
+                }
+            };
+            for (var i = 0; i < network.Interfaces.Count; i++)
+            {
+                var eth = network.Interfaces[i];
+                if (eth is not null)
+                {
+                    eths.Add(new JsonObject
+                    {
+                        ["pfx"] = GetNetwork(eth.IPAddress, eth.Netmask),
+                        ["nh"] = new JsonArray([
+                            new JsonObject()
+                            {
+                                ["intf"] = "eth" + i,
+                                ["t"] = "C>*",
+                            }
+                        ]),
+                    });
+                    if (eth.Gateways.Length > 0)
+                    {
+                        eths.Add(new JsonObject
+                        {
+                            ["pfx"] = "0.0.0.0/0",
+                            ["nh"] = new JsonArray([
+                                new JsonObject()
+                                {
+                                    ["intf"] = "eth" + i,
+                                    ["metric"] = "1/0",
+                                    ["t"] = "S>*",
+                                }
+                            ]),
+                        });
+                    }
+                }
+            }
+
+            return new JsonArray(eths.ToArray());
+        }
+
+        private async Task<JsonArray> GetNetworkTableAsync()
+        {
+            await Task.Yield();
+            var eths = new List<JsonObject>();
+            for (var i = 0; i < network.Interfaces.Count; i++)
+            {
+                var eth = network.Interfaces[i];
+                if (eth is null)
+                {
+                    eths.Add(new JsonObject
+                    {
+                        ["name"] = "eth" + i,
+                        ["autoneg"] = true,
+                        ["l1up"] = false,
+                        ["up"] = false,
+                    });
+                }
+                else
+                {
+                    string address = GetAddress(eth.IPAddress, eth.Netmask);
+                    var stats = eth.GetIPStatistics();
+                    eths.Add(new JsonObject
+                    {
+                        ["address"] = address,
+                        ["addresses"] = new JsonArray([address]),
+                        ["autoneg"] = true,
+                        ["duplex"] = "full",
+                        ["gateways"] = new JsonArray(eth.Gateways.Select(t => JsonValue.Create(t.ToString())).ToArray() ?? []),
+                        ["l1up"] = true,
+                        ["mac"] = string.Join(":", eth.MacAddress.Select(t => t.ToString("x2"))),
+                        ["mtu"] = 1500,
+                        ["name"] = "eth" + i,
+                        ["nameservers"] = new JsonArray(eth.DnsAddresses.Select(t => JsonValue.Create(t.ToString())).ToArray() ?? []),
+                        ["speed"] = 1000,
+                        ["stats"] = new JsonObject
+                        {
+                            ["multicast"] = stats.NonUnicastPacketsReceived,
+                            ["rx_bps"] = 0,
+                            ["rx_bytes"] = stats.BytesReceived,
+                            ["rx_dropped"] = stats.IncomingPacketsDiscarded,
+                            ["rx_errors"] = stats.IncomingPacketsWithErrors,
+                            ["rx_multicast"] = stats.NonUnicastPacketsReceived,
+                            ["rx_packets"] = stats.UnicastPacketsReceived,
+                            ["tx_bps"] = 0,
+                            ["tx_bytes"] = stats.BytesSent,
+                            ["tx_dropped"] = 0,
+                            ["tx_errors"] = stats.OutgoingPacketsWithErrors,
+                            ["tx_packets"] = stats.UnicastPacketsSent,
+                        },
+                        ["up"] = true,
+                    });
+                }
+            }
+
+            return new JsonArray(eths.ToArray());
+        }
+
+        private static string GetAddress(IPAddress address, IPAddress netmask)
+        {
+            int length = GetNetworkLength(netmask);
+            return address + "/" + length;
+        }
+
+        private static string GetNetwork(IPAddress address, IPAddress netmask)
+        {
+            var addr = address.GetAddressBytes();
+            var mask = netmask.GetAddressBytes();
+
+            var result = new byte[addr.Length];
+            for (var i = 0; i < addr.Length; i++)
+            {
+                result[i] = (byte)(addr[i] & mask[i]);
+            }
+
+            int length = GetNetworkLength(netmask);
+            return string.Join(".", result.Select(t => t.ToString())) + "/" + length;
+        }
+
+        private static int GetNetworkLength(IPAddress netmask)
+        {
+            var length = 0;
+            foreach (var o in netmask.GetAddressBytes())
+            {
+                var bits = o;
+                while ((bits & 0x80) != 0)
+                {
+                    length++;
+                    bits = (byte)((bits << 1) & 0xff);
+                }
+            }
+
+            return length;
         }
 
         private void Log(string direction, byte[] data)
