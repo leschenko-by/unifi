@@ -113,8 +113,35 @@ namespace Unifi.Gateway.Devices
                                 ["tx_packets"] = t.PacketsSent,
                             }
                         ])
-                    }).ToArray()
-                );
+                    }).ToArray());
+
+                message["dpi-stats-table"] = new JsonArray([
+                    new JsonObject{
+                        ["_id"] = "5875d9f9e4b02fd3851c55e4",
+                        ["_subid"] = "5875d9f5e4b02fd3851c55d8",
+                        ["initialized"] = "94107792805",
+                        ["by_app"] = new JsonArray([
+                            new JsonObject{
+                                ["app"] = 5,
+                                ["cat"] = 3,
+                                ["rx_bytes"] = hosts.Sum(t => t.BytesReceived),
+                                ["rx_packets"] = hosts.Sum(t => t.PacketsReceived),
+                                ["tx_bytes"] = hosts.Sum(t => t.BytesSent),
+                                ["tx_packets"] = hosts.Sum(t => t.PacketsSent),
+                            },
+                        ]),
+                        ["by_cat"] = new JsonArray([
+                            new JsonObject{
+                                ["apps"] = new JsonArray([JsonValue.Create(5)]),
+                                ["cat"] = 3,
+                                ["rx_bytes"] = hosts.Sum(t => t.BytesReceived),
+                                ["rx_packets"] = hosts.Sum(t => t.PacketsReceived),
+                                ["tx_bytes"] = hosts.Sum(t => t.BytesSent),
+                                ["tx_packets"] = hosts.Sum(t => t.PacketsSent),
+                            },
+                        ]),
+                    },
+                ]);
             }
             catch
             {
