@@ -35,5 +35,13 @@ namespace Unifi.Tests
             var speed = await client.TestDownloadSpeedAsync(server, 8);
             Assert.True(speed > 0);
         }
+
+        [Fact]
+        public async Task GetUploadSpeed()
+        {
+            var server = await client.GetServerAsync();
+            var speed = await client.TestUploadSpeedAsync(server, 8);
+            Assert.True(speed > 0);
+        }
     }
 }
