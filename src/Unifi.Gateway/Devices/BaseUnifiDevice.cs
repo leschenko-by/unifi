@@ -515,6 +515,8 @@ namespace Unifi.Gateway.Devices
 
         protected async Task<JsonArray> GetNetworkTableAsync()
         {
+            await Task.Yield();
+
             //NTopResponse? response = null;
             //try
             //{
