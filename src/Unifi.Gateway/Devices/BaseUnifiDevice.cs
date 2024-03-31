@@ -17,7 +17,7 @@ namespace Unifi.Gateway.Devices
         protected readonly INetworkInfoService network;
         protected readonly ISystemInfoService systemInfo;
         protected readonly IServiceProvider serviceProvider;
-        protected readonly IOptions<GeneralServiceOptions> serviceOptions;
+        private readonly IOptions<GeneralServiceOptions> serviceOptions;
         private readonly IConfigurationReader configurationReader;
         private readonly IConfigurationWriter configurationWriter;
         private readonly IConnectRequest connectRequest;
@@ -515,7 +515,19 @@ namespace Unifi.Gateway.Devices
 
         protected async Task<JsonArray> GetNetworkTableAsync()
         {
-            await Task.Yield();
+            NTopResponse? response = null;
+            try
+            {
+                var client = new HttpClient();
+                client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse("Basic " + serviceOptions.Value.NTopAuth);
+
+                var json = await client.GetStringAsync(serviceOptions.Value.NTopUri);
+                response = JsonSerializer.Deserialize(json, SourceGenerationContext.Default.NTopResponse);
+            }
+            catch
+            {
+                response = null;
+            }
 
             var eths = new List<JsonObject>();
             for (var i = 0; i < network.Interfaces.Count; i++)
@@ -534,6 +546,25 @@ namespace Unifi.Gateway.Devices
                 else
                 {
                     var mac = string.Join(":", eth.MacAddress.Select(t => t.ToString("x2")));
+
+                    var query =
+                        from h in response?.Hosts ?? []
+                        where !string.IsNullOrEmpty(h.Router) && string.Equals(mac, h.Router.Replace("-", ":"), StringComparison.OrdinalIgnoreCase)
+                        group h by h.MacAddress into g
+                        select new JsonObject
+                        {
+                            ["age"] = 0,
+                            ["authorized"] = true,
+                            ["ip"] = g.Where(t => t.IpVersion == 4).Select(t => t.IpAddress).FirstOrDefault(),
+                            ["mac"] = g.Key.ToLower(),
+                            ["uptime"] = g.Max(t => t.Duration),
+                            ["tx_bytes"] = g.Sum(t => t.BytesSent),
+                            ["rx_bytes"] = g.Sum(t => t.BytesReceived),
+                            ["tx_packets"] = g.Sum(t => t.PacketsSent),
+                            ["rx_packets"] = g.Sum(t => t.PacketsReceived),
+                        };
+                    var hosts = query.ToArray();
+
                     string address = GetAddress(eth.IPAddress, eth.Netmask);
                     var stats = eth.GetIPStatistics();
                     eths.Add(new JsonObject
@@ -565,6 +596,7 @@ namespace Unifi.Gateway.Devices
                             ["tx_packets"] = stats.UnicastPacketsSent,
                         },
                         ["up"] = true,
+                        ["host_table"] = new JsonArray(hosts)
                     });
                 }
             }
