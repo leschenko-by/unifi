@@ -32,6 +32,8 @@ namespace Unifi.Gateway.Devices
             message["uplink"] = "eth0";
             message["config_port_table"] = GetConfigPortTable([0]);
             message["if_table"] = await GetInterfacesAsync([0]);
+            message["network_table"] = await GetNetworkTableAsync();
+            message["routes"] = await GetRoutesAsync();
         }
     }
 }
