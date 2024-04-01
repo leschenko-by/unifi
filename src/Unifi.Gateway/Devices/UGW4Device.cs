@@ -69,21 +69,6 @@ namespace Unifi.Gateway.Devices
             message["if_table"] = await GetInterfacesAsync([2,3]);
             message["network_table"] = await GetNetworkTableAsync();
             message["routes"] = await GetRoutesAsync();
-
-            message["speedtest-status"] = new JsonObject
-            {
-                ["latency"] = 0,
-                ["rundate"] = 0,
-                ["runtime"] = 0,
-                ["status_download"] = 0,
-                ["status_ping"] = 1,
-                ["status_summary"] = 1,
-                ["status_upload"] = 0,
-                ["xput_download"] = 0,
-                ["xput_upload"] = 0,
-                ["provider"] = "MTS",
-                ["provider_url"] = "https://mts.by",
-            };
         }
 
         private void Log(string direction, byte[] data)
@@ -103,7 +88,8 @@ namespace Unifi.Gateway.Devices
                 var message = await CreateBaseInformAsync();
                 message["sys_stats"] = await GetSysStats();
                 message["system-stats"] = await GetSystemStats();
-                message["speedtest-status"] = new JsonObject
+
+                var status = new JsonObject
                 {
                     ["latency"] = 0,
                     ["rundate"] = GetTime(),
@@ -115,6 +101,7 @@ namespace Unifi.Gateway.Devices
                     ["xput_download"] = 0,
                     ["xput_upload"] = 0,
                 };
+                message["speedtest-status"] = status;
                 Log("Request", request = Encoding.UTF8.GetBytes(message.ToString()));
                 Log("Response", response = await protocol.SendRequestAsync(InformUrl, Key, request));
 
@@ -122,58 +109,33 @@ namespace Unifi.Gateway.Devices
                 var server = await client.GetServerAsync();
 
                 var latency = await client.TestServerLatencyAsync(server);
-                message["speedtest-status"] = new JsonObject
-                {
-                    ["latency"] = latency,
-                    ["rundate"] = GetTime(),
-                    ["runtime"] = GetTime(),
-                    ["status_download"] = 1,
-                    ["status_ping"] = 2,
-                    ["status_summary"] = 1,
-                    ["status_upload"] = 0,
-                    ["xput_download"] = 0,
-                    ["xput_upload"] = 0,
-                    ["provider"] = "MTS",
-                    ["provider_url"] = "https://mts.by",
-                };
+                status["latency"] = latency;
+                status["server"] = server.Sponsor;
+                status["rundate"] = GetTime();
+                status["runtime"] = GetTime();
+                status["status_download"] = 1;
+                status["status_ping"] = 2;
+                status["status_summary"] = 1;
                 Log("Request", request = Encoding.UTF8.GetBytes(message.ToString()));
                 Log("Response", response = await protocol.SendRequestAsync(InformUrl, Key, request));
 
                 var download = await client.TestDownloadSpeedAsync(server, 16);
 
-                message["speedtest-status"] = new JsonObject
-                {
-                    ["latency"] = latency,
-                    ["rundate"] = GetTime(),
-                    ["runtime"] = GetTime(),
-                    ["status_download"] = 2,
-                    ["status_ping"] = 2,
-                    ["status_summary"] = 1,
-                    ["status_upload"] = 2,
-                    ["xput_download"] = download / 1024,
-                    ["xput_upload"] = 0,
-                    ["provider"] = "MTS",
-                    ["provider_url"] = "https://mts.by",
-                };
+                status["rundate"] = GetTime();
+                status["runtime"] = GetTime();
+                status["status_download"] = 2;
+                status["status_upload"] = 2;
+                status["xput_download"] = download / 1024;
                 Log("Request", request = Encoding.UTF8.GetBytes(message.ToString()));
                 Log("Response", response = await protocol.SendRequestAsync(InformUrl, Key, request));
 
                 var upload = await client.TestUploadSpeedAsync(server, 16);
 
-                message["speedtest-status"] = new JsonObject
-                {
-                    ["latency"] = latency,
-                    ["rundate"] = GetTime(),
-                    ["runtime"] = GetTime(),
-                    ["status_download"] = 2,
-                    ["status_ping"] = 2,
-                    ["status_summary"] = 2,
-                    ["status_upload"] = 2,
-                    ["xput_download"] = download / 1024,
-                    ["xput_upload"] = upload / 1024,
-                    ["provider"] = "MTS",
-                    ["provider_url"] = "https://mts.by",
-                };
+                status["rundate"] = GetTime();
+                status["runtime"] = GetTime();
+                status["status_summary"] = 2;
+                status["xput_download"] = download / 1024;
+                status["xput_upload"] = upload / 1024;
                 Log("Request", request = Encoding.UTF8.GetBytes(message.ToString()));
                 Log("Response", response = await protocol.SendRequestAsync(InformUrl, Key, request));
             }
