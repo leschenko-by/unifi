@@ -191,9 +191,9 @@ namespace Unifi.Gateway.Devices
 
             return new JsonObject
             {
-                ["loadavg_1"] = "0.09",
-                ["loadavg_5"] = "0.16",
-                ["loadavg_15"] = "0.08",
+                ["loadavg_1"] = "0.00",
+                ["loadavg_5"] = "0.00",
+                ["loadavg_15"] = "0.00",
                 ["mem_buffer"] = 0,
                 ["mem_total"] = totalMem,
                 ["mem_used"] = Math.Min(usedMem, totalMem),
