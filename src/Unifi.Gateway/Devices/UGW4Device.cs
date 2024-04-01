@@ -86,7 +86,7 @@ namespace Unifi.Gateway.Devices
                             ["peer_id"] = "20.218.196.213",
                             ["remote_id"] = "20.218.196.213",
                             ["remote_ip"] = "20.218.196.213",
-                            ["state"] = "up"
+                            ["state"] = "online"
                         }
                     ])
                 },
