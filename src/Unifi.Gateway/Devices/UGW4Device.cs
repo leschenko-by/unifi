@@ -69,6 +69,21 @@ namespace Unifi.Gateway.Devices
             message["if_table"] = await GetInterfacesAsync([2,3]);
             message["network_table"] = await GetNetworkTableAsync();
             message["routes"] = await GetRoutesAsync();
+
+            message["speedtest-status"] = new JsonObject
+            {
+                ["latency"] = 0,
+                ["rundate"] = 0,
+                ["runtime"] = 0,
+                ["status_download"] = 0,
+                ["status_ping"] = 1,
+                ["status_summary"] = 1,
+                ["status_upload"] = 0,
+                ["xput_download"] = 0,
+                ["xput_upload"] = 0,
+                ["provider"] = "MTS",
+                ["provider_url"] = "https://mts.by",
+            };
         }
 
         private void Log(string direction, byte[] data)
@@ -118,6 +133,8 @@ namespace Unifi.Gateway.Devices
                     ["status_upload"] = 0,
                     ["xput_download"] = 0,
                     ["xput_upload"] = 0,
+                    ["provider"] = "MTS",
+                    ["provider_url"] = "https://mts.by",
                 };
                 Log("Request", request = Encoding.UTF8.GetBytes(message.ToString()));
                 Log("Response", response = await protocol.SendRequestAsync(InformUrl, Key, request));
@@ -135,6 +152,8 @@ namespace Unifi.Gateway.Devices
                     ["status_upload"] = 2,
                     ["xput_download"] = download / 1024,
                     ["xput_upload"] = 0,
+                    ["provider"] = "MTS",
+                    ["provider_url"] = "https://mts.by",
                 };
                 Log("Request", request = Encoding.UTF8.GetBytes(message.ToString()));
                 Log("Response", response = await protocol.SendRequestAsync(InformUrl, Key, request));
@@ -152,6 +171,8 @@ namespace Unifi.Gateway.Devices
                     ["status_upload"] = 2,
                     ["xput_download"] = download / 1024,
                     ["xput_upload"] = upload / 1024,
+                    ["provider"] = "MTS",
+                    ["provider_url"] = "https://mts.by",
                 };
                 Log("Request", request = Encoding.UTF8.GetBytes(message.ToString()));
                 Log("Response", response = await protocol.SendRequestAsync(InformUrl, Key, request));
