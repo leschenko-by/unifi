@@ -26,18 +26,18 @@ namespace Unifi.Gateway.Models.NTop
         public int IpVersion { get; set; }
 
         [JsonPropertyName("duration")]
-        public int Duration { get; set; }
+        public long Duration { get; set; }
 
         [JsonPropertyName("bytes.sent")]
-        public int BytesSent { get; set; }
+        public long BytesSent { get; set; }
 
         [JsonPropertyName("bytes.rcvd")]
-        public int BytesReceived { get; set; }
+        public long BytesReceived { get; set; }
 
         [JsonPropertyName("packets.sent")]
-        public int PacketsSent { get; set; }
+        public long PacketsSent { get; set; }
 
         [JsonPropertyName("packets.rcvd")]
-        public int PacketsReceived { get; set; }
+        public long PacketsReceived { get; set; }
     }
 }
