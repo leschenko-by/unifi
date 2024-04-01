@@ -24,6 +24,9 @@ namespace Unifi.Gateway.Devices
         private readonly IEthernetInterface discoveryInterface;
         private JsonObject? nextCommand = null;
         protected Configuration configuration;
+
+        public ILogger<BaseUnifiDevice> logger { get; }
+
         private TimeSpan interval = TimeSpan.FromSeconds(10);
 
         public string InformUrl => configuration.InformUrl;
@@ -60,6 +63,7 @@ namespace Unifi.Gateway.Devices
             configurationWriter = serviceProvider.GetRequiredService<IConfigurationWriter>();
             connectRequest = serviceProvider.GetRequiredService<IConnectRequest>();
             configuration = configurationReader.LoadConfiguration();
+            logger = serviceProvider.GetRequiredService<ILogger<BaseUnifiDevice>>();
             this.serviceProvider = serviceProvider;
 
             serviceOptions = serviceProvider.GetRequiredService<IOptions<GeneralServiceOptions>>();
@@ -525,9 +529,19 @@ namespace Unifi.Gateway.Devices
 
                 var json = await client.GetStringAsync(serviceOptions.Value.NTopUri);
                 response = JsonSerializer.Deserialize(json, SourceGenerationContext.Default.NTopResponse);
+                if (response != null)
+                {
+                    logger.LogInformation("ntopng response status: {code}", response.ResponseCode);
+                    logger.LogInformation("Found {count} items in ntopng response", response.Hosts.Length);
+                }
+                else
+                {
+                    logger.LogWarning("Can't deserialize ntopng response");
+                }
             }
-            catch
+            catch(Exception ex)
             {
+                logger.LogWarning(ex, "Can't deserialize ntopng response");
                 response = null;
             }
 
