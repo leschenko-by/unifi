@@ -111,6 +111,8 @@ namespace Unifi.Gateway.Devices
                 var latency = await client.TestServerLatencyAsync(server);
                 status["latency"] = latency;
                 status["server"] = server.Sponsor;
+                status["provider"] = server.Sponsor;
+                status["provider_url"] = server.Url;
                 status["rundate"] = GetTime();
                 status["runtime"] = GetTime();
                 status["status_download"] = 1;
