@@ -5,7 +5,7 @@ namespace Unifi.Gateway.Common.Interfaces
 {
     public interface IEthernetInterface
     {
-        string Id { get; }
+        string LocalNic { get; }
         byte[] MacAddress { get; }
         IPAddress IPAddress { get; }
         IPAddress Netmask { get; }

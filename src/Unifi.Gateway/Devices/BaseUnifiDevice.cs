@@ -520,29 +520,43 @@ namespace Unifi.Gateway.Devices
         {
             await Task.Yield();
 
-            NTopResponse? response = null;
-            try
+            (string Ip, string Mac, string Nic)[] arps = [];
+            if (File.Exists("/proc/net/arp"))
             {
-                var client = new HttpClient();
-                client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse("Basic " + serviceOptions.Value.NTopAuth);
+                var rx = RegExProvider.GetArpRegEx();
+                var lines = await File.ReadAllLinesAsync("/proc/net/arp");
+                var query =
+                    from line in lines
+                    let match = rx.Match(line)
+                    where match.Success
+                    select (match.Groups["ip"].Value, match.Groups["mac"].Value, match.Groups["nic"].Value);
 
-                var json = await client.GetStringAsync(serviceOptions.Value.NTopUri);
-                response = JsonSerializer.Deserialize(json, SourceGenerationContext.Default.NTopResponse);
-                if (response != null)
-                {
-                    logger.LogInformation("ntopng response status: {code}", response.ResponseCode);
-                    logger.LogInformation("Found {count} items in ntopng response", response.Hosts.Length);
-                }
-                else
-                {
-                    logger.LogWarning("Can't deserialize ntopng response");
-                }
+                arps = query.ToArray();
             }
-            catch(Exception ex)
-            {
-                logger.LogWarning(ex, "Can't deserialize ntopng response");
-                response = null;
-            }
+
+            //NTopResponse? response = null;
+            //try
+            //{
+            //    var client = new HttpClient();
+            //    client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse("Basic " + serviceOptions.Value.NTopAuth);
+
+            //    var json = await client.GetStringAsync(serviceOptions.Value.NTopUri);
+            //    response = JsonSerializer.Deserialize(json, SourceGenerationContext.Default.NTopResponse);
+            //    if (response != null)
+            //    {
+            //        logger.LogInformation("ntopng response status: {code}", response.ResponseCode);
+            //        logger.LogInformation("Found {count} items in ntopng response", response.Hosts.Length);
+            //    }
+            //    else
+            //    {
+            //        logger.LogWarning("Can't deserialize ntopng response");
+            //    }
+            //}
+            //catch(Exception ex)
+            //{
+            //    logger.LogWarning(ex, "Can't deserialize ntopng response");
+            //    response = null;
+            //}
 
             var eths = new List<JsonObject>();
             for (var i = 0; i < network.Interfaces.Count; i++)
@@ -563,22 +577,39 @@ namespace Unifi.Gateway.Devices
                     var mac = string.Join(":", eth.MacAddress.Select(t => t.ToString("x2")));
 
                     var query =
-                        from h in response?.Hosts ?? []
-                        where !string.IsNullOrEmpty(h.Router) && string.Equals(mac, h.Router.Replace("-", ":"), StringComparison.OrdinalIgnoreCase)
-                        group h by h.MacAddress into g
+                        from line in arps
+                        where line.Nic == eth.LocalNic
                         select new JsonObject
                         {
                             ["age"] = 0,
                             ["authorized"] = true,
-                            ["ip"] = g.Where(t => t.IpVersion == 4).Select(t => t.IpAddress).FirstOrDefault(),
-                            ["mac"] = g.Key.ToLower(),
-                            ["uptime"] = g.Max(t => t.Duration),
-                            ["tx_bytes"] = g.Sum(t => t.BytesSent),
-                            ["rx_bytes"] = g.Sum(t => t.BytesReceived),
-                            ["tx_packets"] = g.Sum(t => t.PacketsSent),
-                            ["rx_packets"] = g.Sum(t => t.PacketsReceived),
+                            ["ip"] = line.Ip,
+                            ["mac"] = line.Mac,
+                            ["uptime"] = 0,
+                            ["tx_bytes"] = 0,
+                            ["rx_bytes"] = 0,
+                            ["tx_packets"] = 0,
+                            ["rx_packets"] = 0,
                         };
                     var hosts = query.ToArray();
+
+                    //var query =
+                    //    from h in response?.Hosts ?? []
+                    //    where !string.IsNullOrEmpty(h.Router) && string.Equals(mac, h.Router.Replace("-", ":"), StringComparison.OrdinalIgnoreCase)
+                    //    group h by h.MacAddress into g
+                    //    select new JsonObject
+                    //    {
+                    //        ["age"] = 0,
+                    //        ["authorized"] = true,
+                    //        ["ip"] = g.Where(t => t.IpVersion == 4).Select(t => t.IpAddress).FirstOrDefault(),
+                    //        ["mac"] = g.Key.ToLower(),
+                    //        ["uptime"] = g.Max(t => t.Duration),
+                    //        ["tx_bytes"] = g.Sum(t => t.BytesSent),
+                    //        ["rx_bytes"] = g.Sum(t => t.BytesReceived),
+                    //        ["tx_packets"] = g.Sum(t => t.PacketsSent),
+                    //        ["rx_packets"] = g.Sum(t => t.PacketsReceived),
+                    //    };
+                    //var hosts = query.ToArray();
 
                     string address = GetAddress(eth.IPAddress, eth.Netmask);
                     var stats = eth.GetIPStatistics();
