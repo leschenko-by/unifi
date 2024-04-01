@@ -53,7 +53,6 @@ namespace Unifi.Gateway.Devices
             message["has_default_route_distance"] = true;
             message["has_dnsmasq_hostfile_update"] = false;
 
-            message["vpn"] = new JsonArray();
             message["config_network_wan"] = new JsonObject
             {
                 ["type"] = "dhcp"

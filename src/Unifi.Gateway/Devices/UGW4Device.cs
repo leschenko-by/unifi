@@ -67,30 +67,6 @@ namespace Unifi.Gateway.Devices
             message["if_table"] = await GetInterfacesAsync([2,3]);
             message["network_table"] = await GetNetworkTableAsync();
             message["routes"] = await GetRoutesAsync();
-
-            message["vpn"] = new JsonObject
-            {
-                ["ipsec"] = new JsonObject
-                {
-                    ["sa"] = new JsonArray([
-                        new JsonObject
-                        {
-                            ["active_time"] = 60,
-                            ["connect_id"] = "peer-20.218.196.213-tunnel-0",
-                            ["in_bytes"] = 3345,
-                            ["lifetime"] = 0,
-                            ["local_id"] = "134.17.26.13",
-                            ["local_ip"] = "134.17.26.13",
-                            ["nat_t"] = true,
-                            ["out_bytes"] = 4534563,
-                            ["peer_id"] = "20.218.196.213",
-                            ["remote_id"] = "20.218.196.213",
-                            ["remote_ip"] = "20.218.196.213",
-                            ["state"] = "online"
-                        }
-                    ])
-                },
-            };
         }
 
         private void Log(string direction, byte[] data)
