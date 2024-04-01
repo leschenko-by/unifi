@@ -28,16 +28,20 @@ namespace Unifi.Gateway.Models.NTop
         [JsonPropertyName("duration")]
         public long Duration { get; set; }
 
-        [JsonPropertyName("bytes.sent")]
+        [JsonIgnore]
+        //[JsonPropertyName("bytes.sent")]
         public long BytesSent { get; set; }
 
-        [JsonPropertyName("bytes.rcvd")]
+        [JsonIgnore]
+        //[JsonPropertyName("bytes.rcvd")]
         public long BytesReceived { get; set; }
 
-        [JsonPropertyName("packets.sent")]
+        [JsonIgnore]
+        //[JsonPropertyName("packets.sent")]
         public long PacketsSent { get; set; }
 
-        [JsonPropertyName("packets.rcvd")]
+        [JsonIgnore]
+        //[JsonPropertyName("packets.rcvd")]
         public long PacketsReceived { get; set; }
     }
 }
