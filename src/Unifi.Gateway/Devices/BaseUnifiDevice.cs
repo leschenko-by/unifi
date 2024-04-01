@@ -22,10 +22,9 @@ namespace Unifi.Gateway.Devices
         private readonly IConfigurationWriter configurationWriter;
         private readonly IConnectRequest connectRequest;
         private readonly IEthernetInterface discoveryInterface;
+        private readonly ILogger<BaseUnifiDevice> logger;
         private JsonObject? nextCommand = null;
         protected Configuration configuration;
-
-        public ILogger<BaseUnifiDevice> logger { get; }
 
         private TimeSpan interval = TimeSpan.FromSeconds(10);
 
