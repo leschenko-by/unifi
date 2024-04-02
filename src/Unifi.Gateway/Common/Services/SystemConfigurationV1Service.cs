@@ -2,24 +2,20 @@
 using System.Text.Json;
 using Unifi.Gateway.Common.Interfaces;
 using Unifi.Gateway.Models;
+using Unifi.Gateway.Models.V1;
 
 namespace Unifi.Gateway.Common.Services
 {
-    public class SystemConfigurationV1Service : ISystemConfigurationService
+    public class SystemConfigurationV1Service(IUfwService ufw) : ISystemConfigurationService
     {
-        public readonly IUfwService ufw;
-
-        public SystemConfigurationV1Service(IUfwService ufw)
-        {
-            this.ufw = ufw;
-        }
+        public readonly IUfwService ufw = ufw;
 
         public async Task ApplyAsync(string systemCfg, Configuration configuration)
         {
             Directory.CreateDirectory("/etc/unifi");
             await File.WriteAllTextAsync("/etc/unifi/system.json", systemCfg);
 
-            var cfg = JsonSerializer.Deserialize(systemCfg, SourceGenerationContext.Default.SystemConfiguration);
+            var cfg = JsonSerializer.Deserialize(systemCfg, SourceGenerationContext.Default.SystemConfigurationV1);
             if (cfg is null)
             {
                 return;
@@ -30,7 +26,7 @@ namespace Unifi.Gateway.Common.Services
             await ApplyPortForwardingAsync(cfg);
         }
 
-        private void ApplyUnifiSettings(Configuration configuration, SystemConfiguration cfg)
+        private static void ApplyUnifiSettings(Configuration configuration, SystemConfiguration cfg)
         {
             configuration.EchoServer = cfg.Unifi.EchoServer;
             configuration.ConfigNetworkWAN = cfg.Unifi.ConfigNetworkWAN;

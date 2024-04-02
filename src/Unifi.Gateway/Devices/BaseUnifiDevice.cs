@@ -8,7 +8,6 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Unifi.Gateway.Common.Interfaces;
 using Unifi.Gateway.Models;
-using Unifi.Gateway.Models.NTop;
 
 namespace Unifi.Gateway.Devices
 {
@@ -22,7 +21,6 @@ namespace Unifi.Gateway.Devices
         private readonly IConfigurationWriter configurationWriter;
         private readonly IConnectRequest connectRequest;
         private readonly IEthernetInterface discoveryInterface;
-        private readonly ILogger<BaseUnifiDevice> logger;
         private JsonObject? nextCommand = null;
         protected Configuration configuration;
 
@@ -62,7 +60,6 @@ namespace Unifi.Gateway.Devices
             configurationWriter = serviceProvider.GetRequiredService<IConfigurationWriter>();
             connectRequest = serviceProvider.GetRequiredService<IConnectRequest>();
             configuration = configurationReader.LoadConfiguration();
-            logger = serviceProvider.GetRequiredService<ILogger<BaseUnifiDevice>>();
             this.serviceProvider = serviceProvider;
 
             serviceOptions = serviceProvider.GetRequiredService<IOptions<GeneralServiceOptions>>();
@@ -430,7 +427,7 @@ namespace Unifi.Gateway.Devices
             await Task.Yield();
             var eths = new List<JsonObject>
             {
-                new JsonObject
+                new()
                 {
                     ["pfx"] = "127.0.0.0/8",
                     ["nh"] = new JsonArray([

@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Globalization;
+using System.Text.Json.Serialization;
 
 namespace Unifi.SpeedTest.Models
 {
@@ -25,7 +26,7 @@ namespace Unifi.SpeedTest.Models
         [JsonPropertyName("org")]
         public string Org { get; set; }
 
-        public double Latitude => double.Parse(Loc?.Split(',')?.FirstOrDefault()?.Trim() ?? "0");
-        public double Longitude => double.Parse(Loc?.Split(',')?.LastOrDefault()?.Trim() ?? "0");
+        public double Latitude => double.Parse(Loc?.Split(',')?.FirstOrDefault()?.Trim() ?? "0", CultureInfo.InvariantCulture);
+        public double Longitude => double.Parse(Loc?.Split(',')?.LastOrDefault()?.Trim() ?? "0", CultureInfo.InvariantCulture);
     }
 }
