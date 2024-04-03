@@ -11,8 +11,19 @@ namespace Unifi.Gateway.Common.Services
         {
             try
             {
-                // iptables -t nat -F
                 var iptables = new Process
+                {
+                    StartInfo =
+                    {
+                        FileName = "iptables",
+                        Arguments = "-F"
+                    }
+                };
+                iptables.Start();
+                await iptables.WaitForExitAsync();
+
+                // iptables -t nat -F
+                var nat = new Process
                 {
                     StartInfo =
                     {
@@ -20,8 +31,8 @@ namespace Unifi.Gateway.Common.Services
                         Arguments = "-t nat -F"
                     }
                 };
-                iptables.Start();
-                await iptables.WaitForExitAsync();
+                nat.Start();
+                await nat.WaitForExitAsync();
 
                 // ufw reload
                 var ufw = new Process
