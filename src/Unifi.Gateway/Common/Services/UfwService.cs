@@ -11,28 +11,25 @@ namespace Unifi.Gateway.Common.Services
         {
             try
             {
+                // iptables -t nat -F
                 var iptables = new Process
                 {
                     StartInfo =
                     {
-                        FileName = "iptables",
-                        Arguments = "-F"
-                    }
+                        FileName = "iptables-restore",
+                        RedirectStandardInput = true,
+                    },
                 };
+                iptables.StandardInput.Write($$"""
+                    *nat
+                    COMMIT
+                    *mangle
+                    COMMIT
+                    *filter
+                    COMMIT
+                    """);
                 iptables.Start();
                 await iptables.WaitForExitAsync();
-
-                // iptables -t nat -F
-                var nat = new Process
-                {
-                    StartInfo =
-                    {
-                        FileName = "iptables",
-                        Arguments = "-t nat -F"
-                    }
-                };
-                nat.Start();
-                await nat.WaitForExitAsync();
 
                 // ufw reload
                 var ufw = new Process
