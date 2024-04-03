@@ -33,17 +33,17 @@ namespace Unifi.Gateway.BackgroundServices
                 {
                     try
                     {
-                        logger.LogInformation("Sending inform to {InformUrl}", informUrl);
+                        logger.LogDebug("Sending inform to {InformUrl}", informUrl);
 
                         var message = await device.GetInformMessageAsync();
-                        logger.LogInformation("Sending inform message: {Message}", message);
+                        logger.LogDebug("Sending inform message: {Message}", message);
                         var requestMessageData = Encoding.UTF8.GetBytes(message);
 
                         var responseMessageData = await protocol.SendRequestAsync(informUrl, key, requestMessageData, token);
 
                         var json = Encoding.UTF8.GetString(responseMessageData);
                         await device.ParseResponseAsync(json);
-                        logger.LogInformation("Received inform response: {Response}", json);
+                        logger.LogDebug("Received inform response: {Response}", json);
 
                         device.SaveConfigration();
                     }
