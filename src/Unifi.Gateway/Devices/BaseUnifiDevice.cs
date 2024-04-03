@@ -557,8 +557,8 @@ namespace Unifi.Gateway.Devices
                         await semaphore.WaitAsync();
                         try
                         {
-                            var ping = new Ping();
-                            var reply = await ping.SendPingAsync(IPAddress.Parse(t.Ip), TimeSpan.FromMicroseconds(100));
+                            using var ping = new Ping();
+                            var reply = await ping.SendPingAsync(IPAddress.Parse(t.Ip));
                             if (reply != null && reply.Status == IPStatus.Success)
                             {
                                 return true;
