@@ -11,6 +11,6 @@ namespace Unifi.Gateway.Models.V1
         public string Description { get; set; } = string.Empty;
 
         [JsonPropertyName("rule")]
-        public Dictionary<string, FirewallRuleItem> Rules { get; set; } = new();
+        public Dictionary<string, FirewallRule> Rules { get; set; } = new();
     }
 }

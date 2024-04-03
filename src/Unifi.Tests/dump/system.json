@@ -42,10 +42,7 @@
         "guest_pre_allow": {
           "description": "allow addresses for guests",
           "address": [
-            "192.168.3.0/24",
-            "192.168.2.0/24",
-            "192.168.4.0/24",
-            "66.117.39.201"
+            "192.168.2.0/24"
           ]
         },
         "guest_restricted": {
@@ -65,6 +62,14 @@
         },
         "unifi_controller_addresses": {
           "description": "UniFi addresses"
+        }
+      },
+      "ipv6-address-group": {
+        "660c5c468d6d5f1535169cbc": {
+          "description": "customized-Digiteum LAN",
+          "ipv6-address": [
+            "2a00:6440:173:500::/56"
+          ]
         }
       },
       "port-group": {
@@ -91,6 +96,19 @@
           "description": "unifi udp ports",
           "port": [
             3478
+          ]
+        },
+        "660c5b618d6d5f1535169c97": {
+          "description": "customized-IPSec",
+          "port": [
+            "500",
+            "4500"
+          ]
+        },
+        "660c5ba18d6d5f1535169c9b": {
+          "description": "customized-SSH",
+          "port": [
+            "22"
           ]
         }
       }
@@ -129,6 +147,22 @@
             "protocol": "udp"
           },
           "3004": {
+            "action": "accept",
+            "description": "allow to RADIUS authentication",
+            "protocol": "udp",
+            "destination": {
+              "port": "1812"
+            }
+          },
+          "3005": {
+            "action": "accept",
+            "description": "allow to RADIUS accounting",
+            "protocol": "udp",
+            "destination": {
+              "port": "1813"
+            }
+          },
+          "3006": {
             "action": "accept",
             "description": "allow redirects to redirector",
             "destination": {
@@ -312,6 +346,59 @@
               "port": "8443"
             },
             "protocol": "tcp"
+          },
+          "3004": {
+            "action": "accept",
+            "description": "PortForward [demo]",
+            "destination": {
+              "address": "1.1.1.1",
+              "port": "9000"
+            },
+            "protocol": "tcp_udp",
+            "source": {
+              "address": "2.2.2.2"
+            }
+          },
+          "3005": {
+            "action": "accept",
+            "description": "PortForward [demo]",
+            "destination": {
+              "address": "1.1.1.1",
+              "port": "9000"
+            },
+            "protocol": "tcp_udp",
+            "source": {
+              "address": "3.3.3.3"
+            }
+          },
+          "3006": {
+            "action": "accept",
+            "description": "PortForward [demo]",
+            "destination": {
+              "address": "1.1.1.1",
+              "port": "9000"
+            },
+            "protocol": "tcp_udp"
+          },
+          "4000": {
+            "action": "accept",
+            "description": "OpenSSH",
+            "protocol": "tcp",
+            "destination": {
+              "group": {
+                "port-group": "660c5ba18d6d5f1535169c9b"
+              }
+            }
+          },
+          "4001": {
+            "action": "accept",
+            "description": "IPSec",
+            "protocol": "udp",
+            "destination": {
+              "group": {
+                "port-group": "660c5b618d6d5f1535169c97"
+              }
+            }
           }
         }
       },
@@ -406,6 +493,36 @@
             }
           },
           "3004": {
+            "action": "accept",
+            "description": "Allow DHCPv6 (link-local)",
+            "protocol": "udp",
+            "destination": {
+              "port": "546"
+            },
+            "source": {
+              "address": "fe80::/10"
+            }
+          },
+          "3005": {
+            "action": "accept",
+            "description": "Allow DHCPv6",
+            "protocol": "udp",
+            "destination": {
+              "port": "546"
+            },
+            "source": {
+              "port": "547"
+            }
+          },
+          "3006": {
+            "action": "accept",
+            "description": "Allow router advertisements",
+            "protocol": "ipv6-icmp",
+            "icmpv6": {
+              "type": "router-advertisement"
+            }
+          },
+          "3007": {
             "action": "drop",
             "description": "drop invalid state",
             "state": {
@@ -494,6 +611,15 @@
           "name-server": "no-update",
           "default-route-distance": "1"
         },
+        "dhcpv6-pd": {
+          "no-dns": "''",
+          "rapid-commit": "enable",
+          "pd": {
+            "0": {
+              "prefix-length": "56"
+            }
+          }
+        },
         "address": [
           "dhcp"
         ]
@@ -541,6 +667,31 @@
         },
         "original-port": "8443",
         "protocol": "tcp"
+      },
+      "3002": {
+        "description": "demo",
+        "forward-to": {
+          "address": "1.1.1.1",
+          "port": "9000"
+        },
+        "original-port": "9001",
+        "protocol": "tcp_udp"
+      },
+      "3003": {
+        "description": "demo",
+        "forward-to": {
+          "address": "1.1.1.1"
+        },
+        "original-port": "9000",
+        "protocol": "tcp_udp"
+      },
+      "3004": {
+        "description": "demo",
+        "forward-to": {
+          "address": "1.1.1.1"
+        },
+        "original-port": "9000",
+        "protocol": "tcp_udp"
       }
     }
   },
@@ -558,6 +709,34 @@
     "ssh": {
       "port": "22",
       "protocol-version": "v2"
+    },
+    "dhcp-server": {
+      "hostfile-update": "enable",
+      "disabled": "false",
+      "shared-network-name": {
+        "net_Default_eth0_192.168.2.0-24": {
+          "authoritative": "enable",
+          "description": "vlan1",
+          "subnet": {
+            "192.168.2.0/24": {
+              "lease": "86400",
+              "start": {
+                "192.168.2.6": {
+                  "stop": "192.168.2.254"
+                }
+              },
+              "domain-name": "vitaliy.org",
+              "default-router": "192.168.2.254",
+              "dns-server": [
+                "192.168.2.254"
+              ]
+            }
+          }
+        }
+      },
+      "global-parameters": [
+        "class &quot;denied&quot; { match substring (hardware, 1, 6); deny booting; } subclass &quot;denied&quot; 00:15:5d:02:09:2d; subclass &quot;denied&quot; 00:15:5d:02:09:02;"
+      ]
     },
     "dns": {
       "forwarding": {
@@ -720,7 +899,7 @@
     }
   },
   "unifi": {
-    "config_network_wan": "{\"setting_preference\":\"auto\",\"load_balance_type\":\"failover-only\",\"mac_override_enabled\":false,\"ipv6_dns_preference\":\"auto\",\"purpose\":\"wan\",\"networkgroup\":\"WAN\",\"type_v6\":\"disabled\",\"provider_capabilities\":{\"upload_kilobits_per_second\":100000,\"download_kilobits_per_second\":100000},\"smartq_enabled\":false,\"dns_preference\":\"auto\",\"vlan_enabled\":false,\"ipv6_wan_delegation_type\":\"none\",\"site_id\":\"5e4f9f80a3e1d23b38297a3e\",\"name\":\"MTS\",\"report_wan_event\":false,\"_id\":\"65fcac775f777f72a6d52e98\",\"attr_no_delete\":true,\"type\":\"dhcp\",\"attr_hidden_id\":\"WAN\",\"ifname\":\"eth2\"}",
+    "config_network_wan": "{\"setting_preference\":\"manual\",\"purpose\":\"wan\",\"type_v6\":\"dhcpv6\",\"dhcp_options\":[],\"dhcpv6_pd_size\":56,\"ipv6_wan_delegation_type\":\"pd\",\"igmp_proxy_upstream\":false,\"load_balance_type\":\"failover-only\",\"mac_override_enabled\":false,\"ipv6_setting_preference\":\"manual\",\"ipv6_dns_preference\":\"auto\",\"single_network_lan\":\"\",\"ipv6_dns1\":\"\",\"ipv6_dns2\":\"\",\"networkgroup\":\"WAN\",\"provider_capabilities\":{\"upload_kilobits_per_second\":100000,\"download_kilobits_per_second\":100000},\"ip_aliases\":[],\"smartq_enabled\":false,\"dns_preference\":\"auto\",\"vlan_enabled\":false,\"site_id\":\"5e4f9f80a3e1d23b38297a3e\",\"name\":\"MTS\",\"report_wan_event\":false,\"_id\":\"65fcac775f777f72a6d52e98\",\"attr_no_delete\":true,\"type\":\"dhcp\",\"attr_hidden_id\":\"WAN\",\"ifname\":\"eth2\"}",
     "config_network_wan2": "{\"type\":\"disabled\"}",
     "usg_wevent": {
       "mcip": "239.254.127.63",
@@ -731,7 +910,10 @@
     "offload_pfor": {
       "pfor.status": "enable",
       "pfor.rules": {
-        "6606b939dc63a76bdacaf8f8": "src=0.0.0.0,dst_port='8443',fwd=192.168.2.12,fwd_port='8443',tcp=1,udp=0"
+        "6606b939dc63a76bdacaf8f8": "src=0.0.0.0,dst_port='8443',fwd=192.168.2.12,fwd_port='8443',tcp=1,udp=0",
+        "660c6e8e8d6d5f1535169eb8": "src=2.2.2.2,dst_port='9001',fwd=1.1.1.1,fwd_port='9000',tcp=1,udp=1",
+        "660c6ef58d6d5f1535169ebd": "src=3.3.3.3,dst_port='9000',fwd=1.1.1.1,fwd_port='9000',tcp=1,udp=1",
+        "660c70298d6d5f1535169edf": "src=0.0.0.0,dst_port='9000',fwd=1.1.1.1,fwd_port='9000',tcp=1,udp=1"
       }
     },
     "redirector": {
@@ -741,6 +923,6 @@
       "redirector.port": "39080"
     },
     "offload_jeetpktdo": "enable",
-    "echo_server": "8.8.8.8"
+    "echo_server": "134.17.24.1"
   }
 }

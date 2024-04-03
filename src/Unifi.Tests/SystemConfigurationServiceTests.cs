@@ -26,7 +26,7 @@ namespace Unifi.Tests
             await service.ApplyAsync(systemCfg, configuration);
 
             // Assert
-            Assert.Equal("8.8.8.8", configuration.EchoServer);
+            Assert.Equal("134.17.24.1", configuration.EchoServer);
         }
     }
 }

@@ -2,7 +2,7 @@
 
 namespace Unifi.Gateway.Models.V1
 {
-    public class FirewallRuleItem
+    public class FirewallRule
     {
         [JsonPropertyName("action")]
         public string Action { get; set; } = string.Empty;
