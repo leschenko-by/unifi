@@ -21,6 +21,7 @@ namespace Unifi.Gateway.Devices
         private readonly IConfigurationWriter configurationWriter;
         private readonly IConnectRequest connectRequest;
         private readonly IEthernetInterface discoveryInterface;
+        private readonly ILogger<BaseUnifiDevice> logger;
         private JsonObject? nextCommand = null;
         protected Configuration configuration;
 
@@ -60,6 +61,8 @@ namespace Unifi.Gateway.Devices
             configurationWriter = serviceProvider.GetRequiredService<IConfigurationWriter>();
             connectRequest = serviceProvider.GetRequiredService<IConnectRequest>();
             configuration = configurationReader.LoadConfiguration();
+            logger = serviceProvider.GetRequiredService<ILogger<BaseUnifiDevice>>();
+
             this.serviceProvider = serviceProvider;
 
             serviceOptions = serviceProvider.GetRequiredService<IOptions<GeneralServiceOptions>>();
@@ -561,12 +564,16 @@ namespace Unifi.Gateway.Devices
                             var reply = await ping.SendPingAsync(IPAddress.Parse(t.Ip));
                             if (reply != null && reply.Status == IPStatus.Success)
                             {
+                                logger.LogDebug("Ping {ip} => {time}ms", t.Ip, reply.RoundtripTime);
                                 return true;
                             }
+
+                            logger.LogDebug("Ping {ip} completed with status: {status}", t.Ip, reply?.Status);
                             return false;
                         }
-                        catch (Exception)
+                        catch (Exception ex)
                         {
+                            logger.LogError(ex, "Can't ping {ip}", t.Ip);
                             return false;
                         }
                         finally
