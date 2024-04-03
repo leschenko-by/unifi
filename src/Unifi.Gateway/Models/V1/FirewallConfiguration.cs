@@ -7,6 +7,9 @@ namespace Unifi.Gateway.Models.V1
         [JsonPropertyName("name")]
         public Dictionary<string, FirewallRuleGroup> Names { get; set; } = [];
 
+        [JsonPropertyName("ipv6-name")]
+        public Dictionary<string, FirewallRuleGroup> NamesV6 { get; set; } = [];
+
         [JsonPropertyName("group")]
         public FirewallGroupConfiguration Groups { get; set; } = new();
     }

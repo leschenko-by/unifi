@@ -22,11 +22,12 @@ namespace Unifi.Gateway.Common.Services
                 configuration.ConfigNetworkWAN = cfg.Unifi.ConfigNetworkWAN;
                 configuration.ConfigNetworkWAN2 = cfg.Unifi.ConfigNetworkWAN2;
 
-                await ApplyFirewallSettingsAsync(cfg);
+                await ApplyIpv4FirewallSettingsAsync(cfg);
+                await ApplyIpv6FirewallSettingsAsync(cfg);
             }
         }
 
-        private async Task ApplyFirewallSettingsAsync(SystemConfiguration cfg)
+        private async Task ApplyIpv4FirewallSettingsAsync(SystemConfiguration cfg)
         {
             var nats = GetNatTables(cfg).ToArray();
             var mangles = GetMangleTables(cfg).ToArray();
@@ -39,6 +40,27 @@ namespace Unifi.Gateway.Common.Services
             if (changed)
             {
                 using (var file = File.Open("/etc/ufw/before.rules", FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read))
+                {
+                    file.SetLength(0);
+                    await file.WriteAsync(Encoding.UTF8.GetBytes(output));
+                    await file.FlushAsync();
+                }
+                await Task.Delay(500);
+                await ufw.ReloadAsync();
+            }
+        }
+
+        private async Task ApplyIpv6FirewallSettingsAsync(SystemConfiguration cfg)
+        {
+            var filters = GetFilterV6Tables(cfg).ToArray();
+
+            var lines = await File.ReadAllLinesAsync("/etc/ufw/before6.rules");
+
+            var (output, changed) = ApplySettings(lines, [], [], filters);
+
+            if (changed)
+            {
+                using (var file = File.Open("/etc/ufw/before6.rules", FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read))
                 {
                     file.SetLength(0);
                     await file.WriteAsync(Encoding.UTF8.GetBytes(output));
@@ -173,7 +195,7 @@ namespace Unifi.Gateway.Common.Services
 
                     var protos = GetProtos(rule);
 
-                    var destPorts = GetPorts(group);
+                    var destPorts = GetPorts(cfg, group);
                     var port = destPorts.Length switch
                     {
                         0 => "",
@@ -181,7 +203,7 @@ namespace Unifi.Gateway.Common.Services
                         _ => "-m multiport --dports " + string.Join(",", destPorts)
                     };
 
-                    var destAddrs = GetAddresses(group);
+                    var destAddrs = GetAddresses(cfg, group);
                     var destinations = destAddrs.Length > 0
                         ? destAddrs.Select(d => "-d " + d).ToArray()
                         : [""];
@@ -195,42 +217,88 @@ namespace Unifi.Gateway.Common.Services
                     }
                 }
             }
+        }
 
-            string[] GetAddresses(FirewallRuleDestinationGroup? rule)
+        private static IEnumerable<string> GetFilterV6Tables(SystemConfiguration cfg)
+        {
+            var nics = new List<(string, string)>
             {
-                var name = rule?.AddressGroup;
-                if (!string.IsNullOrEmpty(name))
+                ("WANv6_LOCAL", "eth0"),
+                ("LANv6_IN", "eth1"),
+            };
+
+            foreach (var (name, nic) in nics)
+            {
+                foreach (var rule in cfg.Firewall.NamesV6[name].Rules.Select(t => t.Value))
                 {
-                    return cfg.Firewall.Groups.AddressGroups[name].Addresses.ToArray();
+                    if (string.IsNullOrEmpty(rule.Protocol)) continue;
+                    if (!string.IsNullOrEmpty(rule.Destination?.Address)) continue;
+                    if (!string.IsNullOrEmpty(rule.Destination?.Port)) continue;
+
+                    if (rule.Protocol == "ipv6-icmp") continue; // temp
+
+                    var group = rule.Destination?.Group;
+
+                    var protos = GetProtos(rule);
+
+                    var destPorts = GetPorts(cfg, group);
+                    var port = destPorts.Length switch
+                    {
+                        0 => "",
+                        1 => "--dport " + destPorts.First(),
+                        _ => "-m multiport --dports " + string.Join(",", destPorts)
+                    };
+
+                    var destAddrs = GetAddresses(cfg, group);
+                    var destinations = destAddrs.Length > 0
+                        ? destAddrs.Select(d => "-d " + d).ToArray()
+                        : [""];
+
+                    foreach (var destination in destinations)
+                    {
+                        foreach (var proto in protos)
+                        {
+                            yield return $"-A ufw-before-input -i {nic} {destination} -p {proto} {port} -j {rule.Action.ToUpper()}".Replace("  ", " ");
+                        }
+                    }
                 }
-                return [];
+            }
+        }
+
+        static string[] GetAddresses(SystemConfiguration cfg, FirewallRuleDestinationGroup? rule)
+        {
+            var name = rule?.AddressGroup;
+            if (!string.IsNullOrEmpty(name))
+            {
+                return cfg.Firewall.Groups.AddressGroups[name].Addresses.ToArray();
+            }
+            return [];
+        }
+
+        static int[] GetPorts(SystemConfiguration cfg, FirewallRuleDestinationGroup? rule)
+        {
+            var name = rule?.PortGroup;
+            if (!string.IsNullOrEmpty(name))
+            {
+                return cfg.Firewall.Groups.PortGroups[name].Ports.Select(t => Convert.ToInt32(t.ToString())).ToArray();
+            }
+            return [];
+        }
+
+        static List<string> GetProtos(FirewallRule rule)
+        {
+            var protos = new List<string>();
+            if (rule.Protocol == "tcp_udp")
+            {
+                protos.Add("tcp");
+                protos.Add("udp");
+            }
+            else if (!string.IsNullOrEmpty(rule.Protocol))
+            {
+                protos.Add(rule.Protocol);
             }
 
-            int[] GetPorts(FirewallRuleDestinationGroup? rule)
-            {
-                var name = rule?.PortGroup;
-                if (!string.IsNullOrEmpty(name))
-                {
-                    return cfg.Firewall.Groups.PortGroups[name].Ports.Select(t => Convert.ToInt32(t.ToString())).ToArray();
-                }
-                return [];
-            }
-
-            static List<string> GetProtos(FirewallRule rule)
-            {
-                var protos = new List<string>();
-                if (rule.Protocol == "tcp_udp")
-                {
-                    protos.Add("tcp");
-                    protos.Add("udp");
-                }
-                else if (!string.IsNullOrEmpty(rule.Protocol))
-                {
-                    protos.Add(rule.Protocol);
-                }
-
-                return protos;
-            }
+            return protos;
         }
     }
 }
