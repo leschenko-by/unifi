@@ -12,6 +12,7 @@ namespace Unifi.Gateway.Common.Services
             try
             {
                 await ResetIpTablesAsync();
+                await ResetIp6TablesAsync();
                 await ReloadUfwAsync();
             }
             catch (Exception ex)
@@ -34,6 +35,26 @@ namespace Unifi.Gateway.Common.Services
                     COMMIT
                     *mangle
                     COMMIT
+                    *filter
+                    COMMIT
+                    """);
+
+                writer.Close();
+
+                await process.WaitForExitAsync();
+            }
+
+            static async Task ResetIp6TablesAsync()
+            {
+                using var process = new Process();
+                process.StartInfo.FileName = "ip6tables-restore";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardInput = true;
+                process.Start();
+
+                var writer = process.StandardInput;
+
+                writer.Write($$"""
                     *filter
                     COMMIT
                     """);
