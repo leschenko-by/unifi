@@ -38,7 +38,13 @@ namespace Unifi.Gateway.Common.Services
 
             if (changed)
             {
-                await File.WriteAllTextAsync("/etc/ufw/before.rules", output);
+                using (var file = File.Open("/etc/ufw/before.rules", FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read))
+                {
+                    file.SetLength(0);
+                    await file.WriteAsync(Encoding.UTF8.GetBytes(output));
+                    await file.FlushAsync();
+                }
+                await Task.Delay(500);
                 await ufw.ReloadAsync();
             }
         }
