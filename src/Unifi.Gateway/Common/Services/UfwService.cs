@@ -11,16 +11,25 @@ namespace Unifi.Gateway.Common.Services
         {
             try
             {
-                // reset iptables
-                var iptables = new Process
-                {
-                    StartInfo =
-                    {
-                        FileName = "iptables-restore",
-                        RedirectStandardInput = true,
-                    },
-                };
-                iptables.StandardInput.Write($$"""
+                await ResetIpTablesAsync();
+                await ReloadUfwAsync();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Can't reload firewall");
+            }
+
+            static async Task ResetIpTablesAsync()
+            {
+                using var process = new Process();
+                process.StartInfo.FileName = "iptables-restore";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardInput = true;
+                process.Start();
+
+                var writer = process.StandardInput;
+
+                writer.Write($$"""
                     *nat
                     COMMIT
                     *mangle
@@ -28,26 +37,19 @@ namespace Unifi.Gateway.Common.Services
                     *filter
                     COMMIT
                     """);
-                iptables.Start();
-                await iptables.WaitForExitAsync();
 
-                await Task.Delay(500);
+                writer.Close();
 
-                // ufw reload
-                var ufw = new Process
-                {
-                    StartInfo =
-                    {
-                        FileName = "ufw",
-                        Arguments = "reload",
-                    }
-                };
-                ufw.Start();
-                await ufw.WaitForExitAsync();
+                await process.WaitForExitAsync();
             }
-            catch (Exception ex)
+
+            static async Task ReloadUfwAsync()
             {
-                logger.LogError(ex, "Can't reload firewall");
+                using var process = new Process();
+                process.StartInfo.FileName = "ufw";
+                process.StartInfo.Arguments = "reload";
+                process.Start();
+                await process.WaitForExitAsync();
             }
         }
     }
