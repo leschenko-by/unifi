@@ -5,6 +5,36 @@ namespace Unifi.Gateway.Models.V1
     public class FirewallConfiguration
     {
         [JsonPropertyName("name")]
-        public Dictionary<string, FirewallRuleGroup> Groups { get; set; } = new();
+        public Dictionary<string, FirewallRuleGroup> Names { get; set; } = [];
+
+        [JsonPropertyName("group")]
+        public FirewallGroupConfiguration Groups { get; set; } = new();
+    }
+
+    public class FirewallGroupConfiguration
+    {
+        [JsonPropertyName("port-group")]
+        public Dictionary<string, FirewallPortGroup> PortGroups { get; set; } = [];
+
+        [JsonPropertyName("address-group")]
+        public Dictionary<string, FirewallAddressGroup> AddressGroups { get; set; } = [];
+    }
+
+    public class FirewallPortGroup
+    {
+        [JsonPropertyName("description")]
+        public string Description { get; set; } = string.Empty;
+
+        [JsonPropertyName("port")]
+        public List<object> Ports { get; set; } = [];
+    }
+
+    public class FirewallAddressGroup
+    {
+        [JsonPropertyName("description")]
+        public string Description { get; set; } = string.Empty;
+
+        [JsonPropertyName("address")]
+        public List<string> Addresses { get; set; } = [];
     }
 }
