@@ -517,7 +517,7 @@ namespace Unifi.Gateway.Devices
         {
             await Task.Yield();
 
-            (string Ip, string Mac, string Nic)[] arps = [];
+            ArpRecord[] arpstable = [];
             if (File.Exists("/proc/net/arp"))
             {
                 var rx = RegExProvider.GetArpRegEx();
@@ -526,34 +526,10 @@ namespace Unifi.Gateway.Devices
                     from line in lines
                     let match = rx.Match(line)
                     where match.Success
-                    select (match.Groups["ip"].Value, match.Groups["mac"].Value, match.Groups["nic"].Value);
+                    select new ArpRecord(match.Groups["ip"].Value, match.Groups["mac"].Value, match.Groups["nic"].Value);
 
-                arps = query.ToArray();
+                arpstable = query.ToArray();
             }
-
-            //NTopResponse? response = null;
-            //try
-            //{
-            //    var client = new HttpClient();
-            //    client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse("Basic " + serviceOptions.Value.NTopAuth);
-
-            //    var json = await client.GetStringAsync(serviceOptions.Value.NTopUri);
-            //    response = JsonSerializer.Deserialize(json, SourceGenerationContext.Default.NTopResponse);
-            //    if (response != null)
-            //    {
-            //        logger.LogInformation("ntopng response status: {code}", response.ResponseCode);
-            //        logger.LogInformation("Found {count} items in ntopng response", response.Hosts.Length);
-            //    }
-            //    else
-            //    {
-            //        logger.LogWarning("Can't deserialize ntopng response");
-            //    }
-            //}
-            //catch(Exception ex)
-            //{
-            //    logger.LogWarning(ex, "Can't deserialize ntopng response");
-            //    response = null;
-            //}
 
             var eths = new List<JsonObject>();
             for (var i = 0; i < network.Interfaces.Count; i++)
@@ -573,40 +549,45 @@ namespace Unifi.Gateway.Devices
                 {
                     var mac = string.Join(":", eth.MacAddress.Select(t => t.ToString("x2")));
 
-                    var query =
-                        from line in arps
-                        where line.Nic == eth.LocalNic
-                        select new JsonObject
-                        {
-                            ["age"] = 0,
-                            ["authorized"] = true,
-                            ["ip"] = line.Ip,
-                            ["mac"] = line.Mac,
-                            ["uptime"] = 0,
-                            ["tx_bytes"] = 0,
-                            ["rx_bytes"] = 0,
-                            ["tx_packets"] = 0,
-                            ["rx_packets"] = 0,
-                        };
-                    var hosts = query.ToArray();
+                    var filteredArps = arpstable.Where(t => t.Nic == eth.LocalNic).ToList();
 
-                    //var query =
-                    //    from h in response?.Hosts ?? []
-                    //    where !string.IsNullOrEmpty(h.Router) && string.Equals(mac, h.Router.Replace("-", ":"), StringComparison.OrdinalIgnoreCase)
-                    //    group h by h.MacAddress into g
-                    //    select new JsonObject
-                    //    {
-                    //        ["age"] = 0,
-                    //        ["authorized"] = true,
-                    //        ["ip"] = g.Where(t => t.IpVersion == 4).Select(t => t.IpAddress).FirstOrDefault(),
-                    //        ["mac"] = g.Key.ToLower(),
-                    //        ["uptime"] = g.Max(t => t.Duration),
-                    //        ["tx_bytes"] = g.Sum(t => t.BytesSent),
-                    //        ["rx_bytes"] = g.Sum(t => t.BytesReceived),
-                    //        ["tx_packets"] = g.Sum(t => t.PacketsSent),
-                    //        ["rx_packets"] = g.Sum(t => t.PacketsReceived),
-                    //    };
-                    //var hosts = query.ToArray();
+                    var semaphore = new SemaphoreSlim(16);
+                    var tasks = filteredArps.Select(async t =>
+                    {
+                        await semaphore.WaitAsync();
+                        try
+                        {
+                            var ping = new Ping();
+                            var reply = await ping.SendPingAsync(IPAddress.Parse(t.Ip), TimeSpan.FromMicroseconds(100));
+                            if (reply != null && reply.Status == IPStatus.Success)
+                            {
+                                return true;
+                            }
+                            return false;
+                        }
+                        catch (Exception)
+                        {
+                            return false;
+                        }
+                        finally
+                        {
+                            semaphore.Release();
+                        }
+                    });
+                    var available = await Task.WhenAll(tasks);
+
+                    var hosts = filteredArps.Where((_, i) => available[i]).Select(line => new JsonObject
+                    {
+                        ["age"] = 0,
+                        ["authorized"] = true,
+                        ["ip"] = line.Ip,
+                        ["mac"] = line.Mac,
+                        ["uptime"] = 0,
+                        ["tx_bytes"] = 0,
+                        ["rx_bytes"] = 0,
+                        ["tx_packets"] = 0,
+                        ["rx_packets"] = 0,
+                    }).ToArray();
 
                     string address = GetAddress(eth.IPAddress, eth.Netmask);
                     var stats = eth.GetIPStatistics();
