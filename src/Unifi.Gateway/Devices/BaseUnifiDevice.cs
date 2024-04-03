@@ -561,7 +561,7 @@ namespace Unifi.Gateway.Devices
                         try
                         {
                             using var ping = new Ping();
-                            var reply = await ping.SendPingAsync(IPAddress.Parse(t.Ip), TimeSpan.FromMicroseconds(250));
+                            var reply = await ping.SendPingAsync(IPAddress.Parse(t.Ip));
                             if (reply != null && reply.Status == IPStatus.Success)
                             {
                                 logger.LogDebug("Ping {ip} => {time}ms", t.Ip, reply.RoundtripTime);
