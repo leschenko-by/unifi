@@ -258,7 +258,7 @@ namespace Unifi.Gateway.Common.Services
                     {
                         foreach (var proto in protos)
                         {
-                            yield return $"-A ufw-before-input -i {nic} {destination} -p {proto} {port} -j {rule.Action.ToUpper()}".Replace("  ", " ");
+                            yield return $"-A ufw6-before-input -i {nic} {destination} -p {proto} {port} -j {rule.Action.ToUpper()}".Replace("  ", " ");
                         }
                     }
                 }
