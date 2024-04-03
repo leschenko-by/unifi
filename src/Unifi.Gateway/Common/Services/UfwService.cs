@@ -31,6 +31,8 @@ namespace Unifi.Gateway.Common.Services
                 iptables.Start();
                 await iptables.WaitForExitAsync();
 
+                await Task.Delay(500);
+
                 // ufw reload
                 var ufw = new Process
                 {
