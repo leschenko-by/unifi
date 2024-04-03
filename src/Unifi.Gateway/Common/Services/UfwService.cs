@@ -11,7 +11,7 @@ namespace Unifi.Gateway.Common.Services
         {
             try
             {
-                // iptables -t nat -F
+                // reset iptables
                 var iptables = new Process
                 {
                     StartInfo =
