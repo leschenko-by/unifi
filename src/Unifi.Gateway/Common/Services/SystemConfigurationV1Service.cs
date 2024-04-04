@@ -180,7 +180,7 @@ namespace Unifi.Gateway.Common.Services
             var nics = new List<(string, string)>
             {
                 ("WAN_LOCAL", "eth0"),
-                ("LAN_IN", "eth1"),
+                ("LAN_LOCAL", "eth1"),
             };
 
             foreach (var (name, nic) in nics)
@@ -224,7 +224,7 @@ namespace Unifi.Gateway.Common.Services
             var nics = new List<(string, string)>
             {
                 ("WANv6_LOCAL", "eth0"),
-                ("LANv6_IN", "eth1"),
+                ("LANv6_LOCAL", "eth1"),
             };
 
             foreach (var (name, nic) in nics)
