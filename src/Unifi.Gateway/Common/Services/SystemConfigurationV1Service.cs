@@ -288,16 +288,15 @@ namespace Unifi.Gateway.Common.Services
         static List<string> GetProtos(FirewallRule rule)
         {
             var protos = new List<string>();
-            if (rule.Protocol == "tcp_udp")
+            if (rule.Protocol == "tcp_udp" || rule.Protocol == "all")
             {
                 protos.Add("tcp");
                 protos.Add("udp");
             }
-            else if (!string.IsNullOrEmpty(rule.Protocol))
+            else if (rule.Protocol == "tcp" || rule.Protocol == "udp")
             {
                 protos.Add(rule.Protocol);
             }
-
             return protos;
         }
     }
