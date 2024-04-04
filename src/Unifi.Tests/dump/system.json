@@ -272,19 +272,8 @@
       },
       "LAN_LOCAL": {
         "default-action": "accept",
-        "description": "packets from intranet to gateway"
-      },
-      "LAN_IN": {
-        "default-action": "accept",
-        "description": "packets from intranet",
+        "description": "packets from intranet to gateway",
         "rule": {
-          "6001": {
-            "action": "accept",
-            "description": "accounting defined network 192.168.2.0/24",
-            "source": {
-              "address": "192.168.2.0/24"
-            }
-          },
           "4000": {
             "action": "accept",
             "description": "OpenSSH",
@@ -303,6 +292,19 @@
               "group": {
                 "port-group": "660d78ff8d6d5f153516b9cc"
               }
+            }
+          }
+        }
+      },
+      "LAN_IN": {
+        "default-action": "accept",
+        "description": "packets from intranet",
+        "rule": {
+          "6001": {
+            "action": "accept",
+            "description": "accounting defined network 192.168.2.0/24",
+            "source": {
+              "address": "192.168.2.0/24"
             }
           }
         }
@@ -451,11 +453,7 @@
       },
       "LANv6_LOCAL": {
         "default-action": "accept",
-        "description": "packets from intranet to gateway"
-      },
-      "LANv6_IN": {
-        "default-action": "accept",
-        "description": "packets from intranet",
+        "description": "packets from intranet to gateway",
         "rule": {
           "4000": {
             "action": "accept",
@@ -468,6 +466,10 @@
             }
           }
         }
+      },
+      "LANv6_IN": {
+        "default-action": "accept",
+        "description": "packets from intranet"
       },
       "LANv6_OUT": {
         "default-action": "accept",
@@ -541,6 +543,16 @@
               "invalid": "enable",
               "new": "disable",
               "related": "disable"
+            }
+          },
+          "2000": {
+            "action": "accept",
+            "description": "OpenSSH",
+            "protocol": "tcp",
+            "destination": {
+              "group": {
+                "port-group": "660c5ba18d6d5f1535169c9b"
+              }
             }
           }
         }
