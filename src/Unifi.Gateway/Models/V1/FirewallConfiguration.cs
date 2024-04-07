@@ -21,6 +21,9 @@ namespace Unifi.Gateway.Models.V1
 
         [JsonPropertyName("address-group")]
         public Dictionary<string, FirewallAddressGroup> AddressGroups { get; set; } = [];
+
+        [JsonPropertyName("ipv6-address-group")]
+        public Dictionary<string, FirewallAddressGroup> AddressGroupsV6 { get; set; } = [];
     }
 
     public class FirewallPortGroup

@@ -249,7 +249,7 @@ namespace Unifi.Gateway.Common.Services
                         _ => "-m multiport --dports " + string.Join(",", destPorts)
                     };
 
-                    var destAddrs = GetAddresses(cfg, group);
+                    var destAddrs = GetIpv6Addresses(cfg, group);
                     var destinations = destAddrs.Length > 0
                         ? destAddrs.Select(d => "-d " + d).ToArray()
                         : [""];
@@ -271,6 +271,16 @@ namespace Unifi.Gateway.Common.Services
             if (!string.IsNullOrEmpty(name))
             {
                 return cfg.Firewall.Groups.AddressGroups[name].Addresses.ToArray();
+            }
+            return [];
+        }
+
+        static string[] GetIpv6Addresses(SystemConfiguration cfg, FirewallRuleDestinationGroup? rule)
+        {
+            var name = rule?.AddressGroup;
+            if (!string.IsNullOrEmpty(name))
+            {
+                return cfg.Firewall.Groups.AddressGroupsV6[name].Addresses.ToArray();
             }
             return [];
         }
