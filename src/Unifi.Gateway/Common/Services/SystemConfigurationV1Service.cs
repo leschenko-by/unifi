@@ -22,8 +22,8 @@ namespace Unifi.Gateway.Common.Services
                 configuration.ConfigNetworkWAN = cfg.Unifi.ConfigNetworkWAN;
                 configuration.ConfigNetworkWAN2 = cfg.Unifi.ConfigNetworkWAN2;
 
-                await ApplyIpv4FirewallSettingsAsync(cfg);
-                await ApplyIpv6FirewallSettingsAsync(cfg);
+                //await ApplyIpv4FirewallSettingsAsync(cfg);
+                //await ApplyIpv6FirewallSettingsAsync(cfg);
             }
         }
 
