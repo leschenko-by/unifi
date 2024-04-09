@@ -84,6 +84,7 @@ namespace Unifi.Gateway.Common.Services
 
         private static IEnumerable<string> BuildFilters(SystemConfiguration cfg, string name, string nic, string chain, bool input)
         {
+            var direction = input ? "-i" : "-o";
             yield return $"# {name}";
             foreach (var rule in cfg.Firewall.Names[name].Rules.Select(t => t.Value))
             {
@@ -107,7 +108,6 @@ namespace Unifi.Gateway.Common.Services
                     {
                         states.Add("NEW");
                     }
-                    var direction = input ? "-i" : "-o";
                     yield return $"-A {chain} {direction} {nic} -m conntrack --ctstate {string.Join(",", states)} -j {action}";
                     continue;
                 }
@@ -146,7 +146,7 @@ namespace Unifi.Gateway.Common.Services
                     {
                         foreach (var proto in protos)
                         {
-                            yield return $"-A {chain} {source} {destination} {proto} {sport} {dport} -j {action}";
+                            yield return $"-A {chain} {direction} {nic} {source} {destination} {proto} {sport} {dport} -j {action}";
                         }
                     }
                 }
@@ -154,7 +154,6 @@ namespace Unifi.Gateway.Common.Services
 
             if (cfg.Firewall.Names[name].DefaultAction != "drop")
             {
-                var direction = input ? "-i" : "-o";
                 yield return $"-A {chain} {direction} {nic} -j {cfg.Firewall.Names[name].DefaultAction.ToUpper()}";
             }
             yield return string.Empty;
