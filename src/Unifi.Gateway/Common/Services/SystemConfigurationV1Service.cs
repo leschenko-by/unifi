@@ -221,29 +221,7 @@ namespace Unifi.Gateway.Common.Services
                 var proto = "-p " + rule.Protocol;
                 if (!string.IsNullOrEmpty(rule.Icmp?.TypeName) && rule.Icmp?.TypeName != "any")
                 {
-                    var type = rule.Icmp?.TypeName switch
-                    {
-                        "echo-reply" => 0,
-                        "destination-unreachable" => 3,
-                        "source-quench" => 4,
-                        "redirect" => 5,
-                        "echo-request" => 8,
-                        "router-advertisement" => 9,
-                        "router-solicitation" => 10,
-                        "time-exceeded" => 11,
-                        "parameter-problem" => 12,
-                        "timestamp-request" => 13,
-                        "timestamp-reply" => 14,
-                        "information-request" => 15,
-                        "information-reply" => 16,
-                        "address-mask-request" => 17,
-                        "address-mask-reply" => 18,
-                        _ => -1
-                    };
-                    if (type >= 0)
-                    {
-                        proto += " --icmp-type " + type;
-                    }
+                    proto += " --icmp-type " + rule.Icmp?.TypeName;
                 }
                 protos.Add(proto);
             }
