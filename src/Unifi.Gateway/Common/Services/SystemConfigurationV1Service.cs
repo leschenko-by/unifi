@@ -100,6 +100,7 @@ namespace Unifi.Gateway.Common.Services
             AppendRules(rules, BuildFilters(cfg, "LAN_OUT", lan, "unifi-user-forward", false));
 
             rules.AppendLine("COMMIT");
+            rules.AppendLine();
         }
 
         private static IEnumerable<string> BuildFilters(SystemConfiguration cfg, string name, string nic, string chain, bool input)
@@ -245,6 +246,7 @@ namespace Unifi.Gateway.Common.Services
                 -A POSTROUTING -o {wan} -m policy --dir out --pol ipsec -j ACCEPT
                 -A POSTROUTING -o {wan} -j MASQUERADE
                 COMMIT
+
                 """);
         }
 
