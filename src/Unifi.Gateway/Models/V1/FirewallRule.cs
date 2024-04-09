@@ -14,9 +14,12 @@ namespace Unifi.Gateway.Models.V1
         public FirewallRuleDestination? Destination { get; set; }
 
         [JsonPropertyName("source")]
-        public FirewallRuleSource? Source { get; set; }
+        public FirewallRuleDestination? Source { get; set; }
 
         [JsonPropertyName("protocol")]
         public string? Protocol { get; set; }
+
+        [JsonPropertyName("state")]
+        public FirewallRuleState? State { get; set; }
     }
 }

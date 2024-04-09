@@ -22,7 +22,7 @@ namespace Unifi.Gateway
             services.AddTransient<IConfigurationReader, ConfigurationReader>();
             services.AddTransient<IConfigurationWriter, ConfigurationWriter>();
             services.AddTransient<IUnifiProtocol, UnifiProtocol>();
-            services.AddTransient<IUfwService, UfwService>();
+            services.AddTransient<IFirewallService, FirewallService>();
             services.AddKeyedTransient<IUnifiDevice, UGW3Device>("UGW3");
             services.AddKeyedTransient<IUnifiDevice, UGW4Device>("UGW4");
             services.AddKeyedTransient<IUnifiDevice, UXGDevice>("UXG");
