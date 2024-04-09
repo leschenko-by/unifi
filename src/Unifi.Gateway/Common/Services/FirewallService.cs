@@ -14,8 +14,6 @@ namespace Unifi.Gateway.Common.Services
             if (rules != backup)
             {
                 var timestamp = DateTime.UtcNow;
-                Directory.CreateDirectory("/etc/iptables/history");
-                await File.WriteAllTextAsync($"/etc/iptables/history/{timestamp:yyyy-MM-dd HH:mm:ss.fff}.v4", rules);
                 Directory.CreateDirectory("/etc/iptables/backups");
                 await File.WriteAllTextAsync($"/etc/iptables/backups/{timestamp:yyyy-MM-dd HH:mm:ss.fff}.v4", backup);
 
