@@ -356,8 +356,35 @@
           },
           "4002": {
             "action": "accept",
-            "description": "Allow ICMP",
-            "protocol": "all"
+            "description": "Allow ICMP (Destination Unreachable)",
+            "protocol": "icmp",
+            "icmp": {
+              "type-name": "destination-unreachable"
+            }
+          },
+          "4003": {
+            "action": "accept",
+            "description": "Allow ICMP (Time Exceeded)",
+            "protocol": "icmp",
+            "icmp": {
+              "type-name": "time-exceeded"
+            }
+          },
+          "4004": {
+            "action": "accept",
+            "description": "Allow ICMP (Parameter Problem)",
+            "protocol": "icmp",
+            "icmp": {
+              "type-name": "parameter-problem"
+            }
+          },
+          "4005": {
+            "action": "accept",
+            "description": "Allow ICMP (Echo Request)",
+            "protocol": "icmp",
+            "icmp": {
+              "type-name": "echo-request"
+            }
           }
         }
       },

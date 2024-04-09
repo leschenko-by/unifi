@@ -218,9 +218,9 @@ namespace Unifi.Gateway.Common.Services
             }
             else if (rule.Protocol == "icmp")
             {
+                //todo: icmp type
                 protos.Add("-p " + rule.Protocol);
             }
-            //todo: icmp
             return protos;
         }
 
