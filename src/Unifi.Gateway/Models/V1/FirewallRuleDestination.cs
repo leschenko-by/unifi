@@ -21,5 +21,8 @@ namespace Unifi.Gateway.Models.V1
 
         [JsonPropertyName("address-group")]
         public string? AddressGroup { get; set; }
+
+        [JsonPropertyName("ipv6-address-group")]
+        public string? AddressGroupV6 { get; set; }
     }
 }

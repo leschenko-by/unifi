@@ -17,21 +17,42 @@ namespace Unifi.Gateway.Common.Services
                 Directory.CreateDirectory("/etc/iptables/backups");
                 await File.WriteAllTextAsync($"/etc/iptables/backups/{timestamp:yyyy-MM-dd HH:mm:ss.fff}.v4", backup);
 
-                if (await RestoreIpTablesAsync(rules))
+                if (await RestoreIpTablesAsync("iptables-restore", rules))
                 {
                     await File.WriteAllTextAsync("/etc/iptables/rules.v4", rules);
                 }
                 else
                 {
-                    await RestoreIpTablesAsync(backup);
+                    await RestoreIpTablesAsync("iptables-restore", backup);
                 }
             }
         }
 
-        private async Task<bool> RestoreIpTablesAsync(string rules)
+        public async Task ApplyIPv6RulesAsync(string rules)
+        {
+            rules = rules.ReplaceLineEndings();
+            var backup = await File.ReadAllTextAsync("/etc/iptables/rules.v6");
+            if (rules != backup)
+            {
+                var timestamp = DateTime.UtcNow;
+                Directory.CreateDirectory("/etc/iptables/backups");
+                await File.WriteAllTextAsync($"/etc/iptables/backups/{timestamp:yyyy-MM-dd HH:mm:ss.fff}.v6", backup);
+
+                if (await RestoreIpTablesAsync("ip6tables-restore", rules))
+                {
+                    await File.WriteAllTextAsync("/etc/iptables/rules.v6", rules);
+                }
+                else
+                {
+                    await RestoreIpTablesAsync("ip6tables-restore", backup);
+                }
+            }
+        }
+
+        private async Task<bool> RestoreIpTablesAsync(string cmd, string rules)
         {
             using var process = new Process();
-            process.StartInfo.FileName = "iptables-restore";
+            process.StartInfo.FileName = cmd;
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.RedirectStandardInput = true;
             process.StartInfo.RedirectStandardOutput = true;

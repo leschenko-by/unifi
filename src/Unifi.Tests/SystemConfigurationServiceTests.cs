@@ -1,4 +1,6 @@
-﻿using Moq.AutoMock;
+﻿using Moq;
+using Moq.AutoMock;
+using Unifi.Gateway.Common.Interfaces;
 using Unifi.Gateway.Common.Services;
 using Unifi.Gateway.Models;
 
@@ -11,6 +13,9 @@ namespace Unifi.Tests
 
         public SystemConfigurationServiceTests()
         {
+            mocker.Use<IFirewallBuilderIPv4>(mocker.CreateInstance<FirewallBuilderIPv4>());
+            mocker.Use<IFirewallBuilderIPv6>(mocker.CreateInstance<FirewallBuilderIPv6>());
+
             service = mocker.CreateInstance<SystemConfigurationV1Service>();
         }
 
@@ -27,6 +32,9 @@ namespace Unifi.Tests
 
             // Assert
             Assert.Equal("134.17.24.1", configuration.EchoServer);
+
+            mocker.GetMock<IFirewallService>().Verify(t => t.ApplyIPv4RulesAsync(It.IsAny<string>()));
+            mocker.GetMock<IFirewallService>().Verify(t => t.ApplyIPv6RulesAsync(It.IsAny<string>()));
         }
     }
 }

@@ -565,7 +565,7 @@
               "related": "disable"
             }
           },
-          "2000": {
+          "4000": {
             "action": "accept",
             "description": "OpenSSH",
             "protocol": "tcp",
@@ -574,6 +574,11 @@
                 "port-group": "660c5ba18d6d5f1535169c9b"
               }
             }
+          },
+          "4001": {
+            "action": "accept",
+            "description": "Allow ICMPv6",
+            "protocol": "ipv6-icmp"
           }
         }
       },
@@ -600,6 +605,21 @@
               "new": "disable",
               "related": "disable"
             }
+          },
+          "4000": {
+            "action": "accept",
+            "description": "Allow Digiteum LAN IPv6",
+            "protocol": "all",
+            "source": {
+              "group": {
+                "ipv6-address-group": "660c5c468d6d5f1535169cbc"
+              }
+            }
+          },
+          "4001": {
+            "action": "drop",
+            "description": "Drop Any Forwarded IPv6",
+            "protocol": "all"
           }
         }
       },

@@ -115,11 +115,19 @@ namespace Unifi.Gateway.Common.Services
                 var protos = GetProtos(rule);
 
                 var destPorts = GetPorts(cfg, rule.Destination);
-                var port = destPorts.Length switch
+                var dport = destPorts.Length switch
                 {
                     0 => "",
                     1 => "--dport " + destPorts.First(),
                     _ => "-m multiport --dports " + string.Join(",", destPorts)
+                };
+
+                var srcPorts = GetPorts(cfg, rule.Source);
+                var sport = srcPorts.Length switch
+                {
+                    0 => "",
+                    1 => "--sport " + srcPorts.First(),
+                    _ => "-m multiport --sports " + string.Join(",", srcPorts)
                 };
 
                 var destAddrs = GetAddresses(cfg, rule.Destination);
@@ -138,7 +146,7 @@ namespace Unifi.Gateway.Common.Services
                     {
                         foreach (var proto in protos)
                         {
-                            yield return $"-A {chain} {source} {destination} {proto} {port} -j {action}";
+                            yield return $"-A {chain} {source} {destination} {proto} {sport} {dport} -j {action}";
                         }
                     }
                 }
@@ -183,11 +191,11 @@ namespace Unifi.Gateway.Common.Services
         private static List<string> GetProtos(FirewallRule rule)
         {
             var protos = new List<string>();
-            if (string.IsNullOrEmpty(rule.Protocol))
+            if (string.IsNullOrEmpty(rule.Protocol) || rule.Protocol == "all")
             {
                 protos.Add("");
             }
-            else if (rule.Protocol == "tcp_udp" || rule.Protocol == "all")
+            else if (rule.Protocol == "tcp_udp")
             {
                 protos.Add("-p tcp");
                 protos.Add("-p udp");

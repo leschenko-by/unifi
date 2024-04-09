@@ -6,4 +6,9 @@ namespace Unifi.Gateway.Common.Interfaces
     {
         public string Build(SystemConfiguration cfg);
     }
+
+    public interface IFirewallBuilderIPv6
+    {
+        public string Build(SystemConfiguration cfg);
+    }
 }

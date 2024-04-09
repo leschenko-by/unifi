@@ -42,5 +42,8 @@ namespace Unifi.Gateway.Models.V1
 
         [JsonPropertyName("address")]
         public List<string> Addresses { get; set; } = [];
+
+        [JsonPropertyName("ipv6-address")]
+        public List<string> AddressesV6 { get; set; } = [];
     }
 }

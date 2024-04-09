@@ -1,0 +1,61 @@
+*filter
+:INPUT DROP [0:0]
+:FORWARD DROP [0:0]
+:OUTPUT DROP [0:0]
+
+:unifi6-before-input - [0:0]
+:unifi6-user-input - [0:0]
+:unifi6-after-input - [0:0]
+
+:unifi6-before-forward - [0:0]
+:unifi6-user-forward - [0:0]
+:unifi6-after-forward - [0:0]
+
+:unifi6-before-output - [0:0]
+:unifi6-user-output - [0:0]
+:unifi6-after-output - [0:0]
+
+-A INPUT -j unifi6-before-input
+-A INPUT -j unifi6-user-input
+-A INPUT -j unifi6-after-input
+-A FORWARD -j unifi6-before-forward
+-A FORWARD -j unifi6-user-forward
+-A FORWARD -j unifi6-after-forward
+-A OUTPUT -j unifi6-before-output
+-A OUTPUT -j unifi6-user-output
+-A OUTPUT -j unifi6-after-output
+
+-A unifi6-before-input -i lo -j ACCEPT
+-A unifi6-before-output -o lo -j ACCEPT
+-A unifi6-before-input -i eth1 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+-A unifi6-before-input -i eth1 -m conntrack --ctstate INVALID -j DROP
+-A unifi6-after-output -o eth1 -j ACCEPT
+
+# WANv6_LOCAL
+-A unifi6-user-input -i eth0 -p ipv6-icmp --icmpv6-type neighbor-advertisement -j ACCEPT
+-A unifi6-user-input -i eth0 -p ipv6-icmp --icmpv6-type neighbor-solicitation -j ACCEPT
+-A unifi6-user-input -i eth0 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+-A unifi6-user-input -s fe80::/10 -p udp --dport 546 -j ACCEPT
+-A unifi6-user-input -i eth0 -p udp --sport 547 --dport 546 -j ACCEPT
+-A unifi6-user-input -i eth0 -p ipv6-icmp --icmpv6-type router-advertisement -j ACCEPT
+-A unifi6-user-input -i eth0 -m conntrack --ctstate INVALID -j DROP
+-A unifi6-user-input -i eth0 -p tcp --dport 22 -j ACCEPT
+
+# WANv6_IN
+-A unifi6-user-forward -i eth0 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+-A unifi6-user-forward -i eth0 -m conntrack --ctstate INVALID -j DROP
+
+# WANv6_OUT
+-A unifi6-user-output -o eth0 -j ACCEPT
+
+# LANv6_LOCAL
+-A unifi6-user-input -i eth1 -p tcp --dport 22 -j ACCEPT
+-A unifi6-user-input -i eth1 -j ACCEPT
+
+# LANv6_IN
+-A unifi6-user-forward -i eth1 -j ACCEPT
+
+# LANv6_OUT
+-A unifi6-user-forward -o eth1 -j ACCEPT
+
+COMMIT
