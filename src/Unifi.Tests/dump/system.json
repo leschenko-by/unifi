@@ -276,22 +276,10 @@
         "rule": {
           "4000": {
             "action": "accept",
-            "description": "OpenSSH",
-            "protocol": "tcp",
-            "destination": {
-              "group": {
-                "port-group": "660c5ba18d6d5f1535169c9b"
-              }
-            }
-          },
-          "4001": {
-            "action": "accept",
-            "description": "Unifi Connect Request",
-            "protocol": "udp",
-            "destination": {
-              "group": {
-                "port-group": "660d78ff8d6d5f153516b9cc"
-              }
+            "description": "Allow ICMP",
+            "protocol": "icmp",
+            "icmp": {
+              "type-name": "any"
             }
           }
         }
@@ -365,6 +353,11 @@
                 "port-group": "660c5b618d6d5f1535169c97"
               }
             }
+          },
+          "4002": {
+            "action": "accept",
+            "description": "Allow ICMP",
+            "protocol": "all"
           }
         }
       },
