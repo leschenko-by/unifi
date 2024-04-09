@@ -577,8 +577,11 @@
           },
           "4001": {
             "action": "accept",
-            "description": "Allow ICMPv6",
-            "protocol": "ipv6-icmp"
+            "description": "Allow ICMPv6 (Echo Request)",
+            "protocol": "icmpv6",
+            "icmpv6": {
+              "type": "echo-request"
+            }
           }
         }
       },

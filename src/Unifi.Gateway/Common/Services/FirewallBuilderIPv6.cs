@@ -176,9 +176,9 @@ namespace Unifi.Gateway.Common.Services
             {
                 protos.Add("-p " + rule.Protocol);
             }
-            else if (rule.Protocol == "ipv6-icmp")
+            else if (rule.Protocol == "ipv6-icmp" || rule.Protocol == "icmpv6")
             {
-                var proto = "-p " + rule.Protocol;
+                var proto = "-p ipv6-icmp";
                 if (!string.IsNullOrEmpty(rule.Icmpv6?.TypeName) && rule.Icmpv6?.TypeName != "any")
                 {
                     proto += " --icmpv6-type " + rule.Icmpv6?.TypeName;
