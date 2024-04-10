@@ -57,20 +57,8 @@ namespace Unifi.Gateway.Common.Services
 
                 """);
 
-            rules.AppendLine("# Point-to-Point VPNs");
-            foreach (var network in cfg.Firewall.Groups.NetworkGroups["remote_user_vpn_network"].Networks)
-            {
-                rules.AppendLine($"-A unifi-before-forward -s {network} -m policy --dir in --pol ipsec --proto esp -j ACCEPT");
-                rules.AppendLine($"-A unifi-before-forward -s {network} -m policy --dir out --pol ipsec --proto esp -j ACCEPT");
-            }
-
-            rules.AppendLine("# Site-to-Site VPNs");
-            foreach (var network in cfg.Firewall.Groups.NetworkGroups["remote_site_vpn_network"].Networks)
-            {
-                rules.AppendLine($"-A unifi-before-forward -s {network} -m policy --dir in --pol ipsec --proto esp -j ACCEPT");
-                rules.AppendLine($"-A unifi-before-forward -s {network} -m policy --dir out --pol ipsec --proto esp -j ACCEPT");
-            }
-            rules.AppendLine();
+            AddVPNRules(cfg, rules, "remote_user_vpn_network", "# Point-to-Point VPNs");
+            AddVPNRules(cfg, rules, "remote_site_vpn_network", "# Site-to-Site VPNs");
 
             AppendRules(rules, BuildFilters(cfg, "WAN_LOCAL", wan, "unifi-user-input", true));
             AppendRules(rules, BuildFilters(cfg, "WAN_IN", wan, "unifi-user-forward", true));
@@ -80,6 +68,17 @@ namespace Unifi.Gateway.Common.Services
             AppendRules(rules, BuildFilters(cfg, "LAN_OUT", lan, "unifi-user-forward", false));
 
             rules.AppendLine("COMMIT");
+            rules.AppendLine();
+        }
+
+        private static void AddVPNRules(SystemConfiguration cfg, StringBuilder rules, string networkGroup, string comment)
+        {
+            rules.AppendLine(comment);
+            foreach (var network in cfg.Firewall.Groups.NetworkGroups[networkGroup].Networks)
+            {
+                rules.AppendLine($"-A unifi-before-forward -s {network} -m policy --dir in --pol ipsec --proto esp -j ACCEPT");
+                rules.AppendLine($"-A unifi-before-forward -s {network} -m policy --dir out --pol ipsec --proto esp -j ACCEPT");
+            }
             rules.AppendLine();
         }
 

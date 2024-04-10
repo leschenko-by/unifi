@@ -28,7 +28,9 @@
           "network": [
             "10.208.0.0/16",
             "10.110.0.0/24",
-            "192.168.128.0/20"
+            "192.168.128.0/20",
+            "172.26.73.0/24",
+            "8.14.113.0/24"
           ]
         },
         "remote_client_vpn_network": {
@@ -883,6 +885,20 @@
               "distance": "30"
             }
           }
+        },
+        "172.26.73.0/24": {
+          "next-hop-interface": {
+            "vti66": {
+              "distance": "30"
+            }
+          }
+        },
+        "8.14.113.0/24": {
+          "next-hop-interface": {
+            "vti66": {
+              "distance": "30"
+            }
+          }
         }
       }
     }
@@ -1101,7 +1117,7 @@
         "ipsec-settings": {
           "authentication": {
             "mode": "pre-shared-secret",
-            "pre-shared-secret": "3253453535345"
+            "pre-shared-secret": "orgEylg9"
           },
           "ike-lifetime": "3600"
         },
