@@ -483,7 +483,7 @@ namespace Unifi.Gateway.Devices
             await Task.Yield();
 
             ArpRecord[] arpstable = [];
-            if (File.Exists("/proc/net/arp"))
+            if (File.Exists("/proc/net/arp") && serviceOptions.Value.AnalyseARP)
             {
                 var rx = RegExProvider.GetArpRegEx();
                 var lines = await File.ReadAllLinesAsync("/proc/net/arp");

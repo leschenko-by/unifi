@@ -8,5 +8,6 @@
 
         public string NTopUri { get; set; } = string.Empty;
         public string NTopAuth { get; set; } = string.Empty;
+        public bool AnalyseARP { get; set; } = true;
     }
 }
