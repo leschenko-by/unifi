@@ -25,6 +25,7 @@ namespace Unifi.Gateway.BackgroundServices
 
             while (!token.IsCancellationRequested)
             {
+                device.RefreshInterfaces();
                 device.LoadConfigration();
 
                 var informUrl = device.InformUrl;

@@ -9,6 +9,7 @@
         Task<string> GetInformMessageAsync();
         void LoadConfigration();
         Task ParseResponseAsync(string json);
+        void RefreshInterfaces();
         void SaveConfigration();
         Task SendDiscoveryAsync(int broadcastIndex);
     }

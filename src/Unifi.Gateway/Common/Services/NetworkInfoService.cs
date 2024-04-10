@@ -7,13 +7,20 @@ namespace Unifi.Gateway.Common.Services
 {
     public class NetworkInfoService : INetworkInfoService
     {
-        public IReadOnlyList<IEthernetInterface?> Interfaces { get; }
+        private readonly string[] ports;
+
+        public IReadOnlyList<IEthernetInterface?> Interfaces { get; private set; } = [];
 
         public NetworkInfoService(IOptions<GeneralServiceOptions> serviceOptions)
         {
-            var ids = serviceOptions.Value.Ports.Split(",");
+            ports = serviceOptions.Value.Ports.Split(",");
+            RefreshInterfaces();
+        }
+
+        public void RefreshInterfaces()
+        {
             var networks = NetworkInterface.GetAllNetworkInterfaces();
-            Interfaces = ids.Select(id => networks.FirstOrDefault(n => n.Id == id))
+            Interfaces = ports.Select(id => networks.FirstOrDefault(n => n.Id == id))
                 .Select((t, index) => t != null ? new EthernetInterface(t, "eth" + index) : null)
                 .ToList().AsReadOnly();
         }

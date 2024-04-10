@@ -3,5 +3,7 @@
     public interface INetworkInfoService
     {
         public IReadOnlyList<IEthernetInterface?> Interfaces { get; }
+
+        void RefreshInterfaces();
     }
 }

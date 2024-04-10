@@ -326,10 +326,9 @@ namespace Unifi.Gateway.Devices
         protected async Task<JsonArray> GetInterfacesAsync(int[] wanPorts)
         {
             var eths = new List<JsonObject>();
-            for (var i = 0; i < network.Interfaces.Count; i++)
+            foreach (var (eth, i) in network.Interfaces.Select((eth, index) => (eth, index)))
             {
                 var port = i + 1;
-                var eth = network.Interfaces[i];
 
                 if (eth is null)
                 {
@@ -344,6 +343,7 @@ namespace Unifi.Gateway.Devices
                     eths.Add(await GetLanInterface("eth" + i, port, eth.IPAddress, eth.Netmask, eth.MacAddress, eth.GetIPStatistics()));
                 }
             }
+
             return new JsonArray(eths.ToArray());
         }
 
@@ -633,6 +633,11 @@ namespace Unifi.Gateway.Devices
             }
 
             return new JsonArray(eths.ToArray());
+        }
+
+        public void RefreshInterfaces()
+        {
+            network.RefreshInterfaces();
         }
     }
 }
