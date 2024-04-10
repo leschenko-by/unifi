@@ -5,7 +5,7 @@ using Unifi.Gateway.Models;
 
 namespace Unifi.Gateway.Common.Services
 {
-   public class NetworkInfoService : INetworkInfoService
+    public class NetworkInfoService : INetworkInfoService
     {
         public IReadOnlyList<IEthernetInterface?> Interfaces { get; }
 
@@ -14,7 +14,7 @@ namespace Unifi.Gateway.Common.Services
             var ids = serviceOptions.Value.Ports.Split(",");
             var networks = NetworkInterface.GetAllNetworkInterfaces();
             Interfaces = ids.Select(id => networks.FirstOrDefault(n => n.Id == id))
-                .Select(t => t != null ? new EthernetInterface(t) : null)
+                .Select((t, index) => t != null ? new EthernetInterface(t, "eth" + index) : null)
                 .ToList().AsReadOnly();
         }
     }

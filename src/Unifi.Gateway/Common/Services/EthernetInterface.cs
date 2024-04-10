@@ -5,37 +5,32 @@ using Unifi.Gateway.Common.Interfaces;
 
 namespace Unifi.Gateway.Common.Services
 {
-    public class EthernetInterface : IEthernetInterface
+    public class EthernetInterface(NetworkInterface eth, string unifiNic) : IEthernetInterface
     {
-        private readonly NetworkInterface eth;
+        private readonly NetworkInterface eth = eth;
+
+        public string UnifiNic { get; } = unifiNic;
 
         public string LocalNic => eth.Id;
-        public byte[] MacAddress { get; }
-        public IPAddress IPAddress { get; } = IPAddress.None;
-        public IPAddress Netmask { get; } = IPAddress.None;
-        public IPAddress[] Gateways { get; } = [];
-        public IPAddress[] DnsAddresses { get; } = [];
 
-        public EthernetInterface(NetworkInterface eth)
-        {
-            this.eth = eth;
+        public byte[] MacAddress => eth.GetPhysicalAddress().GetAddressBytes();
 
-            MacAddress = eth.GetPhysicalAddress().GetAddressBytes();
+        public IPAddress IPAddress => eth.GetIPProperties().UnicastAddresses
+            .FirstOrDefault(u => u.Address.AddressFamily == AddressFamily.InterNetwork)?
+            .Address ?? IPAddress.None;
 
-            var address = eth.GetIPProperties().UnicastAddresses
-                .FirstOrDefault(u => u.Address.AddressFamily == AddressFamily.InterNetwork);
+        public IPAddress Netmask => eth.GetIPProperties().UnicastAddresses
+            .FirstOrDefault(u => u.Address.AddressFamily == AddressFamily.InterNetwork)?
+            .IPv4Mask ?? IPAddress.None;
 
-            if (address != null)
-            {
-                IPAddress = address.Address;
-                Netmask = address.IPv4Mask;
-                Gateways = eth.GetIPProperties().GatewayAddresses
-                        .Select(gateway => gateway.Address)
-                        .Where(t => t.AddressFamily == AddressFamily.InterNetwork)
-                        .ToArray();
-                DnsAddresses = eth.GetIPProperties().DnsAddresses.Where(t => t.AddressFamily == AddressFamily.InterNetwork).ToArray();
-            }
-        }
+        public IPAddress[] Gateways => eth.GetIPProperties().GatewayAddresses
+            .Select(gateway => gateway.Address)
+            .Where(t => t.AddressFamily == AddressFamily.InterNetwork)
+            .ToArray();
+
+        public IPAddress[] DnsAddresses => eth.GetIPProperties().DnsAddresses
+            .Where(t => t.AddressFamily == AddressFamily.InterNetwork)
+            .ToArray();
 
         public IPInterfaceStatistics GetIPStatistics()
         {

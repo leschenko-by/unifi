@@ -263,6 +263,26 @@
                 "address-group": "authorized_guests"
               }
             }
+          },
+          "2001": {
+            "action": "accept",
+            "description": "dest ipv4 network subnet",
+            "protocol": "tcp_udp",
+            "destination": {
+              "group": {
+                "address-group": "NETv4_eth0"
+              }
+            }
+          },
+          "2000": {
+            "action": "accept",
+            "description": "dest ipv4 gateway ip",
+            "protocol": "tcp_udp",
+            "destination": {
+              "group": {
+                "address-group": "ADDRv4_eth0"
+              }
+            }
           }
         }
       },
@@ -581,6 +601,22 @@
             "protocol": "icmpv6",
             "icmpv6": {
               "type": "echo-request"
+            }
+          },
+          "4002": {
+            "action": "accept",
+            "description": "Allow ICMPv6 (Packet Too Big)",
+            "protocol": "icmpv6",
+            "icmpv6": {
+              "type": "packet-too-big"
+            }
+          },
+          "4003": {
+            "action": "accept",
+            "description": "Allow ICMPv6 (Time Exceeded)",
+            "protocol": "icmpv6",
+            "icmpv6": {
+              "type": "time-exceeded"
             }
           }
         }

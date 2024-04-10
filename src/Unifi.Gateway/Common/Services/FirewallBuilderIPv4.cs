@@ -85,7 +85,7 @@ namespace Unifi.Gateway.Common.Services
         private static IEnumerable<string> BuildFilters(SystemConfiguration cfg, string name, string nic, string chain, bool input)
         {
             yield return $"# {name}";
-            foreach (var rule in cfg.Firewall.Names[name].Rules.Select(t => t.Value))
+            foreach (var rule in cfg.Firewall.Names[name].Rules.OrderBy(t => Convert.ToInt32(t.Key)).Select(t => t.Value))
             {
                 var action = rule.Action.ToUpper();
                 if (rule.State is not null)

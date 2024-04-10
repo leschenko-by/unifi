@@ -11,6 +11,7 @@ namespace Unifi.Gateway.Common.Interfaces
         IPAddress Netmask { get; }
         IPAddress[] Gateways { get; }
         IPAddress[] DnsAddresses { get; }
+        string UnifiNic { get; }
 
         IPInterfaceStatistics GetIPStatistics();
     }

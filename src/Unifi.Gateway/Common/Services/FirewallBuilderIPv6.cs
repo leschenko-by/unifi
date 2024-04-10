@@ -72,7 +72,7 @@ namespace Unifi.Gateway.Common.Services
         {
             var direction = input ? "-i" : "-o";
             yield return $"# {name}";
-            foreach (var rule in cfg.Firewall.NamesV6[name].Rules.Select(t => t.Value))
+            foreach (var rule in cfg.Firewall.NamesV6[name].Rules.OrderBy(t => Convert.ToInt32(t.Key)).Select(t => t.Value))
             {
                 var action = rule.Action.ToUpper();
                 if (rule.State is not null)
