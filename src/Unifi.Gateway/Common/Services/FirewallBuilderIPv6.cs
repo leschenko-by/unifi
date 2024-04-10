@@ -75,28 +75,8 @@ namespace Unifi.Gateway.Common.Services
             foreach (var rule in cfg.Firewall.NamesV6[name].Rules.OrderBy(t => Convert.ToInt32(t.Key)).Select(t => t.Value))
             {
                 var action = rule.Action.ToUpper();
-                if (rule.State is not null)
-                {
-                    var states = new List<string>();
-                    if (rule.State.Established == "enable")
-                    {
-                        states.Add("ESTABLISHED");
-                    }
-                    if (rule.State.Related == "enable")
-                    {
-                        states.Add("RELATED");
-                    }
-                    if (rule.State.Invalid == "enable")
-                    {
-                        states.Add("INVALID");
-                    }
-                    if (rule.State.New == "enable")
-                    {
-                        states.Add("NEW");
-                    }
-                    yield return $"-A {chain} {direction} {nic} -m conntrack --ctstate {string.Join(",", states)} -j {action}";
-                    continue;
-                }
+
+                var conntrack = GetConntrack(rule);
 
                 var protos = GetProtos(rule);
 
@@ -126,13 +106,19 @@ namespace Unifi.Gateway.Common.Services
                     ? srcAddrs.Select(d => "-s " + d).ToArray()
                     : [""];
 
+                var sourceMac = rule.Source?.MacAddress ?? string.Empty;
+                if (!string.IsNullOrEmpty(sourceMac))
+                {
+                    sourceMac = "--mac-source " + sourceMac;
+                }
+
                 foreach (var source in sources)
                 {
                     foreach (var destination in destinations)
                     {
                         foreach (var proto in protos)
                         {
-                            yield return $"-A {chain} {direction} {nic} {source} {destination} {proto} {sport} {dport} -j {action}";
+                            yield return $"-A {chain} {direction} {nic} {source} {sourceMac} {destination} {proto} {sport} {dport} {conntrack} -j {action}";
                         }
                     }
                 }
@@ -144,6 +130,34 @@ namespace Unifi.Gateway.Common.Services
                 yield return $"-A {chain} {direction} {nic} -j {defaultAction.ToUpper()}";
             }
             yield return string.Empty;
+        }
+
+        private static string GetConntrack(FirewallRule rule)
+        {
+            var conntrack = "";
+            if (rule.State is not null)
+            {
+                var states = new List<string>();
+                if (rule.State.Established == "enable")
+                {
+                    states.Add("ESTABLISHED");
+                }
+                if (rule.State.Related == "enable")
+                {
+                    states.Add("RELATED");
+                }
+                if (rule.State.Invalid == "enable")
+                {
+                    states.Add("INVALID");
+                }
+                if (rule.State.New == "enable")
+                {
+                    states.Add("NEW");
+                }
+                conntrack = $"-m conntrack --ctstate {string.Join(",", states)}";
+            }
+
+            return conntrack;
         }
 
         private static void AppendRules(StringBuilder rules, IEnumerable<string> lines)
@@ -165,7 +179,7 @@ namespace Unifi.Gateway.Common.Services
             var protocol = rule.Protocol;
             if (string.IsNullOrEmpty(protocol))
             {
-                return [];
+                return [""];
             }
 
             var opposite = protocol.StartsWith('!');
@@ -175,7 +189,7 @@ namespace Unifi.Gateway.Common.Services
 
             static List<string> GetProtocols(string protocol, string? icmpType)
             {
-                if (string.IsNullOrEmpty(protocol) || protocol == "all")
+                if (protocol == "all")
                 {
                     return [""];
                 }

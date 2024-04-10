@@ -44,6 +44,20 @@ namespace Unifi.Tests
                 .Setup(t => t.GetNetwork(ip, mask))
                 .Returns("192.168.0.0/24");
 
+            mocker.GetMock<IFirewallService>()
+                .Setup(t => t.ApplyIPv4RulesAsync(It.IsAny<string>()))
+                .Callback<string>(rules =>
+                {
+                    Assert.True(rules.Length > 0);
+                });
+            mocker.GetMock<IFirewallService>()
+                .Setup(t => t.ApplyIPv6RulesAsync(It.IsAny<string>()))
+                .Callback<string>(rules =>
+                {
+                    Assert.True(rules.Length > 0);
+                });
+
+
             // Act
             await service.ApplyAsync(systemCfg, configuration);
 

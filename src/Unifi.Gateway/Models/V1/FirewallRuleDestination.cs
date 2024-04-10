@@ -12,17 +12,8 @@ namespace Unifi.Gateway.Models.V1
 
         [JsonPropertyName("group")]
         public FirewallRuleDestinationGroup? Group { get; set; }
-    }
 
-    public class FirewallRuleDestinationGroup
-    {
-        [JsonPropertyName("port-group")]
-        public string? PortGroup { get; set; }
-
-        [JsonPropertyName("address-group")]
-        public string? AddressGroup { get; set; }
-
-        [JsonPropertyName("ipv6-address-group")]
-        public string? AddressGroupV6 { get; set; }
+        [JsonPropertyName("mac-address")]
+        public string? MacAddress { get; set; }
     }
 }
