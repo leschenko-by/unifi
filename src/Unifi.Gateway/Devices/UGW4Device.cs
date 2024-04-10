@@ -67,60 +67,6 @@ namespace Unifi.Gateway.Devices
             message["if_table"] = await GetInterfacesAsync([2,3]);
             message["network_table"] = await GetNetworkTableAsync();
             message["routes"] = await GetRoutesAsync();
-
-            message["vpn"] = new JsonObject
-            {
-                ["ipsec"] = new JsonObject
-                {
-                    ["sa"] = new JsonArray([
-                        new JsonObject
-                        {
-                            ["peer_id"] = "20.218.196.213",
-                            ["active_time"] = await systemInfo.GetUptimeAsync(),
-                            ["state"] = "up",
-                            ["connect_id"] = "peer-20.218.196.213-tunnel-0",
-                            ["in_bytes"] = 0,
-                            ["out_bytes"] = 0,
-                            ["lifetime"] = 28800,
-                            ["local_id"] = "134.17.26.13",
-                            ["local_ip"] = "134.17.26.13",
-                            ["nat_t"] = false,
-                            ["remote_id"] = "20.218.196.213",
-                            ["remote_ip"] = "20.218.196.213",
-                        },
-                        new JsonObject
-                        {
-                            ["peer_id"] = "174.138.14.217",
-                            ["active_time"] = await systemInfo.GetUptimeAsync(),
-                            ["state"] = "up",
-                            ["connect_id"] = "peer-174.138.14.217-tunnel-1",
-                            ["in_bytes"] = 0,
-                            ["out_bytes"] = 0,
-                            ["lifetime"] = 28800,
-                            ["local_id"] = "134.17.26.13",
-                            ["local_ip"] = "134.17.26.13",
-                            ["nat_t"] = false,
-                            ["remote_id"] = "174.138.14.217",
-                            ["remote_ip"] = "174.138.14.217",
-                        },
-                        new JsonObject
-                        {
-                            ["peer_id"] = "212.98.183.195",
-                            ["active_time"] = await systemInfo.GetUptimeAsync(),
-                            ["state"] = "up",
-                            ["connect_id"] = "peer-212.98.183.195-tunnel-2",
-                            ["in_bytes"] = 0,
-                            ["out_bytes"] = 0,
-                            ["lifetime"] = 28800,
-                            ["local_id"] = "134.17.26.13",
-                            ["local_ip"] = "134.17.26.13",
-                            ["nat_t"] = false,
-                            ["remote_id"] = "212.98.183.195",
-                            ["remote_ip"] = "212.98.183.195",
-                        },
-                    ]),
-                },
-            };
         }
 
         private void Log(string direction, byte[] data)
