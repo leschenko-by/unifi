@@ -4,8 +4,10 @@ using Unifi.Gateway.Models.V1;
 
 namespace Unifi.Gateway.Common.Services
 {
-    public class FirewallBuilderIPv4 : IFirewallBuilderIPv4
+    public class FirewallBuilderIPv4(INetworkInfoService network) : IFirewallBuilderIPv4
     {
+        private readonly INetworkInfoService network = network;
+
         public string Build(SystemConfiguration cfg)
         {
             const string wan = "eth0";
@@ -18,7 +20,7 @@ namespace Unifi.Gateway.Common.Services
             return rules.ToString();
         }
 
-        private static void AppendFilterRules(SystemConfiguration cfg, StringBuilder rules, string wan, string lan)
+        private void AppendFilterRules(SystemConfiguration cfg, StringBuilder rules, string wan, string lan)
         {
             rules.AppendLine($"""
                 *filter
@@ -71,7 +73,7 @@ namespace Unifi.Gateway.Common.Services
             rules.AppendLine();
         }
 
-        private static void AddVPNRules(SystemConfiguration cfg, StringBuilder rules, string networkGroup, string comment)
+        private void AddVPNRules(SystemConfiguration cfg, StringBuilder rules, string networkGroup, string comment)
         {
             rules.AppendLine(comment);
             foreach (var network in cfg.Firewall.Groups.NetworkGroups[networkGroup].Networks)
@@ -82,7 +84,7 @@ namespace Unifi.Gateway.Common.Services
             rules.AppendLine();
         }
 
-        private static IEnumerable<string> BuildFilters(SystemConfiguration cfg, string name, string nic, string chain, bool input)
+        private IEnumerable<string> BuildFilters(SystemConfiguration cfg, string name, string nic, string chain, bool input)
         {
             yield return $"# {name}";
             foreach (var rule in cfg.Firewall.Names[name].Rules.OrderBy(t => Convert.ToInt32(t.Key)).Select(t => t.Value))
@@ -160,12 +162,33 @@ namespace Unifi.Gateway.Common.Services
             yield return string.Empty;
         }
 
-        private static string[] GetAddresses(SystemConfiguration cfg, FirewallRuleDestination? destination)
+        private string[] GetAddresses(SystemConfiguration cfg, FirewallRuleDestination? destination)
         {
             var name = destination?.Group?.AddressGroup;
             if (!string.IsNullOrEmpty(name))
             {
-                return cfg.Firewall.Groups.AddressGroups[name].Addresses.ToArray();
+                if (name.StartsWith("ADDRv4_"))
+                {
+                    var nic = name["ADDRv4_".Length..];
+                    var eth = network.Interfaces.FirstOrDefault(t => t?.UnifiNic == nic);
+                    if (eth is not null)
+                    {
+                        return [eth.IPAddress.ToString()];
+                    }
+                }
+                else if (name.StartsWith("NETv4_"))
+                {
+                    var nic = name["NETv4_".Length..];
+                    var eth = network.Interfaces.FirstOrDefault(t => t?.UnifiNic == nic);
+                    if (eth is not null)
+                    {
+                        return [network.GetNetwork(eth.IPAddress, eth.Netmask)];
+                    }
+                }
+                else if (cfg.Firewall.Groups.AddressGroups.TryGetValue(name, out var group))
+                {
+                    return [.. group.Addresses];
+                }
             }
             else if (!string.IsNullOrEmpty(destination?.Address))
             {
@@ -174,7 +197,7 @@ namespace Unifi.Gateway.Common.Services
             return [];
         }
 
-        private static int[] GetPorts(SystemConfiguration cfg, FirewallRuleDestination? destination)
+        private int[] GetPorts(SystemConfiguration cfg, FirewallRuleDestination? destination)
         {
             var name = destination?.Group?.PortGroup;
             if (!string.IsNullOrEmpty(name))
@@ -188,35 +211,47 @@ namespace Unifi.Gateway.Common.Services
             return [];
         }
 
-        private static List<string> GetProtos(FirewallRule rule)
+        private List<string> GetProtos(FirewallRule rule)
         {
-            var protos = new List<string>();
-            if (string.IsNullOrEmpty(rule.Protocol) || rule.Protocol == "all")
+            var protocol = rule.Protocol;
+            if (string.IsNullOrEmpty(protocol))
             {
-                protos.Add("");
+                return [];
             }
-            else if (rule.Protocol == "tcp_udp")
+
+            var opposite = protocol.StartsWith('!');
+            var icmpType = rule.Icmp?.TypeName;
+            var result = GetProtocols(protocol.TrimStart('!'), icmpType);
+            return opposite ? [.. result.Select(rule => "! " + rule)] : result;
+
+            static List<string> GetProtocols(string protocol, string? icmpType)
             {
-                protos.Add("-p tcp");
-                protos.Add("-p udp");
-            }
-            else if (rule.Protocol == "tcp" || rule.Protocol == "udp")
-            {
-                protos.Add("-p " + rule.Protocol);
-            }
-            else if (rule.Protocol == "icmp")
-            {
-                var proto = "-p " + rule.Protocol;
-                if (!string.IsNullOrEmpty(rule.Icmp?.TypeName) && rule.Icmp?.TypeName != "any")
+                if (string.IsNullOrEmpty(protocol) || protocol == "all")
                 {
-                    proto += " --icmp-type " + rule.Icmp?.TypeName;
+                    return [""];
                 }
-                protos.Add(proto);
+                else if (protocol == "tcp_udp")
+                {
+                    return ["-p tcp", "-p udp"];
+                }
+                else if (protocol == "tcp" || protocol == "udp")
+                {
+                    return ["-p " + protocol];
+                }
+                else if (protocol == "icmp")
+                {
+                    var proto = "-p icmp";
+                    if (!string.IsNullOrEmpty(icmpType) && icmpType != "any")
+                    {
+                        proto += " --icmp-type " + icmpType;
+                    }
+                    return [proto];
+                }
+                return [];
             }
-            return protos;
         }
 
-        private static void AppendNatRules(SystemConfiguration cfg, StringBuilder rules, string wan)
+        private void AppendNatRules(SystemConfiguration cfg, StringBuilder rules, string wan)
         {
             rules.AppendLine($"""
                 *nat
@@ -238,7 +273,7 @@ namespace Unifi.Gateway.Common.Services
             rules.AppendLine();
         }
 
-        private static void AppendRules(StringBuilder rules, IEnumerable<string> lines)
+        private void AppendRules(StringBuilder rules, IEnumerable<string> lines)
         {
             foreach (var line in lines)
             {
@@ -252,7 +287,7 @@ namespace Unifi.Gateway.Common.Services
             }
         }
 
-        private static IEnumerable<string> GetNatTables(SystemConfiguration cfg, string wan)
+        private IEnumerable<string> GetNatTables(SystemConfiguration cfg, string wan)
         {
             var cache = new HashSet<string>();
 

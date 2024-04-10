@@ -162,30 +162,42 @@ namespace Unifi.Gateway.Common.Services
 
         private static List<string> GetProtos(FirewallRule rule)
         {
-            var protos = new List<string>();
-            if (string.IsNullOrEmpty(rule.Protocol) || rule.Protocol == "all")
+            var protocol = rule.Protocol;
+            if (string.IsNullOrEmpty(protocol))
             {
-                protos.Add("");
+                return [];
             }
-            else if (rule.Protocol == "tcp_udp")
+
+            var opposite = protocol.StartsWith('!');
+            var icmpType = rule.Icmpv6?.TypeName;
+            var result = GetProtocols(protocol.TrimStart('!'), icmpType);
+            return opposite ? [.. result.Select(rule => "! " + rule)] : result;
+
+            static List<string> GetProtocols(string protocol, string? icmpType)
             {
-                protos.Add("-p tcp");
-                protos.Add("-p udp");
-            }
-            else if (rule.Protocol == "tcp" || rule.Protocol == "udp")
-            {
-                protos.Add("-p " + rule.Protocol);
-            }
-            else if (rule.Protocol == "ipv6-icmp" || rule.Protocol == "icmpv6")
-            {
-                var proto = "-p ipv6-icmp";
-                if (!string.IsNullOrEmpty(rule.Icmpv6?.TypeName) && rule.Icmpv6?.TypeName != "any")
+                if (string.IsNullOrEmpty(protocol) || protocol == "all")
                 {
-                    proto += " --icmpv6-type " + rule.Icmpv6?.TypeName;
+                    return [""];
                 }
-                protos.Add(proto);
+                else if (protocol == "tcp_udp")
+                {
+                    return ["-p tcp", "-p udp"];
+                }
+                else if (protocol == "tcp" || protocol == "udp")
+                {
+                    return ["-p " + protocol];
+                }
+                else if (protocol == "ipv6-icmp" || protocol == "icmpv6")
+                {
+                    var proto = "-p ipv6-icmp";
+                    if (!string.IsNullOrEmpty(icmpType) && icmpType != "any")
+                    {
+                        proto += " --icmpv6-type " + icmpType;
+                    }
+                    return [proto];
+                }
+                return [];
             }
-            return protos;
         }
 
         private static int[] GetPorts(SystemConfiguration cfg, FirewallRuleDestination? destination)

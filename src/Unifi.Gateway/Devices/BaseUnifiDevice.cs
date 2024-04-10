@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
 using System.Net;
-using System.Net.Http.Headers;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
@@ -449,7 +448,7 @@ namespace Unifi.Gateway.Devices
                 {
                     eths.Add(new JsonObject
                     {
-                        ["pfx"] = GetNetwork(eth.IPAddress, eth.Netmask),
+                        ["pfx"] = network.GetNetwork(eth.IPAddress, eth.Netmask),
                         ["nh"] = new JsonArray([
                             new JsonObject()
                             {
@@ -477,43 +476,6 @@ namespace Unifi.Gateway.Devices
             }
 
             return new JsonArray(eths.ToArray());
-        }
-
-        protected int GetNetworkLength(IPAddress netmask)
-        {
-            var length = 0;
-            foreach (var o in netmask.GetAddressBytes())
-            {
-                var bits = o;
-                while ((bits & 0x80) != 0)
-                {
-                    length++;
-                    bits = (byte)((bits << 1) & 0xff);
-                }
-            }
-
-            return length;
-        }
-
-        protected string GetNetwork(IPAddress address, IPAddress netmask)
-        {
-            var addr = address.GetAddressBytes();
-            var mask = netmask.GetAddressBytes();
-
-            var result = new byte[addr.Length];
-            for (var i = 0; i < addr.Length; i++)
-            {
-                result[i] = (byte)(addr[i] & mask[i]);
-            }
-
-            int length = GetNetworkLength(netmask);
-            return string.Join(".", result.Select(t => t.ToString())) + "/" + length;
-        }
-
-        protected string GetAddress(IPAddress address, IPAddress netmask)
-        {
-            int length = GetNetworkLength(netmask);
-            return address + "/" + length;
         }
 
         protected async Task<JsonArray> GetNetworkTableAsync()
@@ -596,7 +558,7 @@ namespace Unifi.Gateway.Devices
                         ["rx_packets"] = 0,
                     }).ToArray();
 
-                    string address = GetAddress(eth.IPAddress, eth.Netmask);
+                    string address = network.GetAddress(eth.IPAddress, eth.Netmask);
                     var stats = eth.GetIPStatistics();
                     eths.Add(new JsonObject
                     {

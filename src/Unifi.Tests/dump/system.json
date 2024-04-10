@@ -72,12 +72,6 @@
         },
         "unifi_controller_addresses": {
           "description": "UniFi addresses"
-        },
-        "660d64988d6d5f153516b7be": {
-          "description": "customized-GatewayIP",
-          "address": [
-            "134.17.26.13"
-          ]
         }
       },
       "ipv6-address-group": {
@@ -169,22 +163,6 @@
             "protocol": "udp"
           },
           "3004": {
-            "action": "accept",
-            "description": "allow to RADIUS authentication",
-            "protocol": "udp",
-            "destination": {
-              "port": "1812"
-            }
-          },
-          "3005": {
-            "action": "accept",
-            "description": "allow to RADIUS accounting",
-            "protocol": "udp",
-            "destination": {
-              "port": "1813"
-            }
-          },
-          "3006": {
             "action": "accept",
             "description": "allow redirects to redirector",
             "destination": {
@@ -292,6 +270,23 @@
               "group": {
                 "address-group": "ADDRv4_eth0"
               }
+            }
+          },
+          "4000": {
+            "action": "accept",
+            "description": "mac address",
+            "protocol": "!tcp",
+            "state": {
+              "established": "disable",
+              "invalid": "enable",
+              "new": "enable",
+              "related": "disable"
+            },
+            "ipsec": {
+              "match-ipsec": "''"
+            },
+            "source": {
+              "mac-address": "00:15:5d:02:46:25"
             }
           }
         }
@@ -943,7 +938,7 @@
         }
       },
       "global-parameters": [
-        "class &quot;denied&quot; { match substring (hardware, 1, 6); deny booting; } subclass &quot;denied&quot; 00:15:5d:02:09:2d; subclass &quot;denied&quot; 00:15:5d:02:09:02;"
+        "class &quot;denied&quot; { match substring (hardware, 1, 6); deny booting; } subclass &quot;denied&quot; 00:15:5d:02:09:2d; subclass &quot;denied&quot; 00:15:5d:02:09:02; subclass &quot;denied&quot; 00:15:5d:02:09:2e;"
       ]
     },
     "dns": {

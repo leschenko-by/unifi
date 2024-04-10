@@ -1,7 +1,5 @@
-using Microsoft.Extensions.Configuration;
 using System.Security.Cryptography;
 using System.Text.Json;
-using Unifi.Gateway;
 using Unifi.Gateway.BackgroundServices;
 using Unifi.Gateway.Common.Interfaces;
 using Unifi.Gateway.Common.Services;
