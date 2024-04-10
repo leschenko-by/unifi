@@ -57,19 +57,20 @@ namespace Unifi.Gateway.Common.Services
 
                 """);
 
-            //todo: get values from config
-            rules.AppendLine($"""
-                # VPN
-                -A unifi-before-forward -s 172.26.16.0/24 -m policy --dir in --pol ipsec --proto esp -j ACCEPT
-                -A unifi-before-forward -d 172.26.16.0/24 -m policy --dir out --pol ipsec --proto esp -j ACCEPT
-                -A unifi-before-forward -s 192.168.128.0/20 -m policy --dir in --pol ipsec --proto esp -j ACCEPT
-                -A unifi-before-forward -d 192.168.128.0/20 -m policy --dir out --pol ipsec --proto esp -j ACCEPT
-                -A unifi-before-forward -s 10.208.0.0/16 -m policy --dir in --pol ipsec --proto esp -j ACCEPT
-                -A unifi-before-forward -d 10.208.0.0/16 -m policy --dir out --pol ipsec --proto esp -j ACCEPT
-                -A unifi-before-forward -s 10.110.0.0/20 -m policy --dir in --pol ipsec --proto esp -j ACCEPT
-                -A unifi-before-forward -d 10.110.0.0/20 -m policy --dir out --pol ipsec --proto esp -j ACCEPT
+            rules.AppendLine("# Point-to-Point VPNs");
+            foreach (var network in cfg.Firewall.Groups.NetworkGroups["remote_user_vpn_network"].Networks)
+            {
+                rules.AppendLine($"-A unifi-before-forward -s {network} -m policy --dir in --pol ipsec --proto esp -j ACCEPT");
+                rules.AppendLine($"-A unifi-before-forward -s {network} -m policy --dir out --pol ipsec --proto esp -j ACCEPT");
+            }
 
-                """);
+            rules.AppendLine("# Site-to-Site VPNs");
+            foreach (var network in cfg.Firewall.Groups.NetworkGroups["remote_site_vpn_network"].Networks)
+            {
+                rules.AppendLine($"-A unifi-before-forward -s {network} -m policy --dir in --pol ipsec --proto esp -j ACCEPT");
+                rules.AppendLine($"-A unifi-before-forward -s {network} -m policy --dir out --pol ipsec --proto esp -j ACCEPT");
+            }
+            rules.AppendLine();
 
             AppendRules(rules, BuildFilters(cfg, "WAN_LOCAL", wan, "unifi-user-input", true));
             AppendRules(rules, BuildFilters(cfg, "WAN_IN", wan, "unifi-user-forward", true));
@@ -229,12 +230,13 @@ namespace Unifi.Gateway.Common.Services
             var lines = GetNatTables(cfg, wan);
             AppendRules(rules, lines);
 
-            rules.AppendLine($"""
-                -A POSTROUTING -o {wan} -m policy --dir out --pol ipsec -j ACCEPT
-                -A POSTROUTING -o {wan} -j MASQUERADE
-                COMMIT
+            rules.AppendLine($"-A POSTROUTING -o {wan} -m policy --dir out --pol ipsec -j ACCEPT");
 
-                """);
+            //todo: read config.json => .service.nat.rule
+            rules.AppendLine($"-A POSTROUTING -o {wan} -j MASQUERADE");
+
+            rules.AppendLine("COMMIT");
+            rules.AppendLine();
         }
 
         private static void AppendRules(StringBuilder rules, IEnumerable<string> lines)

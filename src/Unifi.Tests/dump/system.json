@@ -18,10 +18,18 @@
           ]
         },
         "remote_user_vpn_network": {
-          "description": "Remote User VPN subnets"
+          "description": "Remote User VPN subnets",
+          "network": [
+            "172.26.16.0/24"
+          ]
         },
         "remote_site_vpn_network": {
-          "description": "remote site VPN subnets"
+          "description": "remote site VPN subnets",
+          "network": [
+            "10.208.0.0/16",
+            "10.110.0.0/24",
+            "192.168.128.0/20"
+          ]
         },
         "remote_client_vpn_network": {
           "description": "remote client VPN subnets"
@@ -353,6 +361,36 @@
               "new": "disable",
               "related": "disable"
             }
+          },
+          "3003": {
+            "action": "accept",
+            "description": "allow L2TP ISAKMP",
+            "destination": {
+              "port": "500"
+            },
+            "protocol": "udp"
+          },
+          "3004": {
+            "action": "accept",
+            "description": "allow L2TP NAT-T",
+            "destination": {
+              "port": "4500"
+            },
+            "protocol": "udp"
+          },
+          "3005": {
+            "action": "accept",
+            "description": "allow L2TP ESP",
+            "protocol": "esp"
+          },
+          "3006": {
+            "action": "accept",
+            "description": "allow L2TP",
+            "destination": {
+              "port": "1701"
+            },
+            "protocol": "udp",
+            "ipsec": "match-ipsec"
           },
           "4000": {
             "action": "accept",
@@ -752,6 +790,56 @@
       "eth3": {
         "disable": "''"
       }
+    },
+    "vti": {
+      "vti64": {
+        "firewall": {
+          "local": {
+            "name": "LAN_LOCAL",
+            "ipv6-name": "LANv6_LOCAL"
+          },
+          "in": {
+            "name": "LAN_IN",
+            "ipv6-name": "LANv6_IN"
+          },
+          "out": {
+            "name": "LAN_OUT",
+            "ipv6-name": "LANv6_OUT"
+          }
+        }
+      },
+      "vti65": {
+        "firewall": {
+          "local": {
+            "name": "LAN_LOCAL",
+            "ipv6-name": "LANv6_LOCAL"
+          },
+          "in": {
+            "name": "LAN_IN",
+            "ipv6-name": "LANv6_IN"
+          },
+          "out": {
+            "name": "LAN_OUT",
+            "ipv6-name": "LANv6_OUT"
+          }
+        }
+      },
+      "vti66": {
+        "firewall": {
+          "local": {
+            "name": "LAN_LOCAL",
+            "ipv6-name": "LANv6_LOCAL"
+          },
+          "in": {
+            "name": "LAN_IN",
+            "ipv6-name": "LANv6_IN"
+          },
+          "out": {
+            "name": "LAN_OUT",
+            "ipv6-name": "LANv6_OUT"
+          }
+        }
+      }
     }
   },
   "port-forward": {
@@ -769,6 +857,33 @@
         },
         "original-port": "8443",
         "protocol": "tcp"
+      }
+    }
+  },
+  "protocols": {
+    "static": {
+      "interface-route": {
+        "10.208.0.0/16": {
+          "next-hop-interface": {
+            "vti64": {
+              "distance": "30"
+            }
+          }
+        },
+        "10.110.0.0/24": {
+          "next-hop-interface": {
+            "vti65": {
+              "distance": "30"
+            }
+          }
+        },
+        "192.168.128.0/20": {
+          "next-hop-interface": {
+            "vti66": {
+              "distance": "30"
+            }
+          }
+        }
       }
     }
   },
@@ -868,6 +983,129 @@
             }
           }
         }
+      }
+    }
+  },
+  "vpn": {
+    "ipsec": {
+      "auto-firewall-nat-exclude": "enable",
+      "esp-group": {
+        "ESP_ipsec-vpn": {
+          "compression": "disable",
+          "lifetime": "3600",
+          "mode": "tunnel",
+          "pfs": "enable",
+          "proposal": {
+            "1": {
+              "encryption": "aes256",
+              "hash": "sha1"
+            },
+            "2": {
+              "encryption": "aes128",
+              "hash": "sha1"
+            }
+          }
+        }
+      },
+      "ike-group": {
+        "IKE_ipsec-vpn": {
+          "key-exchange": "ikev2",
+          "lifetime": "28800",
+          "proposal": {
+            "1": {
+              "dh-group": 14,
+              "encryption": "aes256",
+              "hash": "sha1"
+            },
+            "2": {
+              "dh-group": 14,
+              "encryption": "aes128",
+              "hash": "sha1"
+            }
+          }
+        }
+      },
+      "ipsec-interfaces": {
+        "interface": [
+          "eth2"
+        ]
+      },
+      "nat-networks": {
+        "allowed-network": {
+          "0.0.0.0/0": "''"
+        }
+      },
+      "nat-traversal": "enable",
+      "site-to-site": {
+        "peer": {
+          "20.218.196.213": {
+            "authentication": {
+              "mode": "pre-shared-secret",
+              "pre-shared-secret": "nCTqqAb1IOXxnY3V4Bhjy3k93pYxgir3"
+            },
+            "connection-type": "initiate",
+            "ike-group": "IKE_ipsec-vpn",
+            "local-address": "134.17.26.13",
+            "vti": {
+              "bind": "vti64",
+              "esp-group": "ESP_ipsec-vpn"
+            }
+          },
+          "174.138.14.217": {
+            "authentication": {
+              "mode": "pre-shared-secret",
+              "pre-shared-secret": "87zRQqylaoeF5I8o4lRhwvmUzf"
+            },
+            "connection-type": "initiate",
+            "ike-group": "IKE_ipsec-vpn",
+            "local-address": "134.17.26.13",
+            "vti": {
+              "bind": "vti65",
+              "esp-group": "ESP_ipsec-vpn"
+            }
+          },
+          "212.98.183.195": {
+            "authentication": {
+              "mode": "pre-shared-secret",
+              "pre-shared-secret": "j4OnjK56c4enuyS1m6I9KHNcUdpydNml"
+            },
+            "connection-type": "initiate",
+            "ike-group": "IKE_ipsec-vpn",
+            "local-address": "134.17.26.13",
+            "vti": {
+              "bind": "vti66",
+              "esp-group": "ESP_ipsec-vpn"
+            }
+          }
+        }
+      }
+    },
+    "l2tp": {
+      "remote-access": {
+        "authentication": {
+          "mode": "radius",
+          "radius-server": {
+            "192.168.2.1": {
+              "key": "kMm44jDu3uEkmOfQOmBQg29g",
+              "port": "1812"
+            }
+          }
+        },
+        "client-ip-pool": {
+          "start": "172.26.16.6",
+          "stop": "172.26.16.254"
+        },
+        "dns-servers": {
+          "server-1": "192.168.2.254"
+        },
+        "ipsec-settings": {
+          "authentication": {
+            "mode": "pre-shared-secret",
+            "pre-shared-secret": "3253453535345"
+          },
+          "ike-lifetime": "3600"
+        },
+        "dhcp-interface": "eth2"
       }
     }
   },

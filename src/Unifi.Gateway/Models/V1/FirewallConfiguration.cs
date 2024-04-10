@@ -24,26 +24,11 @@ namespace Unifi.Gateway.Models.V1
 
         [JsonPropertyName("ipv6-address-group")]
         public Dictionary<string, FirewallAddressGroup> AddressGroupsV6 { get; set; } = [];
-    }
 
-    public class FirewallPortGroup
-    {
-        [JsonPropertyName("description")]
-        public string Description { get; set; } = string.Empty;
+        [JsonPropertyName("network-group")]
+        public Dictionary<string, FirewallNetworkGroup> NetworkGroups { get; set; } = [];
 
-        [JsonPropertyName("port")]
-        public List<object> Ports { get; set; } = [];
-    }
-
-    public class FirewallAddressGroup
-    {
-        [JsonPropertyName("description")]
-        public string Description { get; set; } = string.Empty;
-
-        [JsonPropertyName("address")]
-        public List<string> Addresses { get; set; } = [];
-
-        [JsonPropertyName("ipv6-address")]
-        public List<string> AddressesV6 { get; set; } = [];
+        [JsonPropertyName("ipv6-network-group")]
+        public Dictionary<string, FirewallNetworkGroup> NetworkGroupsV6 { get; set; } = [];
     }
 }
