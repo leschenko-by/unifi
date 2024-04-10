@@ -47,8 +47,8 @@ namespace Unifi.Gateway.Devices
         protected override async Task AddExtraInformMessage(JsonObject message)
         {
             message["has_dpi"] = false;
-            message["has_vti"] = false;
-            message["has_ssh_disable"] = false;
+            message["has_vti"] = true;
+            message["has_ssh_disable"] = true;
             message["fw_caps"] = 3;
             message["guest_token"] = "4C1D46707239C6EB5A2366F505A44A91";
             message["has_default_route_distance"] = true;
@@ -81,7 +81,7 @@ namespace Unifi.Gateway.Devices
                             ["connect_id"] = "peer-20.218.196.213-tunnel-0",
                             ["in_bytes"] = 0,
                             ["out_bytes"] = 0,
-                            ["lifetime"] = 0,
+                            ["lifetime"] = 28800,
                             ["local_id"] = "134.17.26.13",
                             ["local_ip"] = "134.17.26.13",
                             ["nat_t"] = false,
@@ -96,7 +96,7 @@ namespace Unifi.Gateway.Devices
                             ["connect_id"] = "peer-174.138.14.217-tunnel-1",
                             ["in_bytes"] = 0,
                             ["out_bytes"] = 0,
-                            ["lifetime"] = 0,
+                            ["lifetime"] = 28800,
                             ["local_id"] = "134.17.26.13",
                             ["local_ip"] = "134.17.26.13",
                             ["nat_t"] = false,
@@ -111,7 +111,7 @@ namespace Unifi.Gateway.Devices
                             ["connect_id"] = "peer-212.98.183.195-tunnel-2",
                             ["in_bytes"] = 0,
                             ["out_bytes"] = 0,
-                            ["lifetime"] = 0,
+                            ["lifetime"] = 28800,
                             ["local_id"] = "134.17.26.13",
                             ["local_ip"] = "134.17.26.13",
                             ["nat_t"] = false,
