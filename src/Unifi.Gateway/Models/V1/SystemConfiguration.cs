@@ -12,5 +12,8 @@ namespace Unifi.Gateway.Models.V1
 
         [JsonPropertyName("unifi")]
         public UnifiSystemConfiguration Unifi { get; set; } = new();
+
+        [JsonPropertyName("service")]
+        public UnifiServiceConfiguration Service { get; set; } = new();
     }
 }

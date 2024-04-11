@@ -76,9 +76,9 @@ namespace Unifi.Gateway.Common.Services
             {
                 var action = rule.Action.ToUpper();
 
-                var conntrack = GetConntrack(rule);
+                var state = GetState(rule);
 
-                var protos = GetProtos(rule);
+                var protos = GetProtocols(rule);
 
                 var destPorts = GetPorts(cfg, rule.Destination);
                 var dport = destPorts.Length switch
@@ -118,7 +118,7 @@ namespace Unifi.Gateway.Common.Services
                     {
                         foreach (var proto in protos)
                         {
-                            yield return $"-A {chain} {direction} {nic} {source} {sourceMac} {destination} {proto} {sport} {dport} {conntrack} -j {action}";
+                            yield return $"-A {chain} {direction} {nic} {source} {sourceMac} {destination} {proto} {sport} {dport} {state} -j {action}";
                         }
                     }
                 }
@@ -132,7 +132,7 @@ namespace Unifi.Gateway.Common.Services
             yield return string.Empty;
         }
 
-        private static string GetConntrack(FirewallRule rule)
+        private static string GetState(FirewallRule rule)
         {
             var conntrack = "";
             if (rule.State is not null)
@@ -174,7 +174,7 @@ namespace Unifi.Gateway.Common.Services
             }
         }
 
-        private static List<string> GetProtos(FirewallRule rule)
+        private static List<string> GetProtocols(FirewallRule rule)
         {
             var protocol = rule.Protocol;
             if (string.IsNullOrEmpty(protocol))

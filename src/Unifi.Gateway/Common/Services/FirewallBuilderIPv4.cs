@@ -91,9 +91,9 @@ namespace Unifi.Gateway.Common.Services
             {
                 var action = rule.Action.ToUpper();
 
-                var conntrack = GetConntrack(rule);
+                var state = GetStates(rule);
 
-                var protos = GetProtos(rule);
+                var protos = GetProtocols(rule);
 
                 var destPorts = GetPorts(cfg, rule.Destination);
                 var dport = destPorts.Length switch
@@ -133,7 +133,7 @@ namespace Unifi.Gateway.Common.Services
                     {
                         foreach (var proto in protos)
                         {
-                            yield return $"-A {chain} {source} {sourceMac} {destination} {proto} {sport} {dport} {conntrack} -j {action}";
+                            yield return $"-A {chain} {source} {sourceMac} {destination} {proto} {sport} {dport} {state} -j {action}";
                         }
                     }
                 }
@@ -147,7 +147,7 @@ namespace Unifi.Gateway.Common.Services
             yield return string.Empty;
         }
 
-        private static string GetConntrack(FirewallRule rule)
+        private static string GetStates(FirewallRule rule)
         {
             var conntrack = "";
             if (rule.State is not null)
@@ -224,7 +224,7 @@ namespace Unifi.Gateway.Common.Services
             return [];
         }
 
-        private List<string> GetProtos(FirewallRule rule)
+        private List<string> GetProtocols(FirewallRule rule)
         {
             var protocol = rule.Protocol;
             if (string.IsNullOrEmpty(protocol))
@@ -272,18 +272,43 @@ namespace Unifi.Gateway.Common.Services
                 :INPUT ACCEPT [0:0]
                 :OUTPUT ACCEPT [0:0]
                 :POSTROUTING ACCEPT [0:0]
+
                 """);
 
             var lines = GetNatTables(cfg, wan);
             AppendRules(rules, lines);
 
+            rules.AppendLine("# IPSec");
             rules.AppendLine($"-A POSTROUTING -o {wan} -m policy --dir out --pol ipsec -j ACCEPT");
+            rules.AppendLine();
 
-            //todo: read config.json => .service.nat.rule
-            rules.AppendLine($"-A POSTROUTING -o {wan} -j MASQUERADE");
+            AppendRules(rules, BuildMasqueradeRules(cfg));
 
             rules.AppendLine("COMMIT");
             rules.AppendLine();
+        }
+
+        private IEnumerable<string> BuildMasqueradeRules(SystemConfiguration cfg)
+        {
+            foreach (var (_, rule) in cfg.Service.Nat.Rules)
+            {
+                if (rule.Type != "masquerade") continue;
+
+                var eth = network.Interfaces.FirstOrDefault(t => t?.UnifiNic == rule.OutboundInterface);
+                if (eth is null) continue;
+
+                if (!cfg.Firewall.Groups.NetworkGroups.TryGetValue(rule.Source.Group.NetworkGroup, out var group)) continue;
+
+                if (group.Networks.Count == 0) continue;
+
+                yield return "# " + rule.Description;
+                foreach (var network in group.Networks)
+                {
+                    yield return $"-A POSTROUTING -s {network} -o {eth.LocalNic} -j MASQUERADE";
+                }
+            }
+
+            yield return "";
         }
 
         private void AppendRules(StringBuilder rules, IEnumerable<string> lines)
@@ -304,10 +329,9 @@ namespace Unifi.Gateway.Common.Services
         {
             var cache = new HashSet<string>();
 
+            yield return "# Port forwarding";
             foreach (var (_, rule) in cfg.Unifi.PortForward.Rules)
             {
-                yield return "# " + rule;
-
                 var data = rule.Split(",").Select(t => t.Split("=")).ToDictionary(t => t[0], t => t[1]);
                 var source = data["src"];
                 var originalPort = data["dst_port"].Trim('\'');
@@ -372,6 +396,8 @@ namespace Unifi.Gateway.Common.Services
                     return false;
                 }
             }
+
+            yield return "";
         }
     }
 }
