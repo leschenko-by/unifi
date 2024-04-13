@@ -369,7 +369,7 @@ namespace Unifi.Gateway.Devices
                 ["ip"] = address.ToString(),
                 ["mac"] = string.Join(":", mac.Select(t => t.ToString("x2"))),
                 ["netmask"] = netmask.ToString(),
-                ["up"] = true,
+                ["up"] = address != IPAddress.None,
                 ["num_port"] = port,
                 ["rx_bytes"] = stats.BytesReceived,
                 ["rx_dropped"] = stats.IncomingPacketsDiscarded,

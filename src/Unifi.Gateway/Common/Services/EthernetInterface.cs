@@ -5,7 +5,7 @@ using Unifi.Gateway.Common.Interfaces;
 
 namespace Unifi.Gateway.Common.Services
 {
-    public class EthernetInterface(NetworkInterface eth, string unifiNic) : IEthernetInterface
+    public class EthernetInterface(NetworkInterface eth, string unifiNic, byte[] mac) : IEthernetInterface
     {
         private readonly NetworkInterface eth = eth;
 
@@ -13,7 +13,7 @@ namespace Unifi.Gateway.Common.Services
 
         public string LocalNic => eth.Id;
 
-        public byte[] MacAddress => eth.GetPhysicalAddress().GetAddressBytes();
+        public byte[] MacAddress => mac;
 
         public IPAddress IPAddress => eth.GetIPProperties().UnicastAddresses
             .FirstOrDefault(u => u.Address.AddressFamily == AddressFamily.InterNetwork)?

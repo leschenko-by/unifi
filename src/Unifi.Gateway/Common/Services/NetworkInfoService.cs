@@ -21,9 +21,40 @@ namespace Unifi.Gateway.Common.Services
         public void RefreshInterfaces()
         {
             var networks = NetworkInterface.GetAllNetworkInterfaces();
-            Interfaces = ports.Select(id => networks.FirstOrDefault(n => n.Id == id))
-                .Select((t, index) => t != null ? new EthernetInterface(t, "eth" + index) : null)
-                .ToList().AsReadOnly();
+
+            var interfaces = new List<IEthernetInterface?>();
+            var index = 0;
+            foreach (var port in ports)
+            {
+                var localNic = port;
+                var pppoeNic = string.Empty;
+                if (localNic.Contains('/'))
+                {
+                    var data = localNic.Split('/');
+                    localNic = data[0];
+                    pppoeNic = data[1];
+                }
+
+                var eth = networks.FirstOrDefault(n => n.Id == localNic);
+                var pppoe = string.IsNullOrEmpty(pppoeNic)
+                    ? null
+                    : networks.FirstOrDefault(n => n.Id == pppoeNic);
+
+                if (eth != null)
+                {
+                    var nic = pppoe ?? eth;
+                    var mac = eth.GetPhysicalAddress().GetAddressBytes();
+                    interfaces.Add(new EthernetInterface(nic, "eth" + index, mac));
+                }
+                else
+                {
+                    interfaces.Add(null);
+                }
+
+                index++;
+            }
+
+            Interfaces = interfaces.AsReadOnly();
         }
 
         public string GetNetwork(IPAddress address, IPAddress netmask)
