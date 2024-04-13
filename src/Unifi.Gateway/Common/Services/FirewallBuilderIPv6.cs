@@ -4,20 +4,22 @@ using Unifi.Gateway.Models.V1;
 
 namespace Unifi.Gateway.Common.Services
 {
-    public class FirewallBuilderIPv6 : IFirewallBuilderIPv6
+    public class FirewallBuilderIPv6(IFileReader fileReader) : IFirewallBuilderIPv6
     {
-        public string Build(SystemConfiguration cfg)
+        private readonly IFileReader fileReader = fileReader;
+
+        public async Task<string> BuildAsync(SystemConfiguration cfg)
         {
             const string wan = "eth0";
             const string lan = "eth1";
             var rules = new StringBuilder();
 
-            AppendFilterRules(cfg, rules, wan, lan);
+            await AppendFilterRulesAsync(cfg, rules, wan, lan);
 
             return rules.ToString();
         }
 
-        private static void AppendFilterRules(SystemConfiguration cfg, StringBuilder rules, string wan, string lan)
+        private async Task AppendFilterRulesAsync(SystemConfiguration cfg, StringBuilder rules, string wan, string lan)
         {
             rules.AppendLine($"""
                 *filter
@@ -56,6 +58,14 @@ namespace Unifi.Gateway.Common.Services
                 -A unifi6-after-output -o {lan} -j ACCEPT
 
                 """);
+
+            var custom = await fileReader.ReadAsync("/etc/iptables/custom-filter.v6");
+            if (!string.IsNullOrEmpty(custom))
+            {
+                rules.AppendLine("# Custom");
+                rules.AppendLine(custom);
+                rules.AppendLine();
+            }
 
             AppendRules(rules, BuildFilters(cfg, "WANv6_LOCAL", wan, "unifi6-user-input", true));
             AppendRules(rules, BuildFilters(cfg, "WANv6_IN", wan, "unifi6-user-forward", true));

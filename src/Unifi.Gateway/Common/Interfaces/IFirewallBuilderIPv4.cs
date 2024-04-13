@@ -4,11 +4,11 @@ namespace Unifi.Gateway.Common.Interfaces
 {
     public interface IFirewallBuilderIPv4
     {
-        public string Build(SystemConfiguration cfg);
+        Task<string> BuildAsync(SystemConfiguration cfg);
     }
 
     public interface IFirewallBuilderIPv6
     {
-        public string Build(SystemConfiguration cfg);
+        Task<string> BuildAsync(SystemConfiguration cfg);
     }
 }

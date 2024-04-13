@@ -70,6 +70,7 @@ static async Task RunAsync(string[] args)
     builder.Services.AddTransient<IConfigurationWriter, ConfigurationWriter>();
     builder.Services.AddTransient<IUnifiProtocol, UnifiProtocol>();
     builder.Services.AddTransient<IFirewallService, FirewallService>();
+    builder.Services.AddTransient<IFileReader, FileReader>();
     builder.Services.AddKeyedTransient<IUnifiDevice, UGW3Device>("UGW3");
     builder.Services.AddKeyedTransient<IUnifiDevice, UGW4Device>("UGW4");
     builder.Services.AddKeyedTransient<IUnifiDevice, UXGDevice>("UXG");

@@ -4,23 +4,24 @@ using Unifi.Gateway.Models.V1;
 
 namespace Unifi.Gateway.Common.Services
 {
-    public class FirewallBuilderIPv4(INetworkInfoService network) : IFirewallBuilderIPv4
+    public class FirewallBuilderIPv4(INetworkInfoService network, IFileReader fileReader) : IFirewallBuilderIPv4
     {
         private readonly INetworkInfoService network = network;
+        private readonly IFileReader fileReader = fileReader;
 
-        public string Build(SystemConfiguration cfg)
+        public async Task<string> BuildAsync(SystemConfiguration cfg)
         {
             const string wan = "eth0";
             const string lan = "eth1";
             var rules = new StringBuilder();
 
-            AppendNatRules(cfg, rules, wan);
-            AppendFilterRules(cfg, rules, wan, lan);
+            await AppendNatRulesAsync(cfg, rules, wan);
+            await AppendFilterRulesAsync(cfg, rules, wan, lan);
 
             return rules.ToString();
         }
 
-        private void AppendFilterRules(SystemConfiguration cfg, StringBuilder rules, string wan, string lan)
+        private async Task AppendFilterRulesAsync(SystemConfiguration cfg, StringBuilder rules, string wan, string lan)
         {
             rules.AppendLine($"""
                 *filter
@@ -58,6 +59,14 @@ namespace Unifi.Gateway.Common.Services
                 -A unifi-after-output -o {lan} -j ACCEPT
 
                 """);
+
+            var custom = await fileReader.ReadAsync("/etc/iptables/custom-filter.v4");
+            if (!string.IsNullOrEmpty(custom))
+            {
+                rules.AppendLine("# Custom");
+                rules.AppendLine(custom);
+                rules.AppendLine();
+            }
 
             AddVPNRules(cfg, rules, "remote_user_vpn_network", "# Point-to-Point VPNs");
             AddVPNRules(cfg, rules, "remote_site_vpn_network", "# Site-to-Site VPNs");
@@ -247,7 +256,7 @@ namespace Unifi.Gateway.Common.Services
                 {
                     return ["-p tcp", "-p udp"];
                 }
-                else if (protocol == "tcp" || protocol == "udp")
+                else if (protocol == "tcp" || protocol == "udp" || protocol == "esp")
                 {
                     return ["-p " + protocol];
                 }
@@ -264,7 +273,7 @@ namespace Unifi.Gateway.Common.Services
             }
         }
 
-        private void AppendNatRules(SystemConfiguration cfg, StringBuilder rules, string wan)
+        private async Task AppendNatRulesAsync(SystemConfiguration cfg, StringBuilder rules, string wan)
         {
             rules.AppendLine($"""
                 *nat
@@ -274,6 +283,14 @@ namespace Unifi.Gateway.Common.Services
                 :POSTROUTING ACCEPT [0:0]
 
                 """);
+
+            var custom = await fileReader.ReadAsync("/etc/iptables/custom-nat.v4");
+            if (!string.IsNullOrEmpty(custom))
+            {
+                rules.AppendLine("# Custom");
+                rules.AppendLine(custom);
+                rules.AppendLine();
+            }
 
             var lines = GetNatTables(cfg, wan);
             AppendRules(rules, lines);

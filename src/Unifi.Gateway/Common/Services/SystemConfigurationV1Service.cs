@@ -29,7 +29,7 @@ namespace Unifi.Gateway.Common.Services
 
                 try
                 {
-                    await firewallService.ApplyIPv4RulesAsync(ipv4Builder.Build(cfg));
+                    await firewallService.ApplyIPv4RulesAsync(await ipv4Builder.BuildAsync(cfg));
                 }
                 catch (Exception ex)
                 {
@@ -38,7 +38,7 @@ namespace Unifi.Gateway.Common.Services
 
                 try
                 {
-                    await firewallService.ApplyIPv6RulesAsync(ipv6Builder.Build(cfg));
+                    await firewallService.ApplyIPv6RulesAsync(await ipv6Builder.BuildAsync(cfg));
                 }
                 catch (Exception ex)
                 {
