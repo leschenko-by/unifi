@@ -27,7 +27,7 @@ namespace Unifi.Gateway.Common.Services
             var networks = NetworkInterface.GetAllNetworkInterfaces();
             foreach (var nic in networks)
             {
-                logger.LogInformation("network interface: {id} {name} {tyoe} {status}",
+                logger.LogInformation("network interface: {id} {name} {type} {status}",
                     nic.Id, nic.Name, nic.NetworkInterfaceType, nic.OperationalStatus);
             }
 
