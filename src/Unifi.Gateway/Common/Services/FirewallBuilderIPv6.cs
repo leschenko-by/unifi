@@ -53,13 +53,13 @@ namespace Unifi.Gateway.Common.Services
                 -A OUTPUT -j unifi6-user-output
                 -A OUTPUT -j unifi6-after-output
 
-                -A unifi6-log-accept -j LOG --log-prefix="[unifi] "
+                -A unifi6-log-accept -j LOG --log-prefix="[unifi accept] "
                 -A unifi6-log-accept -j ACCEPT
                 
-                -A unifi6-log-reject -j LOG --log-prefix="[unifi] "
+                -A unifi6-log-reject -j LOG --log-prefix="[unifi reject] "
                 -A unifi6-log-reject -j REJECT
                 
-                -A unifi6-log-drop -j LOG --log-prefix="[unifi] "
+                -A unifi6-log-drop -j LOG --log-prefix="[unifi drop] "
                 -A unifi6-log-drop -j DROP
                 
                 -A unifi6-before-input -i lo -j ACCEPT
