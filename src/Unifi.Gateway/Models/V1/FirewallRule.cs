@@ -27,5 +27,8 @@ namespace Unifi.Gateway.Models.V1
 
         [JsonPropertyName("icmpv6")]
         public FirewallRuleIcmpV6? Icmpv6 { get; set; }
+
+        [JsonPropertyName("log")]
+        public string? Log { get; set; }
     }
 }

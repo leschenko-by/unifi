@@ -41,6 +41,10 @@ namespace Unifi.Gateway.Common.Services
                 :unifi-user-output - [0:0]
                 :unifi-after-output - [0:0]
 
+                :unifi-log-accept - [0:0]
+                :unifi-log-reject - [0:0]
+                :unifi-log-drop - [0:0]
+                
                 -A INPUT -j unifi-before-input
                 -A INPUT -j unifi-user-input
                 -A INPUT -j unifi-after-input
@@ -50,6 +54,15 @@ namespace Unifi.Gateway.Common.Services
                 -A OUTPUT -j unifi-before-output
                 -A OUTPUT -j unifi-user-output
                 -A OUTPUT -j unifi-after-output
+
+                -A unifi-log-accept -j LOG --log-prefix='[unifi] '
+                -A unifi-log-accept -j ACCEPT
+
+                -A unifi-log-reject -j LOG --log-prefix='[unifi] '
+                -A unifi-log-reject -j REJECT
+
+                -A unifi-log-drop -j LOG --log-prefix='[unifi] '
+                -A unifi-log-drop -j DROP
 
                 -A unifi-before-input -i lo -j ACCEPT
                 -A unifi-before-output -o lo -j ACCEPT
@@ -87,8 +100,7 @@ namespace Unifi.Gateway.Common.Services
             rules.AppendLine(comment);
             foreach (var network in cfg.Firewall.Groups.NetworkGroups[networkGroup].Networks)
             {
-                rules.AppendLine($"-A unifi-before-forward -s {network} -m policy --dir in --pol ipsec --proto esp -j ACCEPT");
-                rules.AppendLine($"-A unifi-before-forward -s {network} -m policy --dir out --pol ipsec --proto esp -j ACCEPT");
+                rules.AppendLine($"-A unifi-before-forward -s {network} -m policy --pol ipsec -p esp -j ACCEPT");
             }
             rules.AppendLine();
         }
@@ -99,6 +111,10 @@ namespace Unifi.Gateway.Common.Services
             foreach (var rule in cfg.Firewall.Names[name].Rules.OrderBy(t => Convert.ToInt32(t.Key)).Select(t => t.Value))
             {
                 var action = rule.Action.ToUpper();
+                if (rule.Log == "enable")
+                {
+                    action = "unifi-log-" + action.ToLower();
+                }
 
                 var state = GetStates(rule);
 
@@ -282,6 +298,11 @@ namespace Unifi.Gateway.Common.Services
                 :OUTPUT ACCEPT [0:0]
                 :POSTROUTING ACCEPT [0:0]
 
+                :unifi-log-dnat - [0:0]
+
+                -A unifi-log-dnat -j LOG --log-prefix='[unifi] '
+                -A unifi-log-dnat -j DNAT
+
                 """);
 
             var custom = await fileReader.ReadAsync("/etc/iptables/custom-nat.v4");
@@ -366,20 +387,22 @@ namespace Unifi.Gateway.Common.Services
                 };
 
                 if (!CheckPortForwardRules(cfg.PortForward.Rules.Select(t => t.Value))) continue;
-                if (!CheckFirewallRules(cfg.Firewall.Names["WAN_IN"].Rules.Select(t => t.Value))) continue;
+                var firewallRule = CheckFirewallRules(cfg.Firewall.Names["WAN_IN"].Rules.Select(t => t.Value));
+                if (firewallRule is null) continue;
 
+                var action = firewallRule.Log == "enable" ? "unifi-log-dnat" : "DNAT";
                 var sourceRule = source == "0.0.0.0" ? "-i " + wan : "-s " + source;
 
                 if (tcp)
                 {
-                    yield return $"-A PREROUTING {sourceRule} -p tcp --dport {originalPort} -j DNAT --to-destination {address}:{targetPort}";
+                    yield return $"-A PREROUTING {sourceRule} -p tcp --dport {originalPort} -j {action} --to-destination {address}:{targetPort}";
                 }
                 if (udp)
                 {
-                    yield return $"-A PREROUTING {sourceRule} -p udp --dport {originalPort} -j DNAT --to-destination {address}:{targetPort}";
+                    yield return $"-A PREROUTING {sourceRule} -p udp --dport {originalPort} -j {action} --to-destination {address}:{targetPort}";
                 }
 
-                bool CheckFirewallRules(IEnumerable<FirewallRule> rules)
+                FirewallRule? CheckFirewallRules(IEnumerable<FirewallRule> rules)
                 {
                     foreach (var rule in rules)
                     {
@@ -391,10 +414,10 @@ namespace Unifi.Gateway.Common.Services
                         if (source == "0.0.0.0" && rule.Source != null) continue;
                         if (source != "0.0.0.0" && rule.Source?.Address != source) continue;
 
-                        return true;
+                        return rule;
                     }
 
-                    return false;
+                    return null;
                 }
 
                 bool CheckPortForwardRules(IEnumerable<PortForwardRule> rules)

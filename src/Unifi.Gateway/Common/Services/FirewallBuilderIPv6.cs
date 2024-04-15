@@ -39,6 +39,10 @@ namespace Unifi.Gateway.Common.Services
                 :unifi6-user-output - [0:0]
                 :unifi6-after-output - [0:0]
 
+                :unifi6-log-accept - [0:0]
+                :unifi6-log-reject - [0:0]
+                :unifi6-log-drop - [0:0]
+                
                 -A INPUT -j unifi6-before-input
                 -A INPUT -j unifi6-user-input
                 -A INPUT -j unifi6-after-input
@@ -49,6 +53,15 @@ namespace Unifi.Gateway.Common.Services
                 -A OUTPUT -j unifi6-user-output
                 -A OUTPUT -j unifi6-after-output
 
+                -A unifi6-log-accept -j LOG --log-prefix='[unifi] '
+                -A unifi6-log-accept -j ACCEPT
+                
+                -A unifi6-log-reject -j LOG --log-prefix='[unifi] '
+                -A unifi6-log-reject -j REJECT
+                
+                -A unifi6-log-drop -j LOG --log-prefix='[unifi] '
+                -A unifi6-log-drop -j DROP
+                
                 -A unifi6-before-input -i lo -j ACCEPT
                 -A unifi6-before-output -o lo -j ACCEPT
                 -A unifi6-before-input -m rt --rt-type 0 -j DROP
@@ -85,6 +98,10 @@ namespace Unifi.Gateway.Common.Services
             foreach (var rule in cfg.Firewall.NamesV6[name].Rules.OrderBy(t => Convert.ToInt32(t.Key)).Select(t => t.Value))
             {
                 var action = rule.Action.ToUpper();
+                if (rule.Log == "enable")
+                {
+                    action = "unifi6-log-" + action.ToLower();
+                }
 
                 var state = GetState(rule);
 
