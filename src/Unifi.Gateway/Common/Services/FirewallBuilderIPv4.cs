@@ -300,8 +300,8 @@ namespace Unifi.Gateway.Common.Services
 
                 :unifi-log-dnat - [0:0]
 
-                -A unifi-log-dnat -j LOG --log-prefix="[unifi] "
-                -A unifi-log-dnat -j DNAT
+                #-A unifi-log-dnat -j LOG --log-prefix="[unifi] "
+                #-A unifi-log-dnat -j DNAT
 
                 """);
 
@@ -390,7 +390,8 @@ namespace Unifi.Gateway.Common.Services
                 var firewallRule = CheckFirewallRules(cfg.Firewall.Names["WAN_IN"].Rules.Select(t => t.Value));
                 if (firewallRule is null) continue;
 
-                var action = firewallRule.Log == "enable" ? "unifi-log-dnat" : "DNAT";
+                //var action = firewallRule.Log == "enable" ? "unifi-log-dnat" : "DNAT";
+                var action = "DNAT";
                 var sourceRule = source == "0.0.0.0" ? "-i " + wan : "-s " + source;
 
                 if (tcp)
