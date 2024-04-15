@@ -55,13 +55,13 @@ namespace Unifi.Gateway.Common.Services
                 -A OUTPUT -j unifi-user-output
                 -A OUTPUT -j unifi-after-output
 
-                -A unifi-log-accept -j LOG --log-prefix='[unifi] '
+                -A unifi-log-accept -j LOG --log-prefix="[unifi] "
                 -A unifi-log-accept -j ACCEPT
 
-                -A unifi-log-reject -j LOG --log-prefix='[unifi] '
+                -A unifi-log-reject -j LOG --log-prefix="[unifi] "
                 -A unifi-log-reject -j REJECT
 
-                -A unifi-log-drop -j LOG --log-prefix='[unifi] '
+                -A unifi-log-drop -j LOG --log-prefix="[unifi] "
                 -A unifi-log-drop -j DROP
 
                 -A unifi-before-input -i lo -j ACCEPT
@@ -300,7 +300,7 @@ namespace Unifi.Gateway.Common.Services
 
                 :unifi-log-dnat - [0:0]
 
-                -A unifi-log-dnat -j LOG --log-prefix='[unifi] '
+                -A unifi-log-dnat -j LOG --log-prefix="[unifi] "
                 -A unifi-log-dnat -j DNAT
 
                 """);
