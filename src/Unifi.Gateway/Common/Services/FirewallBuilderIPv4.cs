@@ -298,11 +298,6 @@ namespace Unifi.Gateway.Common.Services
                 :OUTPUT ACCEPT [0:0]
                 :POSTROUTING ACCEPT [0:0]
 
-                :unifi-log-dnat - [0:0]
-
-                #-A unifi-log-dnat -j LOG --log-prefix="[unifi] "
-                #-A unifi-log-dnat -j DNAT
-
                 """);
 
             var custom = await fileReader.ReadAsync("/etc/iptables/custom-nat.v4");
@@ -387,23 +382,20 @@ namespace Unifi.Gateway.Common.Services
                 };
 
                 if (!CheckPortForwardRules(cfg.PortForward.Rules.Select(t => t.Value))) continue;
-                var firewallRule = CheckFirewallRules(cfg.Firewall.Names["WAN_IN"].Rules.Select(t => t.Value));
-                if (firewallRule is null) continue;
+                if (!CheckFirewallRules(cfg.Firewall.Names["WAN_IN"].Rules.Select(t => t.Value))) continue;
 
-                //var action = firewallRule.Log == "enable" ? "unifi-log-dnat" : "DNAT";
-                var action = "DNAT";
                 var sourceRule = source == "0.0.0.0" ? "-i " + wan : "-s " + source;
 
                 if (tcp)
                 {
-                    yield return $"-A PREROUTING {sourceRule} -p tcp --dport {originalPort} -j {action} --to-destination {address}:{targetPort}";
+                    yield return $"-A PREROUTING {sourceRule} -p tcp --dport {originalPort} -j DNAT --to-destination {address}:{targetPort}";
                 }
                 if (udp)
                 {
-                    yield return $"-A PREROUTING {sourceRule} -p udp --dport {originalPort} -j {action} --to-destination {address}:{targetPort}";
+                    yield return $"-A PREROUTING {sourceRule} -p udp --dport {originalPort} -j DNAT --to-destination {address}:{targetPort}";
                 }
 
-                FirewallRule? CheckFirewallRules(IEnumerable<FirewallRule> rules)
+                bool CheckFirewallRules(IEnumerable<FirewallRule> rules)
                 {
                     foreach (var rule in rules)
                     {
@@ -415,10 +407,10 @@ namespace Unifi.Gateway.Common.Services
                         if (source == "0.0.0.0" && rule.Source != null) continue;
                         if (source != "0.0.0.0" && rule.Source?.Address != source) continue;
 
-                        return rule;
+                        return true;
                     }
 
-                    return null;
+                    return false;
                 }
 
                 bool CheckPortForwardRules(IEnumerable<PortForwardRule> rules)
