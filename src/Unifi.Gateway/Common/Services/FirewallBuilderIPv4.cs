@@ -101,6 +101,7 @@ namespace Unifi.Gateway.Common.Services
             foreach (var network in cfg.Firewall.Groups.NetworkGroups[networkGroup].Networks)
             {
                 rules.AppendLine($"-A unifi-before-forward -s {network} -m policy --pol ipsec --dir in -p esp -j ACCEPT");
+                rules.AppendLine($"-A unifi-before-forward -s {network} -m policy --pol ipsec --dir out -p esp -j ACCEPT");
             }
             rules.AppendLine();
         }
