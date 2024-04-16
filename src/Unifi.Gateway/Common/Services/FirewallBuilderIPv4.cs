@@ -81,8 +81,10 @@ namespace Unifi.Gateway.Common.Services
                 rules.AppendLine();
             }
 
-            AddVPNRules(cfg, rules, "remote_user_vpn_network", "# Point-to-Point VPNs");
-            AddVPNRules(cfg, rules, "remote_site_vpn_network", "# Site-to-Site VPNs");
+            AddVpnRules(cfg, rules, "remote_user_vpn_network", "# Point-to-Point VPNs");
+            AddVpnRules(cfg, rules, "remote_site_vpn_network", "# Site-to-Site VPNs");
+
+            AddVpnToSitesRules(cfg, rules, "remote_user_vpn_network", "remote_site_vpn_network");
 
             AppendRules(rules, BuildFilters(cfg, "WAN_LOCAL", wan, "unifi-user-input", true));
             AppendRules(rules, BuildFilters(cfg, "WAN_IN", wan, "unifi-user-forward", true));
@@ -95,7 +97,21 @@ namespace Unifi.Gateway.Common.Services
             rules.AppendLine();
         }
 
-        private void AddVPNRules(SystemConfiguration cfg, StringBuilder rules, string networkGroup, string comment)
+        private static void AddVpnToSitesRules(SystemConfiguration cfg, StringBuilder rules, string vpnNetworkGroup, string siteNetworkGroup)
+        {
+            rules.AppendLine("# Allow access to Site-to-Site from VPN");
+            foreach (var p2p in cfg.Firewall.Groups.NetworkGroups[vpnNetworkGroup].Networks)
+            {
+                foreach (var s2s in cfg.Firewall.Groups.NetworkGroups[siteNetworkGroup].Networks)
+                {
+                    rules.AppendLine($"-A unifi-before-forward -s {p2p} -d {s2s} -j ACCEPT");
+                    rules.AppendLine($"-A unifi-before-forward -d {p2p} -s {s2s} -j ACCEPT");
+                }
+            }
+            rules.AppendLine();
+        }
+
+        private void AddVpnRules(SystemConfiguration cfg, StringBuilder rules, string networkGroup, string comment)
         {
             rules.AppendLine(comment);
             foreach (var network in cfg.Firewall.Groups.NetworkGroups[networkGroup].Networks)
