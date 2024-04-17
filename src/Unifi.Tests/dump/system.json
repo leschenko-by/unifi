@@ -273,6 +273,22 @@
                 "address-group": "authorized_guests"
               }
             }
+          },
+          "2000": {
+            "action": "accept",
+            "description": "test ipsec",
+            "protocol": "all",
+            "ipsec": {
+              "match-ipsec": "''"
+            }
+          },
+          "2001": {
+            "action": "accept",
+            "description": "test no ipsec",
+            "protocol": "all",
+            "ipsec": {
+              "match-none": "''"
+            }
           }
         }
       },
@@ -462,16 +478,6 @@
             },
             "protocol": "tcp",
             "log": "enable"
-          },
-          "3004": {
-            "action": "accept",
-            "description": "PortForward [torrents]",
-            "destination": {
-              "address": "192.168.2.169",
-              "port": "62405"
-            },
-            "protocol": "tcp_udp",
-            "log": "enable"
           }
         }
       },
@@ -535,7 +541,8 @@
               "group": {
                 "port-group": "660c5ba18d6d5f1535169c9b"
               }
-            }
+            },
+            "log": "enable"
           }
         }
       },
@@ -852,14 +859,6 @@
         },
         "original-port": "8443",
         "protocol": "tcp"
-      },
-      "3002": {
-        "description": "torrents",
-        "forward-to": {
-          "address": "192.168.2.169"
-        },
-        "original-port": "62405",
-        "protocol": "tcp_udp"
       }
     }
   },
@@ -1245,8 +1244,7 @@
     "offload_pfor": {
       "pfor.status": "enable",
       "pfor.rules": {
-        "6606b939dc63a76bdacaf8f8": "src=0.0.0.0,dst_port='8443',fwd=192.168.2.12,fwd_port='8443',tcp=1,udp=0",
-        "661d85d1efaff77d5ac4567b": "src=0.0.0.0,dst_port='62405',fwd=192.168.2.169,fwd_port='62405',tcp=1,udp=1"
+        "6606b939dc63a76bdacaf8f8": "src=0.0.0.0,dst_port='8443',fwd=192.168.2.12,fwd_port='8443',tcp=1,udp=0"
       }
     },
     "redirector": {

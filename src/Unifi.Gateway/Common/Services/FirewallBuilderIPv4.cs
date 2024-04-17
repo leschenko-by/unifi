@@ -135,6 +135,11 @@ namespace Unifi.Gateway.Common.Services
 
                 var state = GetStates(rule);
 
+                if (string.IsNullOrEmpty(state))
+                {
+                    state = GetPolicy(input, rule);
+                }
+
                 var protos = GetProtocols(rule);
 
                 var destPorts = GetPorts(cfg, rule.Destination);
@@ -187,6 +192,18 @@ namespace Unifi.Gateway.Common.Services
                 yield return $"-A {chain} {direction} {nic} -j {cfg.Firewall.Names[name].DefaultAction.ToUpper()}";
             }
             yield return string.Empty;
+        }
+
+        private static string GetPolicy(bool input, FirewallRule rule)
+        {
+            if (rule.Ipsec != null)
+            {
+                var pol = !string.IsNullOrEmpty(rule.Ipsec.MatchIpSec) ? "ipsec" : "none";
+                var policyDirection = input ? "in" : "out";
+
+                return $"-m policy --pol {pol} --dir {policyDirection}";
+            }
+            return string.Empty;
         }
 
         private static string GetStates(FirewallRule rule)

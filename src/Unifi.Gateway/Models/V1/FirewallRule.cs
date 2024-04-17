@@ -30,5 +30,8 @@ namespace Unifi.Gateway.Models.V1
 
         [JsonPropertyName("log")]
         public string? Log { get; set; }
+
+        [JsonPropertyName("ipsec")]
+        public FirewallRuleIpsec? Ipsec { get; set; }
     }
 }
