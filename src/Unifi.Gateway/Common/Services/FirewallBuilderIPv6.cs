@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.Text.Json.Nodes;
 using Unifi.Gateway.Common.Interfaces;
 using Unifi.Gateway.Models.V1;
 
@@ -113,19 +114,17 @@ namespace Unifi.Gateway.Common.Services
                 var protos = GetProtocols(rule);
 
                 var destPorts = GetPorts(cfg, rule.Destination);
-                var dport = destPorts.Length switch
+                var dports = destPorts switch
                 {
-                    0 => "",
-                    1 => "--dport " + destPorts.First(),
-                    _ => "-m multiport --dports " + string.Join(",", destPorts)
+                [] => [""],
+                    _ => destPorts.Select(p => "--dport " + p).ToArray()
                 };
 
                 var srcPorts = GetPorts(cfg, rule.Source);
-                var sport = srcPorts.Length switch
+                var sports = srcPorts switch
                 {
-                    0 => "",
-                    1 => "--sport " + srcPorts.First(),
-                    _ => "-m multiport --sports " + string.Join(",", srcPorts)
+                [] => [""],
+                    _ => srcPorts.Select(p => "--dport " + p).ToArray()
                 };
 
                 var destAddrs = GetAddresses(cfg, rule.Destination);
@@ -144,9 +143,9 @@ namespace Unifi.Gateway.Common.Services
                     sourceMac = "--mac-source " + sourceMac;
                 }
 
-                foreach (var source in sources)
+                foreach (var (source, sport) in sources.Zip(sports))
                 {
-                    foreach (var destination in destinations)
+                    foreach (var (destination, dport) in destinations.Zip(dports))
                     {
                         foreach (var proto in protos)
                         {
@@ -168,7 +167,20 @@ namespace Unifi.Gateway.Common.Services
         {
             if (rule.Ipsec != null)
             {
-                var pol = !string.IsNullOrEmpty(rule.Ipsec.MatchIpSec) ? "ipsec" : "none";
+                string pol;
+                if (rule.Ipsec.ToString() == "match-ipsec")
+                {
+                    pol = "ipsec";
+                }
+                else if (rule.Ipsec is JsonObject obj)
+                {
+                    pol = obj["match-ipsec"] != null ? "ipsec" : "none";
+                }
+                else
+                {
+                    return "";
+                }
+
                 var policyDirection = input ? "in" : "out";
 
                 return $"-m policy --pol {pol} --dir {policyDirection}";

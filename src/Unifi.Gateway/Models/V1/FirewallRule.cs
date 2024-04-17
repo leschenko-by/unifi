@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 
 namespace Unifi.Gateway.Models.V1
 {
@@ -32,6 +33,6 @@ namespace Unifi.Gateway.Models.V1
         public string? Log { get; set; }
 
         [JsonPropertyName("ipsec")]
-        public FirewallRuleIpsec? Ipsec { get; set; }
+        public JsonNode? Ipsec { get; set; }
     }
 }
