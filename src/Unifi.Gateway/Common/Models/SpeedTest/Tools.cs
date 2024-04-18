@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace Unifi.SpeedTest.Models
+namespace Unifi.Gateway.Common.Models.SpeedTest
 {
     public partial class Tools
     {

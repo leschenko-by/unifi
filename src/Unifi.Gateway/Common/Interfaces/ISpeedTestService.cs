@@ -1,8 +1,8 @@
-﻿using Unifi.SpeedTest.Models;
+﻿using Unifi.Gateway.Common.Models.SpeedTest;
 
-namespace Unifi.SpeedTest
+namespace Unifi.Gateway.Common.Interfaces
 {
-    public interface ISpeedTestClient
+    public interface ISpeedTestService
     {
         Task<Server> GetServerAsync();
         Task<int> TestServerLatencyAsync(Server server, int retryCount = 3);

@@ -1,4 +1,4 @@
-﻿namespace Unifi.SpeedTest.Models
+﻿namespace Unifi.Gateway.Common.Models.SpeedTest
 {
     public class Coordinate
     {

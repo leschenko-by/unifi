@@ -15,8 +15,4 @@
     <PackageReference Include="BouncyCastle.NetCore" Version="2.2.1" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Unifi.SpeedTest\Unifi.SpeedTest.csproj" />
-  </ItemGroup>
-
 </Project>

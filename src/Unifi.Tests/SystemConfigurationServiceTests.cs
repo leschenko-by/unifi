@@ -2,7 +2,7 @@
 using Moq.AutoMock;
 using System.Net;
 using Unifi.Gateway.Common.Interfaces;
-using Unifi.Gateway.Models;
+using Unifi.Gateway.Common.Models;
 using Unifi.Gateway.V1.Interfaces;
 using Unifi.Gateway.V1.Services;
 

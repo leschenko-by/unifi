@@ -1,20 +1,20 @@
-namespace Unifi.SpeedTest.Models
+namespace Unifi.Gateway.Common.Models.SpeedTest
 {
-    internal class ServersList
+    public class ServersList
     {
-        internal List<Server> Servers { get; set; }
+        public List<Server> Servers { get; set; }
 
-        internal ServersList(List<Server> servers)
+        public ServersList(List<Server> servers)
         {
             Servers = servers;
         }
 
-        internal void CalculateDistances(Coordinate clientCoordinate)
+        public void CalculateDistances(Coordinate clientCoordinate)
         {
             Servers.ForEach(server => server.Distance = clientCoordinate.GetDistanceTo(server.GeoCoordinate));
         }
 
-        internal readonly int[] IgnoreIds = { 1525, 1716, 1758, 1762, 1816, 1834, 1839, 1840, 1850, 1854, 1859,
+        public readonly int[] IgnoreIds = { 1525, 1716, 1758, 1762, 1816, 1834, 1839, 1840, 1850, 1854, 1859,
             1860, 1861, 1871, 1873, 1875, 1880, 1902, 1913, 3280, 3448, 3695, 3696, 3697, 3698, 3699,
             3725, 3726, 3727, 3728, 3729, 3730, 3731, 3733, 3788, 4140, 4533, 5085, 5086, 5087, 5894,
             6130, 6285, 6397, 6398, 6412, 7326, 7334, 7529, 8591, 9123, 9466, 9816, 10221, 10226, 10556,

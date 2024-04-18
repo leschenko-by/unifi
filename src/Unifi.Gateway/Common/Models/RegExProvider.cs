@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace Unifi.Gateway.Models
+namespace Unifi.Gateway.Common.Models
 {
     public partial class RegExProvider
     {

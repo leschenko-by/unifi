@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Unifi.Gateway", "Unifi.Gate
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Unifi.Tests", "Unifi.Tests\Unifi.Tests.csproj", "{6EB11BCD-8BAE-4305-805A-56E08EF36E5D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Unifi.SpeedTest", "Unifi.SpeedTest\Unifi.SpeedTest.csproj", "{C9AE807A-56F5-4FFC-B003-3732A1C4449C}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,10 +21,6 @@ Global
 		{6EB11BCD-8BAE-4305-805A-56E08EF36E5D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6EB11BCD-8BAE-4305-805A-56E08EF36E5D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6EB11BCD-8BAE-4305-805A-56E08EF36E5D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C9AE807A-56F5-4FFC-B003-3732A1C4449C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C9AE807A-56F5-4FFC-B003-3732A1C4449C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C9AE807A-56F5-4FFC-B003-3732A1C4449C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C9AE807A-56F5-4FFC-B003-3732A1C4449C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

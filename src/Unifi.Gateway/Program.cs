@@ -1,9 +1,10 @@
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text.Json;
 using Unifi.Gateway.BackgroundServices;
 using Unifi.Gateway.Common.Interfaces;
+using Unifi.Gateway.Common.Models;
 using Unifi.Gateway.Common.Services;
-using Unifi.Gateway.Models;
 using Unifi.Gateway.V1.Devices;
 using Unifi.Gateway.V1.Interfaces;
 using Unifi.Gateway.V1.Services;
@@ -59,6 +60,23 @@ static async Task RunAsync(string[] args)
     var builder = WebApplication.CreateSlimBuilder(args);
     builder.Logging.AddConsole();
     builder.Services.AddHttpClient();
+    builder.Services.AddHttpClient("SpeedTest", client =>
+    {
+        var frameworkInfo = RuntimeInformation.FrameworkDescription.Split();
+        var frameworkName = $"{frameworkInfo[0]}{frameworkInfo[1]}";
+
+        var osInfo = RuntimeInformation.OSDescription.Split();
+
+        client.DefaultRequestHeaders.Add("Accept", "text/html, application/xhtml+xml, */*");
+        client.DefaultRequestHeaders.Add("User-Agent", string.Join(" ",
+        [
+            "Mozilla/5.0",
+            $"({osInfo[0]}-{osInfo[1]}; U; {RuntimeInformation.ProcessArchitecture}; en-us)",
+            $"{frameworkName}/{frameworkInfo[1]}",
+            "(KHTML, like Gecko)",
+            $"SpeedTest.Net/1.0.0"
+        ]));
+    });
     builder.Services.AddSystemd();
     builder.Services.Configure<GeneralServiceOptions>(builder.Configuration.GetSection("DiscoveryService"));
     builder.Services.AddSingleton<IConnectRequest, ConnectRequest>();
@@ -75,6 +93,7 @@ static async Task RunAsync(string[] args)
     builder.Services.AddTransient<IUnifiProtocol, UnifiProtocol>();
     builder.Services.AddTransient<IFirewallService, FirewallService>();
     builder.Services.AddTransient<IFileReader, FileReader>();
+    builder.Services.AddTransient<ISpeedTestService, SpeedTestService>();
     builder.Services.AddKeyedTransient<IUnifiDevice, UGW3Device>("UGW3");
     builder.Services.AddKeyedTransient<IUnifiDevice, UGW4Device>("UGW4");
     builder.Services.AddKeyedTransient<IUnifiDevice, UXGDevice>("UXG");

@@ -2,8 +2,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Unifi.Gateway.Common.Interfaces;
-using Unifi.Gateway.Models;
-using Unifi.SpeedTest;
+using Unifi.Gateway.Common.Models;
 
 namespace Unifi.Gateway.V1.Devices
 {
@@ -77,6 +76,9 @@ namespace Unifi.Gateway.V1.Devices
 
         private async Task StartSpeedTest()
         {
+            using var scope = serviceProvider.CreateScope();
+            var client = scope.ServiceProvider.GetRequiredService<ISpeedTestService>();
+
             byte[] request;
             byte[] response;
             try
@@ -103,7 +105,6 @@ namespace Unifi.Gateway.V1.Devices
                 Log("Request", request = Encoding.UTF8.GetBytes(message.ToString()));
                 Log("Response", response = await protocol.SendRequestAsync(InformUrl, Key, request));
 
-                var client = new SpeedTestClient();
                 var server = await client.GetServerAsync();
 
                 var latency = await client.TestServerLatencyAsync(server);

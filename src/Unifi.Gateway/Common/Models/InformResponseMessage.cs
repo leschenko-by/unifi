@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Unifi.Gateway.Models
+namespace Unifi.Gateway.Common.Models
 {
     public class InformResponseMessage
     {

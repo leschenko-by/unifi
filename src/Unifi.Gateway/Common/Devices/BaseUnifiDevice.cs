@@ -6,7 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Unifi.Gateway.Common.Interfaces;
-using Unifi.Gateway.Models;
+using Unifi.Gateway.Common.Models;
 
 namespace Unifi.Gateway.Common.Devices
 {

@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 using Unifi.Gateway.Common.Interfaces;
-using Unifi.Gateway.Models;
+using Unifi.Gateway.Common.Models;
 
 namespace Unifi.Gateway.Common.Services
 {

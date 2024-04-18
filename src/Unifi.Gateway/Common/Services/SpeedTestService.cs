@@ -3,27 +3,26 @@ using System.Globalization;
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using SpeedTest.Net.Models;
-using Unifi.SpeedTest.Models;
+using Unifi.Gateway.Common.Interfaces;
+using Unifi.Gateway.Common.Models;
+using Unifi.Gateway.Common.Models.SpeedTest;
 
-namespace Unifi.SpeedTest
+namespace Unifi.Gateway.Common.Services
 {
-    public class SpeedTestClient : ISpeedTestClient
+    public class SpeedTestService(IHttpClientFactory clientFactory) : ISpeedTestService
     {
+        private readonly IHttpClientFactory clientFactory = clientFactory;
         private static readonly int[] DownloadSizes = [350, 750, 1500, 3000];
         private const string Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        private const int MaxUploadSize = 4; // 400 KB
+        private const int MaxUploadSize = 4; // 400 KBS
 
-        #region ISpeedTestClient
-
-        /// <inheritdoc />
-        /// <exception cref="InvalidOperationException"></exception>
         public async Task<Server> GetServerAsync()
         {
-            var client = new HttpClient();
+            using var client = clientFactory.CreateClient();
+
             var loc = JsonSerializer.Deserialize(
                 await client.GetStringAsync("https://ipinfo.io/json"),
-                SourceGenerationContext.Default.LocationModel);
+                SourceGenerationContext.Default.LocationModel)!;
             var coordinate = new Coordinate(loc.Latitude, loc.Longitude);
 
             var text = await client.GetStringAsync("http://www.speedtest.net/speedtest-servers-static.php");
@@ -46,13 +45,12 @@ namespace Unifi.SpeedTest
             return config.Servers.OrderBy(s => s.Distance).First();
         }
 
-        /// <inheritdoc />
         public async Task<int> TestServerLatencyAsync(Server server, int retryCount = 3)
         {
             var latencyUri = CreateTestUrl(server, "latency.txt");
             var timer = new Stopwatch();
 
-            using var client = new SpeedTestHttpClient();
+            using var client = clientFactory.CreateClient("SpeedTest");
 
             for (var i = 0; i < retryCount; i++)
             {
@@ -103,12 +101,11 @@ namespace Unifi.SpeedTest
             }, simultaneousUploads);
         }
 
-        #endregion
-
         #region Helpers
 
-        private static async Task<double> TestSpeedAsync<T>(IEnumerable<T> testData, Func<HttpClient, T, Task<int>> doWork, int concurrencyCount = 2)
+        private async Task<double> TestSpeedAsync<T>(IEnumerable<T> testData, Func<HttpClient, T, Task<int>> doWork, int concurrencyCount = 2)
         {
+            using var client = clientFactory.CreateClient("SpeedTest");
             var timer = new Stopwatch();
             var throttler = new SemaphoreSlim(concurrencyCount);
 
@@ -116,7 +113,6 @@ namespace Unifi.SpeedTest
             var downloadTasks = testData.Select(async data =>
             {
                 await throttler.WaitAsync().ConfigureAwait(false);
-                var client = new SpeedTestHttpClient();
                 try
                 {
                     var size = await doWork(client, data).ConfigureAwait(false);
@@ -124,7 +120,6 @@ namespace Unifi.SpeedTest
                 }
                 finally
                 {
-                    client.Dispose();
                     throttler.Release();
                 }
             }).ToArray();

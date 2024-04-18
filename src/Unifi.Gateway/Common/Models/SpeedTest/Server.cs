@@ -1,12 +1,12 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Unifi.SpeedTest.Models
+namespace Unifi.Gateway.Common.Models.SpeedTest
 {
     public class Server
     {
-        public string Sponsor { get; set; }
+        public string Sponsor { get; set; } = string.Empty;
 
-        public string Url { get; set; }
+        public string Url { get; set; } = string.Empty;
 
         public double Latitude { get; set; }
 
