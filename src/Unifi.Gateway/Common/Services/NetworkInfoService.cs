@@ -9,27 +9,18 @@ namespace Unifi.Gateway.Common.Services
     public class NetworkInfoService : INetworkInfoService
     {
         private readonly string[] ports;
-        private readonly ILogger<NetworkInfoService> logger;
 
         public IReadOnlyList<IEthernetInterface?> Interfaces { get; private set; } = [];
 
-        public NetworkInfoService(
-            IOptions<GeneralServiceOptions> serviceOptions,
-            ILogger<NetworkInfoService> logger)
+        public NetworkInfoService(IOptions<GeneralServiceOptions> serviceOptions)
         {
             ports = serviceOptions.Value.Ports.Split(",");
-            this.logger = logger;
             RefreshInterfaces();
         }
 
         public void RefreshInterfaces()
         {
             var networks = NetworkInterface.GetAllNetworkInterfaces();
-            foreach (var nic in networks)
-            {
-                logger.LogInformation("network interface: {id} {name} {type} {status}",
-                    nic.Id, nic.Name, nic.NetworkInterfaceType, nic.OperationalStatus);
-            }
 
             var interfaces = new List<IEthernetInterface?>();
             var index = 0;
