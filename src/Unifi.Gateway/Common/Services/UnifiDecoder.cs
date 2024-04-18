@@ -9,7 +9,7 @@ using Unifi.Gateway.Common.Interfaces;
 
 namespace Unifi.Gateway.Common.Services
 {
-    public class RequestDecoder : IRequestDecoder
+    public class UnifiDecoder : IUnifiDecoder
     {
         public byte[] Decode(byte[] data, byte[] key)
         {

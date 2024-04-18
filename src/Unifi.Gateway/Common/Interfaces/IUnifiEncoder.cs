@@ -2,7 +2,7 @@
 
 namespace Unifi.Gateway.Common.Interfaces
 {
-    public interface IRequestEncoder
+    public interface IUnifiEncoder
     {
         byte[] Encode(byte[] data, byte[] key, byte[] mac, CompressMode compress, EncryptMode encrypt);
     }

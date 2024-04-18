@@ -1,6 +1,6 @@
 ﻿namespace Unifi.Gateway.Common.Interfaces
 {
-    public interface IRequestDecoder
+    public interface IUnifiDecoder
     {
         byte[] Decode(byte[] data, byte[] key);
     }

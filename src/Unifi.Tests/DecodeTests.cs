@@ -5,7 +5,7 @@ namespace Unifi.Tests
 {
     public class DecodeTests
     {
-        private readonly RequestDecoder decoder = new();
+        private readonly UnifiDecoder decoder = new();
 
         [Fact]
         public void DecodeRequest()

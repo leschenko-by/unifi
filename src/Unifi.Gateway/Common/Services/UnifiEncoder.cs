@@ -10,7 +10,7 @@ using Unifi.Gateway.Common.Interfaces;
 
 namespace Unifi.Gateway.Common.Services
 {
-    public class RequestEncoder : IRequestEncoder
+    public class UnifiEncoder : IUnifiEncoder
     {
         public byte[] Encode(byte[] payload, byte[] key, byte[] mac, CompressMode compress, EncryptMode encrypt)
         {

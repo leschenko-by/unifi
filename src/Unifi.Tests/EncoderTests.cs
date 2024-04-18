@@ -8,13 +8,13 @@ namespace Unifi.Tests
     public class EncoderTests
     {
         private readonly AutoMocker mocker = new();
-        private readonly RequestEncoder encoder;
-        private readonly RequestDecoder decoder;
+        private readonly UnifiEncoder encoder;
+        private readonly UnifiDecoder decoder;
 
         public EncoderTests()
         {
-            encoder = mocker.CreateInstance<RequestEncoder>();
-            decoder = mocker.CreateInstance<RequestDecoder>();
+            encoder = mocker.CreateInstance<UnifiEncoder>();
+            decoder = mocker.CreateInstance<UnifiDecoder>();
         }
 
         [Fact]

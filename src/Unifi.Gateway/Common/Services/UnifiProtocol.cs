@@ -7,15 +7,15 @@ namespace Unifi.Gateway.Common.Services
 {
     public class UnifiProtocol: IUnifiProtocol
     {
-        private readonly IRequestEncoder encoder;
-        private readonly IRequestDecoder decoder;
+        private readonly IUnifiEncoder encoder;
+        private readonly IUnifiDecoder decoder;
         private readonly INetworkInfoService network;
         private readonly IOptions<GeneralServiceOptions> serviceOptions;
         private readonly HttpClient httpClient;
 
         public UnifiProtocol(
-            IRequestEncoder encoder, 
-            IRequestDecoder decoder, 
+            IUnifiEncoder encoder, 
+            IUnifiDecoder decoder, 
             INetworkInfoService network,
             IOptions<GeneralServiceOptions> serviceOptions,
             IHttpClientFactory httpClientFactory)

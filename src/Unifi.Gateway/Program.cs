@@ -85,8 +85,8 @@ static async Task RunAsync(string[] args)
     builder.Services.AddTransient<IFirewallBuilderIPv4, FirewallBuilderIPv4>();
     builder.Services.AddTransient<IFirewallBuilderIPv6, FirewallBuilderIPv6>();
     builder.Services.AddTransient<ISystemInfoService, SystemInfoService>();
-    builder.Services.AddTransient<IRequestEncoder, RequestEncoder>();
-    builder.Services.AddTransient<IRequestDecoder, RequestDecoder>();
+    builder.Services.AddTransient<IUnifiEncoder, UnifiEncoder>();
+    builder.Services.AddTransient<IUnifiDecoder, UnifiDecoder>();
     builder.Services.AddTransient<INetworkInfoService, NetworkInfoService>();
     builder.Services.AddTransient<IConfigurationReader, ConfigurationReader>();
     builder.Services.AddTransient<IConfigurationWriter, ConfigurationWriter>();
