@@ -144,18 +144,10 @@ namespace Unifi.Gateway.Common.Services
                 var protos = GetProtocols(rule);
 
                 var destPorts = GetPorts(cfg, rule.Destination);
-                var dports = destPorts switch
-                {
-                    [] => [""],
-                    _ => destPorts.Select(p => "--dport " + p).ToArray()
-                };
+                var dports = destPorts.Length > 0 ? destPorts.Select(p => "--dport " + p).ToArray() : [""];
 
                 var srcPorts = GetPorts(cfg, rule.Source);
-                var sports = srcPorts switch
-                {
-                    [] => [""],
-                    _ => srcPorts.Select(p => "--dport " + p).ToArray()
-                };
+                var sports = srcPorts.Length > 0 ? srcPorts.Select(p => "--sport " + p).ToArray() : [""];
 
                 var destAddrs = GetAddresses(cfg, rule.Destination);
                 var destinations = destAddrs.Length > 0
