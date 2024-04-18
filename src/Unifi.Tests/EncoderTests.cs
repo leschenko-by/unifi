@@ -1,6 +1,6 @@
 using Moq.AutoMock;
 using System.Text;
-using Unifi.Gateway.Common.Interfaces;
+using Unifi.Gateway.Common.Enums;
 using Unifi.Gateway.Common.Services;
 
 namespace Unifi.Tests

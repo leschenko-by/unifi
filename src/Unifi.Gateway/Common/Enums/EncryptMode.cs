@@ -1,4 +1,4 @@
-﻿namespace Unifi.Gateway.Common.Interfaces
+﻿namespace Unifi.Gateway.Common.Enums
 {
     public enum EncryptMode
     {

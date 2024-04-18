@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
+using Unifi.Gateway.Common.Enums;
 using Unifi.Gateway.Common.Interfaces;
 using Unifi.Gateway.Common.Models;
 

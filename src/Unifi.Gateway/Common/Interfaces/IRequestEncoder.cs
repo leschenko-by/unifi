@@ -1,4 +1,6 @@
-﻿namespace Unifi.Gateway.Common.Interfaces
+﻿using Unifi.Gateway.Common.Enums;
+
+namespace Unifi.Gateway.Common.Interfaces
 {
     public interface IRequestEncoder
     {

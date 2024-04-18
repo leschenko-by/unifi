@@ -5,6 +5,7 @@ using Snappy.Sharp;
 using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
+using Unifi.Gateway.Common.Enums;
 using Unifi.Gateway.Common.Interfaces;
 
 namespace Unifi.Gateway.Common.Services
