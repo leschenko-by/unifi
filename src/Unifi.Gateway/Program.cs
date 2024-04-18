@@ -3,8 +3,12 @@ using System.Text.Json;
 using Unifi.Gateway.BackgroundServices;
 using Unifi.Gateway.Common.Interfaces;
 using Unifi.Gateway.Common.Services;
-using Unifi.Gateway.Devices;
 using Unifi.Gateway.Models;
+using Unifi.Gateway.V1.Devices;
+using Unifi.Gateway.V1.Interfaces;
+using Unifi.Gateway.V1.Services;
+using Unifi.Gateway.V2.Devices;
+using Unifi.Gateway.V2.Services;
 
 if (args.Length > 0)
 {
