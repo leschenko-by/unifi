@@ -86,6 +86,7 @@ namespace Unifi.Gateway.V1.Services
             AddVpnRules(cfg, rules, "remote_user_vpn_network", "# Point-to-Point VPNs");
             AddVpnRules(cfg, rules, "remote_site_vpn_network", "# Site-to-Site VPNs");
 
+            AddVpnToInternetRules(cfg, rules, "remote_user_vpn_network", wan);
             AddVpnToSitesRules(cfg, rules, "remote_user_vpn_network", "remote_site_vpn_network");
 
             AppendRules(rules, BuildFilters(cfg, "WAN_LOCAL", wan, "unifi-user-input", true));
@@ -96,6 +97,16 @@ namespace Unifi.Gateway.V1.Services
             AppendRules(rules, BuildFilters(cfg, "LAN_OUT", lan, "unifi-user-forward", false));
 
             rules.AppendLine("COMMIT");
+            rules.AppendLine();
+        }
+
+        private static void AddVpnToInternetRules(SystemConfiguration cfg, StringBuilder rules, string vpnNetworkGroup, string wan)
+        {
+            rules.AppendLine("# Allow internet access from VPN");
+            foreach (var p2p in cfg.Firewall.Groups.NetworkGroups[vpnNetworkGroup].Networks)
+            {
+                rules.AppendLine($"-A unifi-before-forward -s {p2p} -o {wan} -j ACCEPT");
+            }
             rules.AppendLine();
         }
 
