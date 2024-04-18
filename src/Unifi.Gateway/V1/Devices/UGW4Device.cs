@@ -68,12 +68,6 @@ namespace Unifi.Gateway.V1.Devices
             message["routes"] = await GetRoutesAsync();
         }
 
-        private void Log(string direction, byte[] data)
-        {
-            var message = Encoding.UTF8.GetString(data);
-            logger.LogInformation("{direction}: {message}", direction, message);
-        }
-
         private async Task StartSpeedTest()
         {
             using var scope = serviceProvider.CreateScope();
@@ -102,40 +96,44 @@ namespace Unifi.Gateway.V1.Devices
                     ["xput_upload"] = 0,
                 };
                 message["speedtest-status"] = status;
-                Log("Request", request = Encoding.UTF8.GetBytes(message.ToString()));
-                Log("Response", response = await protocol.SendRequestAsync(InformUrl, Key, request));
+                request = Encoding.UTF8.GetBytes(message.ToString());
+                response = await protocol.SendRequestAsync(InformUrl, Key, request);
 
                 var server = await client.GetServerAsync();
 
                 var latency = await client.TestServerLatencyAsync(server);
+                logger.LogInformation("Latency: {latency} ms", latency);
+
                 status["latency"] = latency;
                 status["rundate"] = GetTime();
                 status["runtime"] = GetTime();
                 status["status_download"] = 1;
                 status["status_ping"] = 2;
                 status["status_summary"] = 1;
-                Log("Request", request = Encoding.UTF8.GetBytes(message.ToString()));
-                Log("Response", response = await protocol.SendRequestAsync(InformUrl, Key, request));
+                request = Encoding.UTF8.GetBytes(message.ToString());
+                response = await protocol.SendRequestAsync(InformUrl, Key, request);
 
                 var download = await client.TestDownloadSpeedAsync(server, 16);
+                logger.LogInformation("Download speed: {download}", download / 1024);
 
                 status["rundate"] = GetTime();
                 status["runtime"] = GetTime();
                 status["status_download"] = 2;
                 status["status_upload"] = 2;
                 status["xput_download"] = download / 1024;
-                Log("Request", request = Encoding.UTF8.GetBytes(message.ToString()));
-                Log("Response", response = await protocol.SendRequestAsync(InformUrl, Key, request));
+                request = Encoding.UTF8.GetBytes(message.ToString());
+                response = await protocol.SendRequestAsync(InformUrl, Key, request);
 
                 var upload = await client.TestUploadSpeedAsync(server, 16);
+                logger.LogInformation("Upload speed: {upload}", upload / 1024);
 
                 status["rundate"] = GetTime();
                 status["runtime"] = GetTime();
                 status["status_summary"] = 2;
                 status["xput_download"] = download / 1024;
                 status["xput_upload"] = upload / 1024;
-                Log("Request", request = Encoding.UTF8.GetBytes(message.ToString()));
-                Log("Response", response = await protocol.SendRequestAsync(InformUrl, Key, request));
+                request = Encoding.UTF8.GetBytes(message.ToString());
+                response = await protocol.SendRequestAsync(InformUrl, Key, request);
             }
             catch (Exception ex)
             {
