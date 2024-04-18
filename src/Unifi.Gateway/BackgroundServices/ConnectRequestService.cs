@@ -3,16 +3,10 @@ using Unifi.Gateway.Common.Interfaces;
 
 namespace Unifi.Gateway.BackgroundServices
 {
-    public class ConnectRequestService : BackgroundService
+    public class ConnectRequestService(IConnectRequest connectRequest, ILogger<ConnectRequestService> logger) : BackgroundService
     {
-        private readonly IConnectRequest connectRequest;
-        private readonly ILogger<ConnectRequestService> logger;
-
-        public ConnectRequestService(IConnectRequest connectRequest, ILogger<ConnectRequestService> logger)
-        {
-            this.connectRequest = connectRequest;
-            this.logger = logger;
-        }
+        private readonly IConnectRequest connectRequest = connectRequest;
+        private readonly ILogger<ConnectRequestService> logger = logger;
 
         protected override async Task ExecuteAsync(CancellationToken token)
         {
@@ -27,8 +21,7 @@ namespace Unifi.Gateway.BackgroundServices
                     {
                         var data = await udp.ReceiveAsync(token);
 
-                        logger.LogInformation("UDP: Received connect request from {EndPoint} with {data}",
-                            data.RemoteEndPoint, Convert.ToHexString(data.Buffer));
+                        logger.LogInformation("Received connect request from {EndPoint}", data.RemoteEndPoint);
 
                         connectRequest.Activate();
 
@@ -41,7 +34,7 @@ namespace Unifi.Gateway.BackgroundServices
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(ex, "UDP: Error receiving connect request");
+                    logger.LogError(ex, "Error receiving connect request");
                 }
             }
         }

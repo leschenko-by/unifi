@@ -416,11 +416,7 @@ namespace Unifi.Gateway.Common.Devices
             var result = await GetLanInterface(name, port, address, netmask, mac, stats);
             result["latency"] = latency;
             result["uptime"] = await systemInfo.GetUptimeAsync();
-            //result["speedtest_lastrun"] = DateTimeOffset.Now.ToUnixTimeSeconds();
-            //result["speedtest_ping"] = 1;
-            //result["speedtest_status"] = "Idle";
-            //result["xput_down"] = 50 + new Random().Next(50);
-            //result["xput_up"] = 50 + new Random().Next(50);
+
             return result;
         }
 
