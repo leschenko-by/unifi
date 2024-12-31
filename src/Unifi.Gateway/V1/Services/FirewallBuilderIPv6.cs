@@ -27,6 +27,9 @@ namespace Unifi.Gateway.V1.Services
         private async Task AppendFilterRulesAsync(SystemConfiguration cfg, StringBuilder rules, string[] wans, string[] lans)
         {
             rules.AppendLine($"""
+                # WANs: '{string.Join(", ", wans)}'
+                # LANs: '{string.Join(", ", lans)}'
+                
                 *filter
                 :INPUT DROP [0:0]
                 :FORWARD DROP [0:0]
