@@ -1,29 +1,32 @@
-﻿using System.Text;
+﻿using Microsoft.Extensions.Options;
+using System.Text;
 using System.Text.Json.Nodes;
 using Unifi.Gateway.Common.Interfaces;
+using Unifi.Gateway.Common.Models;
 using Unifi.Gateway.V1.Interfaces;
 using Unifi.Gateway.V1.Models;
 
 namespace Unifi.Gateway.V1.Services
 {
-    public class FirewallBuilderIPv4(INetworkInfoService network, IFileReader fileReader) : IFirewallBuilderIPv4
+    public class FirewallBuilderIPv4(INetworkInfoService network, IFileReader fileReader, IOptions<FirewallOptions> options) : IFirewallBuilderIPv4
     {
         private readonly INetworkInfoService network = network;
         private readonly IFileReader fileReader = fileReader;
+        private readonly IOptions<FirewallOptions> options = options;
 
         public async Task<string> BuildAsync(SystemConfiguration cfg)
         {
-            const string wan = "eth0";
-            const string lan = "eth1";
+            var wans = options.Value.IPv4WANs.Split(",");
+            var lans = options.Value.IPv4LANs.Split(",");
             var rules = new StringBuilder();
 
-            await AppendNatRulesAsync(cfg, rules, wan);
-            await AppendFilterRulesAsync(cfg, rules, wan, lan);
+            await AppendNatRulesAsync(cfg, rules, wans);
+            await AppendFilterRulesAsync(cfg, rules, wans, lans);
 
             return rules.ToString();
         }
 
-        private async Task AppendFilterRulesAsync(SystemConfiguration cfg, StringBuilder rules, string wan, string lan)
+        private async Task AppendFilterRulesAsync(SystemConfiguration cfg, StringBuilder rules, string[] wans, string[] lans)
         {
             rules.AppendLine($"""
                 *filter
@@ -69,11 +72,17 @@ namespace Unifi.Gateway.V1.Services
                 -A unifi-before-input -i lo -j ACCEPT
                 -A unifi-before-output -o lo -j ACCEPT
                 -A unifi-before-input -p udp -m udp --sport 67 --dport 68 -j ACCEPT
-                -A unifi-before-input -i {lan} -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
-                -A unifi-before-input -i {lan} -m conntrack --ctstate INVALID -j DROP
-                -A unifi-after-output -o {lan} -j ACCEPT
-
                 """);
+
+            foreach (var lan in lans)
+            {
+                rules.AppendLine($"""
+                    -A unifi-before-input -i {lan} -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+                    -A unifi-before-input -i {lan} -m conntrack --ctstate INVALID -j DROP
+                    -A unifi-after-output -o {lan} -j ACCEPT
+                    """);
+                rules.AppendLine();
+            }
 
             var custom = await fileReader.ReadAsync("/etc/iptables/custom-filter.v4");
             if (!string.IsNullOrEmpty(custom))
@@ -86,15 +95,24 @@ namespace Unifi.Gateway.V1.Services
             AddVpnRules(cfg, rules, "remote_user_vpn_network", "# Point-to-Point VPNs");
             AddVpnRules(cfg, rules, "remote_site_vpn_network", "# Site-to-Site VPNs");
 
-            AddVpnToInternetRules(cfg, rules, "remote_user_vpn_network", wan);
+            foreach(var wan in wans)
+            {
+                AddVpnToInternetRules(cfg, rules, "remote_user_vpn_network", wan);
+            }
             AddVpnToSitesRules(cfg, rules, "remote_user_vpn_network", "remote_site_vpn_network");
 
-            AppendRules(rules, BuildFilters(cfg, "WAN_LOCAL", wan, "unifi-user-input", true));
-            AppendRules(rules, BuildFilters(cfg, "WAN_IN", wan, "unifi-user-forward", true));
-            AppendRules(rules, BuildFilters(cfg, "WAN_OUT", wan, "unifi-user-output", false));
-            AppendRules(rules, BuildFilters(cfg, "LAN_LOCAL", lan, "unifi-user-input", true));
-            AppendRules(rules, BuildFilters(cfg, "LAN_IN", lan, "unifi-user-forward", true));
-            AppendRules(rules, BuildFilters(cfg, "LAN_OUT", lan, "unifi-user-forward", false));
+            foreach (var wan in wans)
+            {
+                AppendRules(rules, BuildFilters(cfg, "WAN_LOCAL", wan, "unifi-user-input", true));
+                AppendRules(rules, BuildFilters(cfg, "WAN_IN", wan, "unifi-user-forward", true));
+                AppendRules(rules, BuildFilters(cfg, "WAN_OUT", wan, "unifi-user-output", false));
+            }
+            foreach (var lan in lans)
+            {
+                AppendRules(rules, BuildFilters(cfg, "LAN_LOCAL", lan, "unifi-user-input", true));
+                AppendRules(rules, BuildFilters(cfg, "LAN_IN", lan, "unifi-user-forward", true));
+                AppendRules(rules, BuildFilters(cfg, "LAN_OUT", lan, "unifi-user-forward", false));
+            }
 
             rules.AppendLine("COMMIT");
             rules.AppendLine();
@@ -347,7 +365,7 @@ namespace Unifi.Gateway.V1.Services
             }
         }
 
-        private async Task AppendNatRulesAsync(SystemConfiguration cfg, StringBuilder rules, string wan)
+        private async Task AppendNatRulesAsync(SystemConfiguration cfg, StringBuilder rules, string[] wans)
         {
             rules.AppendLine($"""
                 *nat
@@ -366,11 +384,14 @@ namespace Unifi.Gateway.V1.Services
                 rules.AppendLine();
             }
 
-            var lines = GetNatTables(cfg, wan);
+            var lines = GetNatTables(cfg, wans);
             AppendRules(rules, lines);
 
             rules.AppendLine("# IPSec");
-            rules.AppendLine($"-A POSTROUTING -o {wan} -m policy --dir out --pol ipsec -j ACCEPT");
+            foreach (var wan in wans)
+            {
+                rules.AppendLine($"-A POSTROUTING -o {wan} -m policy --dir out --pol ipsec -j ACCEPT");
+            }
             rules.AppendLine();
 
             AppendRules(rules, BuildMasqueradeRules(cfg));
@@ -416,75 +437,78 @@ namespace Unifi.Gateway.V1.Services
             }
         }
 
-        private static IEnumerable<string> GetNatTables(SystemConfiguration cfg, string wan)
+        private static IEnumerable<string> GetNatTables(SystemConfiguration cfg, string[] wans)
         {
             var cache = new HashSet<string>();
 
             yield return "# Port forwarding";
-            foreach (var (_, rule) in cfg.Unifi.PortForward.Rules)
+            foreach (var wan in wans)
             {
-                var data = rule.Split(",").Select(t => t.Split("=")).ToDictionary(t => t[0], t => t[1]);
-                var source = data["src"];
-                var originalPort = data["dst_port"].Trim('\'');
-                var address = data["fwd"];
-                var targetPort = data["fwd_port"].Trim('\'');
-                var tcp = data["tcp"] == "1";
-                var udp = data["udp"] == "1";
-                if (!tcp && !udp) continue;
-
-                var protocol = (tcp, udp) switch
+                foreach (var (_, rule) in cfg.Unifi.PortForward.Rules)
                 {
-                    (true, false) => "tcp",
-                    (false, true) => "udp",
-                    _ => "tcp_udp"
-                };
+                    var data = rule.Split(",").Select(t => t.Split("=")).ToDictionary(t => t[0], t => t[1]);
+                    var source = data["src"];
+                    var originalPort = data["dst_port"].Trim('\'');
+                    var address = data["fwd"];
+                    var targetPort = data["fwd_port"].Trim('\'');
+                    var tcp = data["tcp"] == "1";
+                    var udp = data["udp"] == "1";
+                    if (!tcp && !udp) continue;
 
-                if (!CheckPortForwardRules(cfg.PortForward.Rules.Select(t => t.Value))) continue;
-                if (!CheckFirewallRules(cfg.Firewall.Names["WAN_IN"].Rules.Select(t => t.Value))) continue;
-
-                var sourceRule = source == "0.0.0.0" ? "-i " + wan : "-s " + source;
-
-                if (tcp)
-                {
-                    yield return $"-A PREROUTING {sourceRule} -p tcp --dport {originalPort} -j DNAT --to-destination {address}:{targetPort}";
-                }
-                if (udp)
-                {
-                    yield return $"-A PREROUTING {sourceRule} -p udp --dport {originalPort} -j DNAT --to-destination {address}:{targetPort}";
-                }
-
-                bool CheckFirewallRules(IEnumerable<FirewallRule> rules)
-                {
-                    foreach (var rule in rules)
+                    var protocol = (tcp, udp) switch
                     {
-                        if (rule.Action != "accept") continue;
-                        if (rule.Protocol != protocol) continue;
-                        if (rule.Destination?.Address != address) continue;
-                        if (rule.Destination?.Port != targetPort) continue;
+                        (true, false) => "tcp",
+                        (false, true) => "udp",
+                        _ => "tcp_udp"
+                    };
 
-                        if (source == "0.0.0.0" && rule.Source != null) continue;
-                        if (source != "0.0.0.0" && rule.Source?.Address != source) continue;
+                    if (!CheckPortForwardRules(cfg.PortForward.Rules.Select(t => t.Value))) continue;
+                    if (!CheckFirewallRules(cfg.Firewall.Names["WAN_IN"].Rules.Select(t => t.Value))) continue;
 
-                        return true;
+                    var sourceRule = source == "0.0.0.0" ? "-i " + wan : "-s " + source;
+
+                    if (tcp)
+                    {
+                        yield return $"-A PREROUTING {sourceRule} -p tcp --dport {originalPort} -j DNAT --to-destination {address}:{targetPort}";
+                    }
+                    if (udp)
+                    {
+                        yield return $"-A PREROUTING {sourceRule} -p udp --dport {originalPort} -j DNAT --to-destination {address}:{targetPort}";
                     }
 
-                    return false;
-                }
-
-                bool CheckPortForwardRules(IEnumerable<PortForwardRule> rules)
-                {
-                    foreach (var rule in rules)
+                    bool CheckFirewallRules(IEnumerable<FirewallRule> rules)
                     {
-                        if (rule.Protocol != protocol) continue;
-                        if (rule.OriginalPort != originalPort) continue;
-                        if (rule.Destination.Address != address) continue;
-                        var destinationPort = rule.Destination.Port ?? rule.OriginalPort;
-                        if (destinationPort != targetPort) continue;
+                        foreach (var rule in rules)
+                        {
+                            if (rule.Action != "accept") continue;
+                            if (rule.Protocol != protocol) continue;
+                            if (rule.Destination?.Address != address) continue;
+                            if (rule.Destination?.Port != targetPort) continue;
 
-                        return true;
+                            if (source == "0.0.0.0" && rule.Source != null) continue;
+                            if (source != "0.0.0.0" && rule.Source?.Address != source) continue;
+
+                            return true;
+                        }
+
+                        return false;
                     }
 
-                    return false;
+                    bool CheckPortForwardRules(IEnumerable<PortForwardRule> rules)
+                    {
+                        foreach (var rule in rules)
+                        {
+                            if (rule.Protocol != protocol) continue;
+                            if (rule.OriginalPort != originalPort) continue;
+                            if (rule.Destination.Address != address) continue;
+                            var destinationPort = rule.Destination.Port ?? rule.OriginalPort;
+                            if (destinationPort != targetPort) continue;
+
+                            return true;
+                        }
+
+                        return false;
+                    }
                 }
             }
 

@@ -1,27 +1,30 @@
-﻿using System.Text;
+﻿using Microsoft.Extensions.Options;
+using System.Text;
 using System.Text.Json.Nodes;
 using Unifi.Gateway.Common.Interfaces;
+using Unifi.Gateway.Common.Models;
 using Unifi.Gateway.V1.Interfaces;
 using Unifi.Gateway.V1.Models;
 
 namespace Unifi.Gateway.V1.Services
 {
-    public class FirewallBuilderIPv6(IFileReader fileReader) : IFirewallBuilderIPv6
+    public class FirewallBuilderIPv6(IFileReader fileReader, IOptions<FirewallOptions> options) : IFirewallBuilderIPv6
     {
         private readonly IFileReader fileReader = fileReader;
+        private readonly IOptions<FirewallOptions> options = options;
 
         public async Task<string> BuildAsync(SystemConfiguration cfg)
         {
-            const string wan = "eth0";
-            const string lan = "eth1";
+            var wans = options.Value.IPv4WANs.Split(",");
+            var lans = options.Value.IPv4LANs.Split(",");
             var rules = new StringBuilder();
 
-            await AppendFilterRulesAsync(cfg, rules, wan, lan);
+            await AppendFilterRulesAsync(cfg, rules, wans, lans);
 
             return rules.ToString();
         }
 
-        private async Task AppendFilterRulesAsync(SystemConfiguration cfg, StringBuilder rules, string wan, string lan)
+        private async Task AppendFilterRulesAsync(SystemConfiguration cfg, StringBuilder rules, string[] wans, string[] lans)
         {
             rules.AppendLine($"""
                 *filter
@@ -68,11 +71,17 @@ namespace Unifi.Gateway.V1.Services
                 -A unifi6-before-output -o lo -j ACCEPT
                 -A unifi6-before-input -m rt --rt-type 0 -j DROP
                 -A unifi6-before-output -m rt --rt-type 0 -j DROP
-                -A unifi6-before-input -i {lan} -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
-                -A unifi6-before-input -i {lan} -m conntrack --ctstate INVALID -j DROP
-                -A unifi6-after-output -o {lan} -j ACCEPT
-
                 """);
+
+            foreach (var lan in lans)
+            {
+                rules.AppendLine($"""
+                    -A unifi6-before-input -i {lan} -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+                    -A unifi6-before-input -i {lan} -m conntrack --ctstate INVALID -j DROP
+                    -A unifi6-after-output -o {lan} -j ACCEPT
+                    """);
+                rules.AppendLine();
+            }
 
             var custom = await fileReader.ReadAsync("/etc/iptables/custom-filter.v6");
             if (!string.IsNullOrEmpty(custom))
@@ -82,12 +91,18 @@ namespace Unifi.Gateway.V1.Services
                 rules.AppendLine();
             }
 
-            AppendRules(rules, BuildFilters(cfg, "WANv6_LOCAL", wan, "unifi6-user-input", true));
-            AppendRules(rules, BuildFilters(cfg, "WANv6_IN", wan, "unifi6-user-forward", true));
-            AppendRules(rules, BuildFilters(cfg, "WANv6_OUT", wan, "unifi6-user-output", false));
-            AppendRules(rules, BuildFilters(cfg, "LANv6_LOCAL", lan, "unifi6-user-input", true));
-            AppendRules(rules, BuildFilters(cfg, "LANv6_IN", lan, "unifi6-user-forward", true));
-            AppendRules(rules, BuildFilters(cfg, "LANv6_OUT", lan, "unifi6-user-forward", false));
+            foreach (var wan in wans)
+            {
+                AppendRules(rules, BuildFilters(cfg, "WANv6_LOCAL", wan, "unifi6-user-input", true));
+                AppendRules(rules, BuildFilters(cfg, "WANv6_IN", wan, "unifi6-user-forward", true));
+                AppendRules(rules, BuildFilters(cfg, "WANv6_OUT", wan, "unifi6-user-output", false));
+            }
+            foreach (var lan in lans)
+            {
+                AppendRules(rules, BuildFilters(cfg, "LANv6_LOCAL", lan, "unifi6-user-input", true));
+                AppendRules(rules, BuildFilters(cfg, "LANv6_IN", lan, "unifi6-user-forward", true));
+                AppendRules(rules, BuildFilters(cfg, "LANv6_OUT", lan, "unifi6-user-forward", false));
+            }
 
             rules.AppendLine("COMMIT");
             rules.AppendLine();

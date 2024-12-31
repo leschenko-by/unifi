@@ -1,6 +1,8 @@
-﻿using Moq;
+﻿using Microsoft.Extensions.Options;
+using Moq;
 using Moq.AutoMock;
 using System.Net;
+using System.Net.Sockets;
 using Unifi.Gateway.Common.Interfaces;
 using Unifi.Gateway.Common.Models;
 using Unifi.Gateway.V1.Interfaces;
@@ -15,6 +17,8 @@ namespace Unifi.Tests
 
         public SystemConfigurationServiceTests()
         {
+            mocker.Use(Options.Create(new FirewallOptions()));
+
             mocker.Use<IFirewallBuilderIPv4>(mocker.CreateInstance<FirewallBuilderIPv4>());
             mocker.Use<IFirewallBuilderIPv6>(mocker.CreateInstance<FirewallBuilderIPv6>());
 

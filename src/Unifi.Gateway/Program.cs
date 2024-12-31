@@ -78,6 +78,7 @@ static async Task RunAsync(string[] args)
         ]));
     });
     builder.Services.AddSystemd();
+    builder.Services.Configure<FirewallOptions>(builder.Configuration.GetSection("Firewall"));
     builder.Services.Configure<GeneralServiceOptions>(builder.Configuration.GetSection("DiscoveryService"));
     builder.Services.AddSingleton<IConnectRequest, ConnectRequest>();
     builder.Services.AddKeyedTransient<ISystemConfigurationService, SystemConfigurationV1Service>("v1");
