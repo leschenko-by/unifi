@@ -15,8 +15,8 @@ namespace Unifi.Gateway.V1.Services
 
         public async Task<string> BuildAsync(SystemConfiguration cfg)
         {
-            var wans = options.Value.IPv4WANs.Split(",");
-            var lans = options.Value.IPv4LANs.Split(",");
+            var wans = options.Value.IPv6WANs.Split(",");
+            var lans = options.Value.IPv6LANs.Split(",");
             var rules = new StringBuilder();
 
             await AppendFilterRulesAsync(cfg, rules, wans, lans);
