@@ -70,7 +70,7 @@ namespace Unifi.Gateway.Common.Services
 
             if (process.ExitCode != 0)
             {
-                logger.LogWarning("iptables-restore has been failed with code: {exitCode}", process.ExitCode);
+                logger.LogWarning("{cmd} has been failed with code: {exitCode}", cmd, process.ExitCode);
                 logger.LogWarning(errors);
                 logger.LogWarning(output);
                 return false;
