@@ -172,7 +172,8 @@ namespace Unifi.Gateway.V1.Services
                             {
                                 foreach (var proto in protos)
                                 {
-                                    yield return $"-A {chain} {direction} {nic} {source} {sourceMac} {destination} {proto} {sport} {dport} {state} -j {action} #{rule.Description}";
+                                    yield return "# --- {rule.Description} ---";
+                                    yield return $"-A {chain} {direction} {nic} {source} {sourceMac} {destination} {proto} {sport} {dport} {state} -j {action}";
                                 }
                             }
                         }
