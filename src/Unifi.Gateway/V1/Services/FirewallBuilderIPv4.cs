@@ -216,7 +216,7 @@ namespace Unifi.Gateway.V1.Services
                             {
                                 foreach (var proto in protos)
                                 {
-                                    yield return "# --- {rule.Description} ---";
+                                    yield return $"# --- {rule.Description} ---";
                                     yield return $"-A {chain} {source} {sourceMac} {destination} {proto} {sport} {dport} {state} -j {action}";
                                 }
                             }
