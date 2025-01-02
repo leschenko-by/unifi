@@ -63,6 +63,9 @@
     <None Update="dump\r05-res.bin">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="dump\system2.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="dump\system.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

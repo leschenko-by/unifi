@@ -162,13 +162,19 @@ namespace Unifi.Gateway.V1.Services
                     sourceMac = "--mac-source " + sourceMac;
                 }
 
-                foreach (var (source, sport) in sources.Zip(sports))
+                foreach (var source in sources)
                 {
-                    foreach (var (destination, dport) in destinations.Zip(dports))
+                    foreach (var sport in sports)
                     {
-                        foreach (var proto in protos)
+                        foreach (var destination in destinations)
                         {
-                            yield return $"-A {chain} {direction} {nic} {source} {sourceMac} {destination} {proto} {sport} {dport} {state} -j {action}";
+                            foreach (var dport in dports)
+                            {
+                                foreach (var proto in protos)
+                                {
+                                    yield return $"-A {chain} {direction} {nic} {source} {sourceMac} {destination} {proto} {sport} {dport} {state} -j {action} #{rule.Description}";
+                                }
+                            }
                         }
                     }
                 }

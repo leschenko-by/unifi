@@ -31,7 +31,7 @@ namespace Unifi.Tests
             // Arrange
             var configuration = new Configuration();
 
-            var systemCfg = File.ReadAllText(Path.Combine("dump", "system.json"));
+            var systemCfg = File.ReadAllText(Path.Combine("dump", "system2.json"));
 
             var lanip = IPAddress.Parse("192.168.0.1");
             var wanip = IPAddress.Parse("134.17.26.13");
