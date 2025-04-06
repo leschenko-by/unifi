@@ -557,7 +557,17 @@ namespace Unifi.Gateway.Common.Devices
 
         private async Task<IpNeighbor[]> GetNeighborsAsync()
         {
-            var lines = (await ExecIpAsync("n ls")).Split('\n', '\r', StringSplitOptions.RemoveEmptyEntries);
+            var data = await ExecIpAsync("n ls");
+            try
+            {
+                await File.WriteAllTextAsync("/usr/src/unifi/arp.txt", data);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Failed to write debug to file");
+            }
+
+            var lines = data.Split('\n', '\r', StringSplitOptions.RemoveEmptyEntries);
 
             var query =
                 from line in lines
