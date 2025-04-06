@@ -571,7 +571,13 @@ namespace Unifi.Gateway.Common.Devices
             {
                 var debug = new StringBuilder(data);
                 debug.AppendLine();
-
+                debug.AppendLine();
+                foreach (var line in lines)
+                {
+                    debug.AppendLine(line);
+                }
+                debug.AppendLine();
+                debug.AppendLine();
                 foreach (var arp in result)
                 {
                     debug.AppendLine($"{arp.Ip} {arp.Mac} {arp.Nic}");
