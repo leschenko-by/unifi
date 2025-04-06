@@ -574,7 +574,8 @@ namespace Unifi.Gateway.Common.Devices
                 debug.AppendLine();
                 foreach (var line in lines)
                 {
-                    debug.AppendLine(line);
+                    var items = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    debug.AppendLine(string.Format("{0}, {1}, {2}, {3}", line.Trim(), items.Last(), items.Length, string.Join('-', items)));
                 }
                 debug.AppendLine();
                 debug.AppendLine();
