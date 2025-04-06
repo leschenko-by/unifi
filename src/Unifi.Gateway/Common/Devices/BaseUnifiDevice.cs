@@ -569,9 +569,7 @@ namespace Unifi.Gateway.Common.Devices
             var result = query.ToArray();
             try
             {
-                var debug = new StringBuilder(data);
-                debug.AppendLine();
-                debug.AppendLine();
+                var debug = new StringBuilder();
                 foreach (var line in lines)
                 {
                     var items = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
