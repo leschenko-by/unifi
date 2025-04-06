@@ -569,7 +569,9 @@ namespace Unifi.Gateway.Common.Devices
             var result = query.ToArray();
             try
             {
-                var debug = new StringBuilder();
+                var debug = new StringBuilder(data);
+                debug.AppendLine();
+
                 foreach (var arp in result)
                 {
                     debug.AppendLine($"{arp.Ip} {arp.Mac} {arp.Nic}");
