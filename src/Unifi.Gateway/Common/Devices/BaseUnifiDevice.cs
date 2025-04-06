@@ -503,12 +503,17 @@ namespace Unifi.Gateway.Common.Devices
                 {
                     var mac = string.Join(":", eth.MacAddress.Select(t => t.ToString("x2")));
                     var filteredArps = neighbors.Where(t => t.Nic == eth.LocalNic).ToList();
-                    var hosts = filteredArps.Select(line => new JsonObject
+                    var hosts = filteredArps.GroupBy(t => t.Mac).Select(g => new JsonObject
                     {
                         ["age"] = 0,
                         ["authorized"] = true,
-                        ["ip"] = line.Ip,
-                        ["mac"] = line.Mac,
+                        ["ip"] = g.ToList().FirstOrDefault(
+                            t => IPAddress.TryParse(t.Ip, out var ip) && 
+                                ip.AddressFamily == AddressFamily.InterNetwork)?.Ip ?? "",
+                        ["ip6"] = g.ToList().FirstOrDefault(
+                            t => IPAddress.TryParse(t.Ip, out var ip) &&
+                                ip.AddressFamily == AddressFamily.InterNetworkV6)?.Ip ?? "",
+                        ["mac"] = g.Key,
                         ["uptime"] = 0,
                         ["tx_bytes"] = 0,
                         ["rx_bytes"] = 0,
