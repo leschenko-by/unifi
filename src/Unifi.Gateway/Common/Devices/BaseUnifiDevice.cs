@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
+using System.Diagnostics;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
@@ -478,18 +479,10 @@ namespace Unifi.Gateway.Common.Devices
         {
             await Task.Yield();
 
-            ArpRecord[] arpstable = [];
-            if (File.Exists("/proc/net/arp") && serviceOptions.Value.AnalyseARP)
+            IpNeighbor[] neighbors = [];
+            if (serviceOptions.Value.AnalyseARP)
             {
-                var rx = RegExProvider.GetArpRegEx();
-                var lines = await File.ReadAllLinesAsync("/proc/net/arp");
-                var query =
-                    from line in lines
-                    let match = rx.Match(line)
-                    where match.Success
-                    select new ArpRecord(match.Groups["ip"].Value, match.Groups["mac"].Value, match.Groups["nic"].Value);
-
-                arpstable = query.ToArray();
+                neighbors = await GetNeighborsAsync();
             }
 
             var eths = new List<JsonObject>();
@@ -509,39 +502,8 @@ namespace Unifi.Gateway.Common.Devices
                 else
                 {
                     var mac = string.Join(":", eth.MacAddress.Select(t => t.ToString("x2")));
-
-                    var filteredArps = arpstable.Where(t => t.Nic == eth.LocalNic).ToList();
-
-                    var semaphore = new SemaphoreSlim(16);
-                    var tasks = filteredArps.Select(async t =>
-                    {
-                        await semaphore.WaitAsync();
-                        try
-                        {
-                            using var ping = new Ping();
-                            var reply = await ping.SendPingAsync(IPAddress.Parse(t.Ip));
-                            if (reply != null && reply.Status == IPStatus.Success)
-                            {
-                                logger.LogDebug("Ping {ip} => {time}ms", t.Ip, reply.RoundtripTime);
-                                return true;
-                            }
-
-                            logger.LogDebug("Ping {ip} completed with status: {status}", t.Ip, reply?.Status);
-                            return false;
-                        }
-                        catch (Exception ex)
-                        {
-                            logger.LogError(ex, "Can't ping {ip}", t.Ip);
-                            return false;
-                        }
-                        finally
-                        {
-                            semaphore.Release();
-                        }
-                    });
-                    var available = await Task.WhenAll(tasks);
-
-                    var hosts = filteredArps.Where((_, i) => available[i]).Select(line => new JsonObject
+                    var filteredArps = neighbors.Where(t => t.Nic == eth.LocalNic).ToList();
+                    var hosts = filteredArps.Select(line => new JsonObject
                     {
                         ["age"] = 0,
                         ["authorized"] = true,
@@ -591,6 +553,45 @@ namespace Unifi.Gateway.Common.Devices
             }
 
             return new JsonArray(eths.ToArray());
+        }
+
+        private async Task<IpNeighbor[]> GetNeighborsAsync()
+        {
+            var lines = (await ExecAsync("ip n ls")).Split('\n', '\r', StringSplitOptions.RemoveEmptyEntries);
+
+            var query =
+                from line in lines
+                let items = line.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                where items.Last() == "REACHABLE" && items.Length == 6
+                select new IpNeighbor(items[0], items[4], items[2]);
+
+            var arpstable = query.ToArray();
+            return arpstable;
+        }
+
+        private async Task<string> ExecAsync(string cmd)
+        {
+            using var process = new Process();
+            process.StartInfo.FileName = cmd;
+            process.StartInfo.UseShellExecute = false;
+            process.StartInfo.RedirectStandardInput = false;
+            process.StartInfo.RedirectStandardOutput = true;
+            process.StartInfo.RedirectStandardError = true;
+            process.Start();
+
+            await process.WaitForExitAsync();
+
+            var errors = process.StandardError.ReadToEnd();
+            var output = process.StandardOutput.ReadToEnd();
+
+            if (process.ExitCode != 0)
+            {
+                logger.LogWarning("{cmd} has been failed with code: {exitCode}", cmd, process.ExitCode);
+                logger.LogWarning(errors);
+                logger.LogWarning(output);
+                return "";
+            }
+            return output;
         }
 
         public void RefreshInterfaces()
