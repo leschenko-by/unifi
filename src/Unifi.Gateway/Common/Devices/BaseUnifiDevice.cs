@@ -558,15 +558,6 @@ namespace Unifi.Gateway.Common.Devices
         private async Task<IpNeighbor[]> GetNeighborsAsync()
         {
             var data = await ExecIpAsync("n ls");
-            try
-            {
-                await File.WriteAllTextAsync("/usr/src/unifi/arp.txt", data);
-            }
-            catch (Exception ex)
-            {
-                logger.LogWarning(ex, "Failed to write debug to file");
-            }
-
             var lines = data.Split('\n', '\r', StringSplitOptions.RemoveEmptyEntries);
 
             var query =
@@ -575,8 +566,22 @@ namespace Unifi.Gateway.Common.Devices
                 where items.Last() == "REACHABLE" && items.Length == 6
                 select new IpNeighbor(items[0], items[4], items[2]);
 
-            var arpstable = query.ToArray();
-            return arpstable;
+            var result = query.ToArray();
+            try
+            {
+                var debug = new StringBuilder();
+                foreach (var arp in result)
+                {
+                    debug.AppendLine($"{arp.Ip} {arp.Mac} {arp.Nic}");
+                }
+                await File.WriteAllTextAsync("/usr/src/unifi/arp.txt", debug.ToString());
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Failed to write debug to file");
+            }
+
+            return result;
         }
 
         private async Task<string> ExecIpAsync(string cmd)
