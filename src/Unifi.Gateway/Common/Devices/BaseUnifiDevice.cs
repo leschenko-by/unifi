@@ -557,24 +557,28 @@ namespace Unifi.Gateway.Common.Devices
 
         private async Task<IpNeighbor[]> GetNeighborsAsync()
         {
+            var result = new List<IpNeighbor>();
+            var debug = new StringBuilder();
             var data = await ExecIpAsync("n ls");
-            var lines = data.Split('\n', '\r', StringSplitOptions.RemoveEmptyEntries);
+            using var reader = new StringReader(data);
+            string? line;
+            while (!string.IsNullOrEmpty(line = reader.ReadLine()))
+            {
+                var items = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                if (items.Last() == "REACHABLE" && items.Length == 6)
+                {
+                    var item = new IpNeighbor(items[0], items[4], items[2]);
+                    result.Add(item);
+                    debug.AppendLine(string.Format("+ {0} {1} {2} ==> {3}", items[0], items[4], items[2], line));
+                }
+                else
+                {
+                    debug.AppendLine(string.Format("- {0}", line));
+                }
+            }
 
-            var query =
-                from line in lines
-                let items = line.Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                where items.Last() == "REACHABLE" && items.Length == 6
-                select new IpNeighbor(items[0], items[4], items[2]);
-
-            var result = query.ToArray();
             try
             {
-                var debug = new StringBuilder();
-                foreach (var line in lines)
-                {
-                    var items = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                    debug.AppendLine(string.Format("{0}, {1}, {2}, {3}", line.Trim(), items.Last(), items.Length, string.Join('-', items)));
-                }
                 debug.AppendLine();
                 debug.AppendLine();
                 foreach (var arp in result)
@@ -588,7 +592,7 @@ namespace Unifi.Gateway.Common.Devices
                 logger.LogWarning(ex, "Failed to write debug to file");
             }
 
-            return result;
+            return result.ToArray();
         }
 
         private async Task<string> ExecIpAsync(string cmd)
