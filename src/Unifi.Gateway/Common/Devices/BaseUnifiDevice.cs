@@ -557,7 +557,7 @@ namespace Unifi.Gateway.Common.Devices
 
         private async Task<IpNeighbor[]> GetNeighborsAsync()
         {
-            var lines = (await ExecAsync("ip n ls")).Split('\n', '\r', StringSplitOptions.RemoveEmptyEntries);
+            var lines = (await ExecIpAsync("n ls")).Split('\n', '\r', StringSplitOptions.RemoveEmptyEntries);
 
             var query =
                 from line in lines
@@ -569,10 +569,11 @@ namespace Unifi.Gateway.Common.Devices
             return arpstable;
         }
 
-        private async Task<string> ExecAsync(string cmd)
+        private async Task<string> ExecIpAsync(string cmd)
         {
             using var process = new Process();
-            process.StartInfo.FileName = cmd;
+            process.StartInfo.FileName = "/usr/bin/ip";
+            process.StartInfo.Arguments = cmd;
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.RedirectStandardInput = false;
             process.StartInfo.RedirectStandardOutput = true;
