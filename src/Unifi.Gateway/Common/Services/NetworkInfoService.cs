@@ -27,24 +27,25 @@ namespace Unifi.Gateway.Common.Services
             foreach (var port in ports)
             {
                 var localNic = port;
-                var pppoeNic = string.Empty;
-                if (localNic.Contains('/'))
+                string[] extraNics = [];
+                if (localNic.Contains('+'))
                 {
-                    var data = localNic.Split('/');
+                    var data = localNic.Split('+');
                     localNic = data[0];
-                    pppoeNic = data[1];
+                    extraNics = [.. data.Skip(1)];
                 }
 
                 var eth = networks.FirstOrDefault(n => n.Id == localNic);
-                var pppoe = string.IsNullOrEmpty(pppoeNic)
-                    ? null
-                    : networks.FirstOrDefault(n => n.Id == pppoeNic);
-
                 if (eth != null)
                 {
-                    var nic = pppoe ?? eth;
+                    var extraEths = extraNics
+                        .Select(nicId => networks.FirstOrDefault(n => n.Id == nicId))
+                        .Where(nic => nic != null)
+                        .OfType<NetworkInterface>()
+                        .ToArray();
+
                     var mac = eth.GetPhysicalAddress().GetAddressBytes();
-                    interfaces.Add(new EthernetInterface(nic, "eth" + index, mac));
+                    interfaces.Add(new EthernetInterface(eth, "eth" + index, mac, extraEths));
                 }
                 else
                 {

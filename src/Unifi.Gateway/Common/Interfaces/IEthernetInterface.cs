@@ -1,5 +1,5 @@
 ﻿using System.Net;
-using System.Net.NetworkInformation;
+using Unifi.Gateway.Common.Services;
 
 namespace Unifi.Gateway.Common.Interfaces
 {
@@ -13,6 +13,6 @@ namespace Unifi.Gateway.Common.Interfaces
         IPAddress[] DnsAddresses { get; }
         string UnifiNic { get; }
 
-        IPInterfaceStatistics GetIPStatistics();
+        EthernetInterfaceStats GetIPStatistics();
     }
 }
