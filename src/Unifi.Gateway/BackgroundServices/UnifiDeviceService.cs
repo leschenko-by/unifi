@@ -38,6 +38,7 @@ namespace Unifi.Gateway.BackgroundServices
 
                         var message = await device.GetInformMessageAsync();
                         logger.LogDebug("Inform payload:\n{Message}", message);
+                        File.WriteAllText("/usr/src/unifi/inform_message.json", message);
                         var requestMessageData = Encoding.UTF8.GetBytes(message);
 
                         var responseMessageData = await protocol.SendRequestAsync(informUrl, key, requestMessageData, token);
