@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Unifi.Gateway.Common.Interfaces;
 using Unifi.Gateway.Common.Models;
+using Unifi.Gateway.Common.Services;
 
 namespace Unifi.Gateway.Common.Devices
 {
@@ -358,7 +359,7 @@ namespace Unifi.Gateway.Common.Devices
             };
         }
 
-        protected async Task<JsonObject> GetLanInterface(string name, int port, IPAddress address, IPAddress netmask, byte[] mac, IPInterfaceStatistics stats)
+        protected async Task<JsonObject> GetLanInterface(string name, int port, IPAddress address, IPAddress netmask, byte[] mac, EthernetInterfaceStats stats)
         {
             await Task.Yield();
 
@@ -411,7 +412,7 @@ namespace Unifi.Gateway.Common.Devices
         }
 
         protected async Task<JsonObject> GetWanInterfaceAsync(
-            string name, int port, IPAddress address, IPAddress netmask, byte[] mac, IPInterfaceStatistics stats)
+            string name, int port, IPAddress address, IPAddress netmask, byte[] mac, EthernetInterfaceStats stats)
         {
             var latency = await GetLatencyAsync();
             var result = await GetLanInterface(name, port, address, netmask, mac, stats);
