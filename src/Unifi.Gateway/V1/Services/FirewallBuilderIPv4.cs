@@ -447,36 +447,39 @@ namespace Unifi.Gateway.V1.Services
             }
         }
 
-        private static IEnumerable<string> GetNatTables(SystemConfiguration cfg, string[] wans)
+        private IEnumerable<string> GetNatTables(SystemConfiguration cfg, string[] wans)
         {
             var cache = new HashSet<string>();
 
             yield return "# Port forwarding";
-            foreach (var wan in wans)
+            foreach (var (_, rule) in cfg.Unifi.PortForward.Rules)
             {
-                foreach (var (_, rule) in cfg.Unifi.PortForward.Rules)
+                var data = rule.Split(",").Select(t => t.Split("=")).ToDictionary(t => t[0], t => t[1]);
+                var source = data["src"];
+                var originalPort = data["dst_port"].Trim('\'');
+                var address = data["fwd"];
+                var targetPort = data["fwd_port"].Trim('\'');
+                var tcp = data["tcp"] == "1";
+                var udp = data["udp"] == "1";
+                if (!tcp && !udp) continue;
+
+                var protocol = (tcp, udp) switch
                 {
-                    var data = rule.Split(",").Select(t => t.Split("=")).ToDictionary(t => t[0], t => t[1]);
-                    var source = data["src"];
-                    var originalPort = data["dst_port"].Trim('\'');
-                    var address = data["fwd"];
-                    var targetPort = data["fwd_port"].Trim('\'');
-                    var tcp = data["tcp"] == "1";
-                    var udp = data["udp"] == "1";
-                    if (!tcp && !udp) continue;
+                    (true, false) => "tcp",
+                    (false, true) => "udp",
+                    _ => "tcp_udp"
+                };
 
-                    var protocol = (tcp, udp) switch
-                    {
-                        (true, false) => "tcp",
-                        (false, true) => "udp",
-                        _ => "tcp_udp"
-                    };
+                if (!CheckPortForwardRules(cfg.PortForward.Rules.Select(t => t.Value))) continue;
+                if (!CheckFirewallRules(cfg.Firewall.Names["WAN_IN"].Rules.Select(t => t.Value))) continue;
 
-                    if (!CheckPortForwardRules(cfg.PortForward.Rules.Select(t => t.Value))) continue;
-                    if (!CheckFirewallRules(cfg.Firewall.Names["WAN_IN"].Rules.Select(t => t.Value))) continue;
+                var sources = source == "0.0.0.0"
+                    ? network.Interfaces.Where(t => wans.Contains(t?.LocalNic)).Select(t => t!.IPAddress.ToString()).ToArray()
+                    : [source];
 
-                    var sourceRule = source == "0.0.0.0" ? "-i " + wan : "-s " + source;
-
+                foreach (var ip in sources)
+                {
+                    var sourceRule = "-d " + ip;
                     if (tcp)
                     {
                         yield return $"-A PREROUTING {sourceRule} -p tcp --dport {originalPort} -j DNAT --to-destination {address}:{targetPort}";
@@ -485,40 +488,40 @@ namespace Unifi.Gateway.V1.Services
                     {
                         yield return $"-A PREROUTING {sourceRule} -p udp --dport {originalPort} -j DNAT --to-destination {address}:{targetPort}";
                     }
+                }
 
-                    bool CheckFirewallRules(IEnumerable<FirewallRule> rules)
+                bool CheckFirewallRules(IEnumerable<FirewallRule> rules)
+                {
+                    foreach (var rule in rules)
                     {
-                        foreach (var rule in rules)
-                        {
-                            if (rule.Action != "accept") continue;
-                            if (rule.Protocol != protocol) continue;
-                            if (rule.Destination?.Address != address) continue;
-                            if (rule.Destination?.Port != targetPort) continue;
+                        if (rule.Action != "accept") continue;
+                        if (rule.Protocol != protocol) continue;
+                        if (rule.Destination?.Address != address) continue;
+                        if (rule.Destination?.Port != targetPort) continue;
 
-                            if (source == "0.0.0.0" && rule.Source != null) continue;
-                            if (source != "0.0.0.0" && rule.Source?.Address != source) continue;
+                        if (source == "0.0.0.0" && rule.Source != null) continue;
+                        if (source != "0.0.0.0" && rule.Source?.Address != source) continue;
 
-                            return true;
-                        }
-
-                        return false;
+                        return true;
                     }
 
-                    bool CheckPortForwardRules(IEnumerable<PortForwardRule> rules)
+                    return false;
+                }
+
+                bool CheckPortForwardRules(IEnumerable<PortForwardRule> rules)
+                {
+                    foreach (var rule in rules)
                     {
-                        foreach (var rule in rules)
-                        {
-                            if (rule.Protocol != protocol) continue;
-                            if (rule.OriginalPort != originalPort) continue;
-                            if (rule.Destination.Address != address) continue;
-                            var destinationPort = rule.Destination.Port ?? rule.OriginalPort;
-                            if (destinationPort != targetPort) continue;
+                        if (rule.Protocol != protocol) continue;
+                        if (rule.OriginalPort != originalPort) continue;
+                        if (rule.Destination.Address != address) continue;
+                        var destinationPort = rule.Destination.Port ?? rule.OriginalPort;
+                        if (destinationPort != targetPort) continue;
 
-                            return true;
-                        }
-
-                        return false;
+                        return true;
                     }
+
+                    return false;
                 }
             }
 
