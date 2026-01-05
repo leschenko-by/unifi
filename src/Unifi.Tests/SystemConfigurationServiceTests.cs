@@ -50,7 +50,7 @@ namespace Unifi.Tests
             eth2.SetupGet(t => t.Netmask).Returns(mask);
 
             mocker.GetMock<INetworkInfoService>()
-                .SetupGet(t => t.Interfaces)
+                .SetupGet(t => t.PortInterfaces)
                 .Returns([eth0.Object, null, eth2.Object]);
 
             mocker.GetMock<INetworkInfoService>()

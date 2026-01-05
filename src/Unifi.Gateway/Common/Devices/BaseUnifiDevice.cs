@@ -67,7 +67,7 @@ namespace Unifi.Gateway.Common.Devices
             this.serviceProvider = serviceProvider;
 
             serviceOptions = serviceProvider.GetRequiredService<IOptions<GeneralServiceOptions>>();
-            discoveryInterface = network.Interfaces[serviceOptions.Value.DiscoveryPortId]
+            discoveryInterface = network.PortInterfaces[serviceOptions.Value.DiscoveryPortId]
                 ?? throw new InvalidOperationException("Network interface is not ready");
         }
 
@@ -273,7 +273,7 @@ namespace Unifi.Gateway.Common.Devices
 
         public async Task SendDiscoveryAsync(int broadcastIndex)
         {
-            var eth = network.Interfaces[serviceOptions.Value.DiscoveryPortId]
+            var eth = network.PortInterfaces[serviceOptions.Value.DiscoveryPortId]
                 ?? throw new InvalidOperationException("Network interface is not ready");
 
             var macAddress = eth.MacAddress;
@@ -313,7 +313,7 @@ namespace Unifi.Gateway.Common.Devices
         protected JsonArray GetConfigPortTable(int[] wanPorts)
         {
             var eths = new List<JsonObject>();
-            for (var i = 0; i < network.Interfaces.Count; i++)
+            for (var i = 0; i < network.PortInterfaces.Count; i++)
             {
                 eths.Add(new JsonObject
                 {
@@ -327,7 +327,7 @@ namespace Unifi.Gateway.Common.Devices
         protected async Task<JsonArray> GetInterfacesAsync(int[] wanPorts)
         {
             var eths = new List<JsonObject>();
-            foreach (var (eth, i) in network.Interfaces.Select((eth, index) => (eth, index)))
+            foreach (var (eth, i) in network.PortInterfaces.Select((eth, index) => (eth, index)))
             {
                 var port = i + 1;
 
@@ -439,9 +439,9 @@ namespace Unifi.Gateway.Common.Devices
                     ]),
                 }
             };
-            for (var i = 0; i < network.Interfaces.Count; i++)
+            for (var i = 0; i < network.PortInterfaces.Count; i++)
             {
-                var eth = network.Interfaces[i];
+                var eth = network.PortInterfaces[i];
                 if (eth is not null)
                 {
                     eths.Add(new JsonObject
@@ -487,9 +487,9 @@ namespace Unifi.Gateway.Common.Devices
             }
 
             var eths = new List<JsonObject>();
-            for (var i = 0; i < network.Interfaces.Count; i++)
+            for (var i = 0; i < network.PortInterfaces.Count; i++)
             {
-                var eth = network.Interfaces[i];
+                var eth = network.PortInterfaces[i];
                 if (eth is null)
                 {
                     eths.Add(new JsonObject

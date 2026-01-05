@@ -10,7 +10,8 @@ namespace Unifi.Gateway.Common.Services
     {
         private readonly string[] ports;
 
-        public IReadOnlyList<IEthernetInterface?> Interfaces { get; private set; } = [];
+        public IReadOnlyList<IEthernetInterface?> PortInterfaces { get; private set; } = [];
+        public IReadOnlyList<IEthernetInterface> AllInterfaces { get; private set; } = [];
 
         public NetworkInfoService(IOptions<GeneralServiceOptions> serviceOptions)
         {
@@ -55,7 +56,15 @@ namespace Unifi.Gateway.Common.Services
                 index++;
             }
 
-            Interfaces = interfaces.AsReadOnly();
+            PortInterfaces = interfaces.AsReadOnly();
+            AllInterfaces = networks
+                .Select(eth =>
+                {
+                    var mac = eth.GetPhysicalAddress().GetAddressBytes();
+                    return new EthernetInterface(eth, eth.Id, mac, []);
+                })
+                .ToList()
+                .AsReadOnly();
         }
 
         public string GetNetwork(IPAddress address, IPAddress netmask)

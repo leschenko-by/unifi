@@ -294,7 +294,7 @@ namespace Unifi.Gateway.V1.Services
                 if (name.StartsWith("ADDRv4_"))
                 {
                     var nic = name["ADDRv4_".Length..];
-                    var eth = network.Interfaces.FirstOrDefault(t => t?.UnifiNic == nic);
+                    var eth = network.PortInterfaces.FirstOrDefault(t => t?.UnifiNic == nic);
                     if (eth is not null)
                     {
                         return [eth.IPAddress.ToString()];
@@ -303,7 +303,7 @@ namespace Unifi.Gateway.V1.Services
                 else if (name.StartsWith("NETv4_"))
                 {
                     var nic = name["NETv4_".Length..];
-                    var eth = network.Interfaces.FirstOrDefault(t => t?.UnifiNic == nic);
+                    var eth = network.PortInterfaces.FirstOrDefault(t => t?.UnifiNic == nic);
                     if (eth is not null)
                     {
                         return [network.GetNetwork(eth.IPAddress, eth.Netmask)];
@@ -416,7 +416,7 @@ namespace Unifi.Gateway.V1.Services
             {
                 if (rule.Type != "masquerade") continue;
 
-                var eth = network.Interfaces.FirstOrDefault(t => t?.UnifiNic == rule.OutboundInterface);
+                var eth = network.PortInterfaces.FirstOrDefault(t => t?.UnifiNic == rule.OutboundInterface);
                 if (eth is null) continue;
 
                 if (!cfg.Firewall.Groups.NetworkGroups.TryGetValue(rule.Source.Group.NetworkGroup, out var group)) continue;
@@ -474,7 +474,7 @@ namespace Unifi.Gateway.V1.Services
                 if (!CheckFirewallRules(cfg.Firewall.Names["WAN_IN"].Rules.Select(t => t.Value))) continue;
 
                 var sources = source == "0.0.0.0"
-                    ? network.Interfaces.Where(t => wans.Contains(t?.LocalNic)).Select(t => t!.IPAddress.ToString()).ToArray()
+                    ? network.AllInterfaces.Where(t => wans.Contains(t.LocalNic)).Select(t => t.IPAddress.ToString()).ToArray()
                     : [source];
 
                 foreach (var ip in sources)

@@ -29,7 +29,7 @@ namespace Unifi.Gateway.Common.Services
 
         public async Task<byte[]> SendRequestAsync(string informUrl, byte[] key, byte[] data, CancellationToken token)
         {
-            var eth = network.Interfaces[serviceOptions.Value.DiscoveryPortId] 
+            var eth = network.PortInterfaces[serviceOptions.Value.DiscoveryPortId] 
                 ?? throw new InvalidOperationException("Network interface is not ready");
             var body = encoder.Encode(data, key, eth.MacAddress, CompressMode.Zlib, EncryptMode.Gcm);
             using var request = CreateRequestMessage(informUrl, body);
